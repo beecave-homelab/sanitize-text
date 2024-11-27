@@ -6,7 +6,8 @@ A Python script to sanitize text by replacing URLs, email addresses, company nam
 and other Personally Identifiable Information (PII) with predefined placeholders.
 
 This script leverages regular expressions and spaCy's Named Entity Recognition (NER)
-to identify and replace sensitive information.
+to identify and replace sensitive information. It automatically checks for the
+required spaCy model and installs it if not present.
 
 Author: elvee
 Date: 27-11-2024
@@ -15,12 +16,14 @@ Date: 27-11-2024
 # [Leveraging the Python Ecosystem: Use the PyPI Instead of Doing It Yourself]
 import re
 import sys
+import subprocess
 from typing import Dict, Any
 
 import click
 import spacy
 from spacy.language import Language
 from spacy.tokens import Doc
+from spacy.util import is_package
 from collections import Counter
 
 
@@ -47,6 +50,7 @@ PLACEHOLDER_MAPPING: Dict[str, str] = {
     'EMAIL': '<EMAIL>',
     'URL': '<URL>',
 }
+
 
 # [Write Object-Oriented Code]
 class Sanitizer:
@@ -102,6 +106,24 @@ class Sanitizer:
         return text
 
 
+def ensure_spacy_model(model_name: str = 'en_core_web_sm') -> None:
+    """
+    Ensure that the specified spaCy model is installed. If not, install it automatically.
+
+    Args:
+        model_name (str): The name of the spaCy model to check and install. Defaults to 'en_core_web_sm'.
+    """
+    if not is_package(model_name):
+        click.echo(f"The spaCy model '{model_name}' is not installed. Installing now...", err=True)
+        try:
+            subprocess.run([sys.executable, "-m", "spacy", "download", model_name],
+                           check=True)
+            click.echo(f"Successfully installed '{model_name}'.", err=True)
+        except subprocess.CalledProcessError as e:
+            click.echo(f"Failed to install spaCy model '{model_name}'. Please install it manually.", err=True)
+            sys.exit(1)
+
+
 # [Write Readable and Maintainable Code: Parse Command-Line Arguments]
 @click.command()
 @click.argument('input_file', type=click.File('r'), required=False, default='-')
@@ -113,13 +135,14 @@ def main(input_file: Any, output_file: Any) -> None:
 
     If INPUT_FILE is not provided, reads from standard input.
     """
+    # [Ensure spaCy model is installed]
+    ensure_spacy_model('en_core_web_sm')
+
     # [Load spaCy English model]
     try:
         nlp: Language = spacy.load('en_core_web_sm')
     except OSError:
-        click.echo("Error: The spaCy English model 'en_core_web_sm' is not installed.", err=True)
-        click.echo("Run the following command to install it:", err=True)
-        click.echo("python -m spacy download en_core_web_sm", err=True)
+        click.echo("Error: Failed to load the spaCy model after installation.", err=True)
         sys.exit(1)
 
     # [Read input text]
