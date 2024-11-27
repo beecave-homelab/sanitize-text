@@ -17,7 +17,7 @@ Date: 27-11-2024
 import re
 import sys
 import subprocess
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 import click
 import spacy
@@ -25,6 +25,7 @@ from spacy.language import Language
 from spacy.tokens import Doc
 from spacy.util import is_package
 from collections import Counter
+from pathlib import Path
 
 
 # [Use the Right Data Structures: Store Unique Values with Sets]
@@ -119,21 +120,24 @@ def ensure_spacy_model(model_name: str = 'en_core_web_sm') -> None:
             subprocess.run([sys.executable, "-m", "spacy", "download", model_name],
                            check=True)
             click.echo(f"Successfully installed '{model_name}'.", err=True)
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             click.echo(f"Failed to install spaCy model '{model_name}'. Please install it manually.", err=True)
             sys.exit(1)
 
 
 # [Write Readable and Maintainable Code: Parse Command-Line Arguments]
 @click.command()
-@click.argument('input_file', type=click.File('r'), required=False, default='-')
-@click.option('-o', '--output', 'output_file', type=click.File('w'), default='-',
-              help='Output file to write sanitized text. Defaults to standard output.')
-def main(input_file: Any, output_file: Any) -> None:
+@click.argument('input_file', type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True), required=True)
+@click.option('-o', '--output', 'output_file', type=click.Path(writable=True, file_okay=True, dir_okay=False), default=None,
+              help='Output file to write sanitized text. Defaults to appending "-sanitized" before the file extension in the input file\'s directory.')
+def main(input_file: str, output_file: Optional[str]) -> None:
     """
     Sanitize text by replacing URLs, email addresses, company names, and other PII with placeholders.
 
-    If INPUT_FILE is not provided, reads from standard input.
+    INPUT_FILE: Path to the input text file to sanitize.
+
+    If OUTPUT_FILE is not provided, the script saves the sanitized text in the same directory as INPUT_FILE,
+    appending '-sanitized' before the file extension.
     """
     # [Ensure spaCy model is installed]
     ensure_spacy_model('en_core_web_sm')
@@ -145,15 +149,39 @@ def main(input_file: Any, output_file: Any) -> None:
         click.echo("Error: Failed to load the spaCy model after installation.", err=True)
         sys.exit(1)
 
+    # [Convert input_file to Path object]
+    input_path: Path = Path(input_file)
+
+    # [Determine output file path]
+    if output_file:
+        output_path: Path = Path(output_file)
+    else:
+        # [Append '-sanitized' before the file extension]
+        if input_path.suffix:
+            output_filename = f"{input_path.stem}-sanitized{input_path.suffix}"
+        else:
+            # [Handle files without an extension]
+            output_filename = f"{input_path.name}-sanitized"
+        output_path = input_path.parent / output_filename
+
     # [Read input text]
-    input_text: str = input_file.read()
+    try:
+        input_text: str = input_path.read_text(encoding='utf-8')
+    except Exception as e:
+        click.echo(f"Error reading input file: {e}", err=True)
+        sys.exit(1)
 
     # [Instantiate Sanitizer and sanitize text]
     sanitizer: Sanitizer = Sanitizer(nlp)
     sanitized_text: str = sanitizer.sanitize_text(input_text)
 
-    # [Write output]
-    output_file.write(sanitized_text)
+    # [Write output text]
+    try:
+        output_path.write_text(sanitized_text, encoding='utf-8')
+        click.echo(f"Sanitized text has been saved to: {output_path}")
+    except Exception as e:
+        click.echo(f"Error writing to output file: {e}", err=True)
+        sys.exit(1)
 
 
 # [Main Guard: Ensures script runs only when executed directly]
