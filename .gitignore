@@ -1,0 +1,27 @@
+# Ignore everything by default
+*
+**
+
+# But include these files
+!.gitignore
+!README.md
+!requirements.txt
+!run.py
+!pyscrub-cli.py
+!LICENSE
+
+# Include all files in these directories
+!nl_entities/
+!nl_entities/**
+!sanitize_text_webui/
+!sanitize_text_webui/**
+
+# Explicitly ignore these
+.DS_Store
+__pycache__/
+*.pyc
+.env
+venv/
+output/
+tests/
+.git/
