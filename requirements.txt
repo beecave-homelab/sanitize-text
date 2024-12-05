@@ -1,3 +1,8 @@
-click
-# spacy
-pii-anonymizer
+Flask
+pytest
+python-dotenv
+Click
+halo
+scrubadub
+scrubadub_spacy
+spacy
