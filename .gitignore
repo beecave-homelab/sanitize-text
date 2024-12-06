@@ -9,7 +9,7 @@
 !run.py
 !sanitize-cli.py
 !LICENSE
-!.dockeringore
+!.dockerignore
 !docker-compose.yaml
 !Dockerfile
 
