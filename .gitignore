@@ -9,6 +9,9 @@
 !run.py
 !sanitize-cli.py
 !LICENSE
+!.dockeringore
+!docker-compose.yaml
+!Dockerfile
 
 # Include all files in these directories
 !nl_entities/
