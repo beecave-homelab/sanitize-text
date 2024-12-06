@@ -7,14 +7,14 @@
 !README.md
 !requirements.txt
 !run.py
-!pyscrub-cli.py
+!sanitize-cli.py
 !LICENSE
 
 # Include all files in these directories
 !nl_entities/
 !nl_entities/**
-!sanitize_text_webui/
-!sanitize_text_webui/**
+!sanitize_webui/
+!sanitize_webui/**
 
 # Explicitly ignore these
 .DS_Store
