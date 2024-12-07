@@ -996,10 +996,6 @@
         "filth_type": "location"
     },
     {
-        "match": "Best",
-        "filth_type": "location"
-    },
-    {
         "match": "Besthmen",
         "filth_type": "location"
     },
