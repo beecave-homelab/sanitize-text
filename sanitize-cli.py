@@ -16,7 +16,9 @@ from scrubadub.detectors import register_detector
 from custom_detectors.private_ip_detector import PrivateIPDetector
 from custom_detectors.public_ip_detector import PublicIPDetector
 from custom_detectors.url_detector import BareDomainDetector
-from custom_detectors.dutch_json_entity_detector import DutchJsonEntityDetector
+from custom_detectors.dutch_location_detector import DutchLocationDetector
+from custom_detectors.dutch_organization_detector import DutchOrganizationDetector
+from custom_detectors.dutch_name_detector import DutchNameDetector
 from custom_detectors.markdown_url_detector import MarkdownUrlDetector
 
 # Download required NLTK data
@@ -78,10 +80,10 @@ def get_available_detectors(locale=None):
     generic_detectors = {
         'email': 'Detect email addresses (e.g., user@example.com)',
         'phone': 'Detect phone numbers',
-        'url': 'Detect URLs in various formats (bare domains, www, http(s), complex paths)',
+        'url': 'Detect URLs (bare domains, www prefixes, http(s), complex paths, query parameters)',
         'markdown_url': 'Detect URLs within Markdown links [text](url)',
-        'private_ip': 'Detect private IP addresses (e.g., 192.168.x.x, 10.0.x.x, 172.16.x.x)',
-        'public_ip': 'Detect public IP addresses (any non-private IP address)'
+        'private_ip': 'Detect private IP addresses (192.168.x.x, 10.0.x.x, 172.16-31.x.x)',
+        'public_ip': 'Detect public IP addresses (any non-private IP)'
     }
     
     # Locale-specific detectors
@@ -146,24 +148,21 @@ def setup_scrubber(locale, selected_detectors=None):
     
     # Configure locale-specific detectors
     if locale == 'nl_NL':
+        dutch_detectors = {
+            'location': DutchLocationDetector,
+            'organization': DutchOrganizationDetector,
+            'name': DutchNameDetector
+        }
+        
         if not selected_detectors:
-            # Add all detectors if none specified
-            detector_list.append(
-                DutchJsonEntityDetector(
-                    name='dutch_json_entities',
-                    filth_types=['location', 'organization', 'name']
-                )
-            )
+            # Add all Dutch detectors if none specified
+            for detector_class in dutch_detectors.values():
+                detector_list.append(detector_class())
         else:
-            # Only add requested detectors with their specific filth types
-            requested_filth_types = [d for d in selected_detectors if d in available_detectors and d != 'private_ip' and d != 'public_ip']
-            if requested_filth_types:
-                detector_list.append(
-                    DutchJsonEntityDetector(
-                        name='dutch_json_entities',
-                        filth_types=requested_filth_types
-                    )
-                )
+            # Only add requested Dutch detectors
+            for detector_name, detector_class in dutch_detectors.items():
+                if detector_name in selected_detectors:
+                    detector_list.append(detector_class())
     
     # Initialize scrubber with selected detectors and custom post-processors
     scrubber = scrubadub.Scrubber(
