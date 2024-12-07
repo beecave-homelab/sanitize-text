@@ -15,6 +15,7 @@ import nltk
 from typing import ClassVar
 from scrubadub.detectors import register_detector
 from custom_detectors.private_ip_detector import PrivateIPDetector
+from custom_detectors.public_ip_detector import PublicIPDetector
 from custom_detectors.dutch_json_entity_detector import DutchJsonEntityDetector
 
 # Download required NLTK data
@@ -77,7 +78,8 @@ def get_available_detectors(locale=None):
         'email': 'Detect email addresses',
         'phone': 'Detect phone numbers',
         'url': 'Detect URLs',
-        'private_ip': 'Detect private IP addresses'
+        'private_ip': 'Detect private IP addresses',
+        'public_ip': 'Detect public IP addresses'
     }
     
     # Locale-specific detectors
@@ -122,7 +124,9 @@ def setup_scrubber(locale, selected_detectors=None):
     generic_detectors = {
         'email': EmailDetector,
         'phone': PhoneDetector,
-        'url': UrlDetector
+        'url': UrlDetector,
+        'private_ip': PrivateIPDetector,
+        'public_ip': PublicIPDetector
     }
     
     for detector_name, detector_class in generic_detectors.items():
@@ -131,10 +135,6 @@ def setup_scrubber(locale, selected_detectors=None):
                 detector_list.append(detector_class())
             except Exception as e:
                 click.echo(f"Warning: Could not add detector {detector_name}: {str(e)}", err=True)
-    
-    # Add private IP detector if selected or if no specific detectors are specified
-    if not selected_detectors or 'private_ip' in selected_detectors:
-        detector_list.append(PrivateIPDetector())
     
     # Configure locale-specific detectors
     if locale == 'nl_NL':
@@ -148,7 +148,7 @@ def setup_scrubber(locale, selected_detectors=None):
             )
         else:
             # Only add requested detectors with their specific filth types
-            requested_filth_types = [d for d in selected_detectors if d in available_detectors and d != 'private_ip']
+            requested_filth_types = [d for d in selected_detectors if d in available_detectors and d != 'private_ip' and d != 'public_ip']
             if requested_filth_types:
                 detector_list.append(
                     DutchJsonEntityDetector(
@@ -248,7 +248,8 @@ def scrub_pii(text, input, output, locale, detectors, list_detectors):
             'email': 'Detect email addresses',
             'phone': 'Detect phone numbers',
             'url': 'Detect URLs',
-            'private_ip': 'Detect private IP addresses'
+            'private_ip': 'Detect private IP addresses',
+            'public_ip': 'Detect public IP addresses'
         }
         
         click.echo("Available detectors:\n")
