@@ -16,6 +16,10 @@
 # Include all files in these directories
 !nl_entities/
 !nl_entities/**
+!custom_detectors/
+!custom_detectors/**
+!custom_entities/
+!custom_entities/**
 !sanitize_webui/
 !sanitize_webui/**
 
