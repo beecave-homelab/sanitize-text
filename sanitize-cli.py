@@ -5,7 +5,6 @@ import sys
 import click
 import scrubadub
 import scrubadub_spacy
-from scrubadub.filth import Filth
 import spacy
 from halo import Halo
 import warnings
@@ -13,6 +12,7 @@ import nltk
 from typing import ClassVar
 from scrubadub.detectors import register_detector
 from custom_detectors.private_ip_detector import PrivateIPDetector
+from custom_detectors.dutch_json_entity_detector import DutchJsonEntityDetector
 
 # Download required NLTK data
 try:
@@ -138,11 +138,14 @@ def setup_scrubber(locale, selected_detectors=None):
     # Initialize scrubber with selected detectors and custom post-processors
     scrubber = scrubadub.Scrubber(
         locale=locale,
-        detector_list=detector_list,
+        detector_list=detector_list,  # Only use our explicitly defined detectors
         post_processor_list=[
             HashedPIIReplacer(),
         ]
     )
+    
+    # Explicitly disable all other detectors
+    scrubber.detectors = {d.name: d for d in detector_list}
     
     return scrubber
 
@@ -158,98 +161,6 @@ def load_spacy_model(model_name):
         except Exception as e:
             click.echo(f"Warning: Could not load or download model {model_name}: {str(e)}", err=True)
             return None
-
-class KnownFilthDetector(scrubadub.detectors.Detector):
-    name = 'known_filth_detector'
-
-    def __init__(self, known_filth_items, **kwargs):
-        self.known_filth_items = known_filth_items
-        super().__init__(**kwargs)
-
-    def iter_filth(self, text, document_name=None):
-        # Map filth types to filth classes
-        filth_class_map = {
-            'location': LocationFilth,
-            'organization': OrganizationFilth,
-            'name': NameFilth
-        }
-
-        for item in self.known_filth_items:
-            match = item['match']
-            filth_type = item['filth_type'].lower()
-            filth_class = filth_class_map.get(filth_type, Filth)  # Default to Filth if type not found
-            
-            pos = 0
-            while True:
-                start = text.find(match, pos)
-                if start == -1:  # No more matches
-                    break
-                # Use the appropriate filth class
-                yield filth_class(
-                    beg=start,
-                    end=start + len(match),
-                    text=match,
-                    detector_name=self.name,
-                    document_name=document_name
-                )
-                pos = start + 1
-
-class LocationFilth(Filth):
-    type = 'location'
-
-class OrganizationFilth(Filth):
-    type = 'organization'
-
-class NameFilth(Filth):
-    type = 'name'
-
-@register_detector
-class DutchJsonEntityDetector(scrubadub.detectors.Detector):
-    name = 'dutch_json_entity_detector'
-    filth_cls = [LocationFilth, OrganizationFilth, NameFilth]
-
-    def __init__(self, filth_types=None, **kwargs):
-        super().__init__(**kwargs)
-        self.entities = []
-        self.filth_types = [ft.lower() for ft in filth_types] if filth_types else None
-        self._load_json_entities()
-
-    def _load_json_entities(self):
-        json_files = {
-            'nl_entities/cities.json': (LocationFilth, 'location'),
-            'nl_entities/organizations.json': (OrganizationFilth, 'organization'),
-            'nl_entities/names.json': (NameFilth, 'name')
-        }
-        
-        import json
-        for file_path, (filth_class, filth_type) in json_files.items():
-            # Skip if this filth type wasn't requested
-            if self.filth_types and filth_type not in self.filth_types:
-                continue
-                
-            try:
-                with open(file_path, 'r') as f:
-                    entities = json.load(f)
-                    for entity in entities:
-                        self.entities.append((filth_class, entity['match'], filth_type))
-            except Exception as e:
-                click.echo(f"Warning: Could not load JSON entity file {file_path}: {str(e)}", err=True)
-
-    def iter_filth(self, text, document_name=None):
-        for filth_class, match, filth_type in self.entities:
-            pos = 0
-            while True:
-                start = text.find(match, pos)
-                if start == -1:  # No more matches
-                    break
-                yield filth_class(
-                    beg=start,
-                    end=start + len(match),
-                    text=match,
-                    detector_name=self.name,
-                    document_name=document_name
-                )
-                pos = start + 1
 
 @click.command()
 @click.option(
