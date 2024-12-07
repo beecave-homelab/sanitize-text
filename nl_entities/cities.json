@@ -2508,10 +2508,6 @@
         "filth_type": "location"
     },
     {
-        "match": "Echt",
-        "filth_type": "location"
-    },
-    {
         "match": "Echteld",
         "filth_type": "location"
     },
@@ -2589,10 +2585,6 @@
     },
     {
         "match": "Eemster",
-        "filth_type": "location"
-    },
-    {
-        "match": "Een",
         "filth_type": "location"
     },
     {
