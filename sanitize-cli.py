@@ -5,6 +5,9 @@ import sys
 import click
 import scrubadub
 import scrubadub_spacy
+from scrubadub.detectors.email import EmailDetector
+from scrubadub.detectors.phone import PhoneDetector
+from scrubadub.detectors.url import UrlDetector
 import spacy
 from halo import Halo
 import warnings
@@ -69,28 +72,33 @@ def add_detector_safely(scrubber, detector_class, locale=None):
 
 def get_available_detectors(locale=None):
     """Returns a list of available detector names for the given locale."""
-    detectors = {
+    # Generic detectors available for all locales
+    generic_detectors = {
+        'email': 'Detect email addresses',
+        'phone': 'Detect phone numbers',
+        'url': 'Detect URLs',
+        'private_ip': 'Detect private IP addresses'
+    }
+    
+    # Locale-specific detectors
+    locale_detectors = {
         'nl_NL': {
             'location': 'Detect Dutch locations (cities)',
             'organization': 'Detect Dutch organization names',
-            'name': 'Detect Dutch person names',
-            'private_ip': 'Detect private IP addresses'
+            'name': 'Detect Dutch person names'
         },
         'en_US': {
-            'email': 'Detect email addresses',
-            'phone': 'Detect phone numbers',
-            'url': 'Detect URLs',
             'name': 'Detect person names (English)',
             'organization': 'Detect organization names (English)',
             'location': 'Detect locations (English)',
-            'date_of_birth': 'Detect dates of birth',
-            'private_ip': 'Detect private IP addresses'
+            'date_of_birth': 'Detect dates of birth'
         }
     }
     
     if locale:
-        return detectors.get(locale, {})
-    return detectors
+        # Combine generic detectors with locale-specific ones
+        return {**generic_detectors, **locale_detectors.get(locale, {})}
+    return locale_detectors
 
 class HashedPIIReplacer(scrubadub.post_processors.PostProcessor):
     name = 'hashed_pii_replacer'
@@ -110,11 +118,25 @@ def setup_scrubber(locale, selected_detectors=None):
         if invalid_detectors:
             click.echo(f"Warning: Invalid detector(s) for locale {locale}: {', '.join(invalid_detectors)}", err=True)
     
+    # Add generic detectors that work for all locales if selected or if no specific detectors are specified
+    generic_detectors = {
+        'email': EmailDetector,
+        'phone': PhoneDetector,
+        'url': UrlDetector
+    }
+    
+    for detector_name, detector_class in generic_detectors.items():
+        if not selected_detectors or detector_name in selected_detectors:
+            try:
+                detector_list.append(detector_class())
+            except Exception as e:
+                click.echo(f"Warning: Could not add detector {detector_name}: {str(e)}", err=True)
+    
     # Add private IP detector if selected or if no specific detectors are specified
     if not selected_detectors or 'private_ip' in selected_detectors:
         detector_list.append(PrivateIPDetector())
     
-    # Configure detectors based on locale and selected detectors
+    # Configure locale-specific detectors
     if locale == 'nl_NL':
         if not selected_detectors:
             # Add all detectors if none specified
@@ -222,12 +244,25 @@ def scrub_pii(text, input, output, locale, detectors, list_detectors):
     # If --list-detectors is used, show available detectors and exit
     if list_detectors:
         detectors_by_locale = get_available_detectors()
-        click.echo("Available detectors by locale:\n")
+        generic_detectors = {
+            'email': 'Detect email addresses',
+            'phone': 'Detect phone numbers',
+            'url': 'Detect URLs',
+            'private_ip': 'Detect private IP addresses'
+        }
+        
+        click.echo("Available detectors:\n")
+        click.echo("Generic detectors (available for all locales):")
+        for detector, description in generic_detectors.items():
+            click.echo(f"  - {detector:<15} {description}")
+        click.echo()
+        
+        click.echo("Locale-specific detectors:")
         for loc, detector_dict in detectors_by_locale.items():
-            click.echo(f"{loc}:")
+            click.echo(f"\n{loc}:")
             for detector, description in detector_dict.items():
                 click.echo(f"  - {detector:<15} {description}")
-            click.echo()
+        click.echo()
         return
 
     # Suppress specific warnings
