@@ -7,7 +7,6 @@ import scrubadub
 import scrubadub_spacy
 from scrubadub.detectors.email import EmailDetector
 from scrubadub.detectors.phone import PhoneDetector
-from scrubadub.detectors.url import UrlDetector
 import spacy
 from halo import Halo
 import warnings
@@ -16,7 +15,9 @@ from typing import ClassVar
 from scrubadub.detectors import register_detector
 from custom_detectors.private_ip_detector import PrivateIPDetector
 from custom_detectors.public_ip_detector import PublicIPDetector
+from custom_detectors.url_detector import BareDomainDetector
 from custom_detectors.dutch_json_entity_detector import DutchJsonEntityDetector
+from custom_detectors.markdown_url_detector import MarkdownUrlDetector
 
 # Download required NLTK data
 try:
@@ -75,11 +76,12 @@ def get_available_detectors(locale=None):
     """Returns a list of available detector names for the given locale."""
     # Generic detectors available for all locales
     generic_detectors = {
-        'email': 'Detect email addresses',
+        'email': 'Detect email addresses (e.g., user@example.com)',
         'phone': 'Detect phone numbers',
-        'url': 'Detect URLs',
-        'private_ip': 'Detect private IP addresses',
-        'public_ip': 'Detect public IP addresses'
+        'url': 'Detect URLs in various formats (bare domains, www, http(s), complex paths)',
+        'markdown_url': 'Detect URLs within Markdown links [text](url)',
+        'private_ip': 'Detect private IP addresses (e.g., 192.168.x.x, 10.0.x.x, 172.16.x.x)',
+        'public_ip': 'Detect public IP addresses (any non-private IP address)'
     }
     
     # Locale-specific detectors
@@ -124,15 +126,21 @@ def setup_scrubber(locale, selected_detectors=None):
     generic_detectors = {
         'email': EmailDetector,
         'phone': PhoneDetector,
-        'url': UrlDetector,
+        'url': BareDomainDetector,
+        'markdown_url': MarkdownUrlDetector,
         'private_ip': PrivateIPDetector,
         'public_ip': PublicIPDetector
     }
     
+    # Configure detectors with proper locale settings
     for detector_name, detector_class in generic_detectors.items():
         if not selected_detectors or detector_name in selected_detectors:
             try:
-                detector_list.append(detector_class())
+                if detector_name == 'email':
+                    detector = detector_class(locale=locale)
+                else:
+                    detector = detector_class()
+                detector_list.append(detector)
             except Exception as e:
                 click.echo(f"Warning: Could not add detector {detector_name}: {str(e)}", err=True)
     
@@ -160,7 +168,7 @@ def setup_scrubber(locale, selected_detectors=None):
     # Initialize scrubber with selected detectors and custom post-processors
     scrubber = scrubadub.Scrubber(
         locale=locale,
-        detector_list=detector_list,  # Only use our explicitly defined detectors
+        detector_list=detector_list,
         post_processor_list=[
             HashedPIIReplacer(),
         ]
