@@ -13,7 +13,7 @@ class DutchNameDetector(Detector):
     COMMON_WORDS = {
         'een', 'het', 'de', 'die', 'dat', 'deze', 'dit', 'die', 'dan', 'toen',
         'als', 'maar', 'want', 'dus', 'nog', 'al', 'naar', 'door', 'om', 'bij',
-        'aan', 'van', 'in', 'op', 'te', 'ten', 'ter', 'met', 'tot', 'voor'
+        'aan', 'van', 'in', 'op', 'te', 'ten', 'ter', 'met', 'tot', 'voor', 'ben'
     }
 
     def __init__(self, **kwargs):
