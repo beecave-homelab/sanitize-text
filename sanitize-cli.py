@@ -214,6 +214,13 @@ def load_spacy_model(model_name):
     default=None,
 )
 @click.option(
+    "--append",
+    "-a",
+    is_flag=True,
+    help="If set, use the output file as input when it exists, ignoring the input file.",
+    default=False,
+)
+@click.option(
     "--locale",
     "-l",
     type=click.Choice(['nl_NL', 'en_US']),
@@ -232,7 +239,7 @@ def load_spacy_model(model_name):
     is_flag=True,
     help="List all available detectors",
 )
-def scrub_pii(text, input, output, locale, detectors, list_detectors):
+def scrub_pii(text, input, output, locale, detectors, list_detectors, append):
     """
     Remove personally identifiable information (PII) from text.
     
@@ -281,7 +288,10 @@ def scrub_pii(text, input, output, locale, detectors, list_detectors):
     selected_detectors = detectors.split() if detectors else None
 
     # Determine input text
-    if input:
+    if append and output and os.path.exists(output):
+        with open(output, "r") as output_file:
+            input_text = output_file.read()
+    elif input:
         with open(input, "r") as input_file:
             input_text = input_file.read()
     elif text:
@@ -290,6 +300,11 @@ def scrub_pii(text, input, output, locale, detectors, list_detectors):
         input_text = sys.stdin.read()
     else:
         click.echo("Error: No input provided. Use --text, --input, or pipe input.", err=True)
+        sys.exit(1)
+
+    # Validate append mode requirements
+    if append and not output:
+        click.echo("Error: --append/-a requires --output/-o to be specified.", err=True)
         sys.exit(1)
 
     # Set up spinner
