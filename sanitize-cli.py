@@ -10,6 +10,9 @@ import spacy
 from halo import Halo
 import warnings
 import nltk
+from typing import ClassVar
+from scrubadub.detectors import register_detector
+from custom_detectors.private_ip_detector import PrivateIPDetector
 
 # Download required NLTK data
 try:
@@ -23,31 +26,29 @@ def load_entity_lists():
     known_pii = []
     
     try:
-        # Get all .txt files from nl_entities directory
         entity_dir = 'nl_entities'
         if not os.path.exists(entity_dir):
             click.echo(f"Warning: Directory {entity_dir} does not exist", err=True)
             return known_pii
             
-        for filename in os.listdir(entity_dir):
-            if not filename.endswith('.txt'):
-                continue
-                
-            # Map filename to valid filth type
-            filename_without_ext = os.path.splitext(filename)[0].lower()
-            # Map common name-related files to 'name' filth type
-            if any(name_type in filename_without_ext for name_type in ['names', 'male_names', 'female_names']):
-                filth_type = 'name'
-            else:
-                filth_type = filename_without_ext
-            
+        json_files = {
+            'cities.json': 'location',
+            'organizations.json': 'organization',
+            'names.json': 'name'
+        }
+        
+        import json
+        for filename, filth_type in json_files.items():
             try:
                 filepath = os.path.join(entity_dir, filename)
+                if not os.path.exists(filepath):
+                    continue
+                    
                 with open(filepath, 'r') as f:
-                    entities = [line.strip() for line in f if line.strip()]
+                    entities = json.load(f)
                     for entity in entities:
                         known_pii.append({
-                            'match': entity,
+                            'match': entity['match'],
                             'filth_type': filth_type,
                             'ignore_case': True
                         })
@@ -66,76 +67,73 @@ def add_detector_safely(scrubber, detector_class, locale=None):
     except Exception as e:
         click.echo(f"Warning: Could not add detector {detector_class.__name__}: {str(e)}", err=True)
 
-def get_available_detectors():
-    """Returns a list of available detector names."""
-    base_detectors = ['email', 'phone', 'url', 'twitter', 'skype']
-    spacy_detectors = ['name', 'organisation', 'location']
-    other_detectors = ['date_of_birth', 'known_pii']
-    return base_detectors + spacy_detectors + other_detectors
+def get_available_detectors(locale=None):
+    """Returns a list of available detector names for the given locale."""
+    detectors = {
+        'nl_NL': {
+            'location': 'Detect Dutch locations (cities)',
+            'organization': 'Detect Dutch organization names',
+            'name': 'Detect Dutch person names',
+            'private_ip': 'Detect private IP addresses'
+        },
+        'en_US': {
+            'email': 'Detect email addresses',
+            'phone': 'Detect phone numbers',
+            'url': 'Detect URLs',
+            'name': 'Detect person names (English)',
+            'organization': 'Detect organization names (English)',
+            'location': 'Detect locations (English)',
+            'date_of_birth': 'Detect dates of birth',
+            'private_ip': 'Detect private IP addresses'
+        }
+    }
+    
+    if locale:
+        return detectors.get(locale, {})
+    return detectors
+
+class HashedPIIReplacer(scrubadub.post_processors.PostProcessor):
+    name = 'hashed_pii_replacer'
+    def process_filth(self, filth_list):
+        for filth in filth_list:
+            filth.replacement_string = f"{{{{{filth.type}-{hash(filth.text) % 10000:04d}}}}}"
+        return filth_list
 
 def setup_scrubber(locale, selected_detectors=None):
     """Helper function to set up a scrubber with appropriate detectors and post-processors."""
     detector_list = []
-    available_detectors = get_available_detectors()
+    available_detectors = get_available_detectors(locale).keys()
     
     if selected_detectors:
         selected_detectors = [d.lower() for d in selected_detectors]
         invalid_detectors = [d for d in selected_detectors if d not in available_detectors]
         if invalid_detectors:
-            click.echo(f"Warning: Invalid detector(s): {', '.join(invalid_detectors)}", err=True)
+            click.echo(f"Warning: Invalid detector(s) for locale {locale}: {', '.join(invalid_detectors)}", err=True)
     
-    # Add universal detectors with unique names if they're selected or if no specific detectors were requested
-    if not selected_detectors or any(d in selected_detectors for d in ['email', 'phone', 'url', 'twitter', 'skype']):
-        base_detectors = {
-            'email': scrubadub.detectors.EmailDetector,
-            'phone': scrubadub.detectors.PhoneDetector,
-            'url': scrubadub.detectors.UrlDetector,
-            'twitter': scrubadub.detectors.TwitterDetector,
-            'skype': scrubadub.detectors.SkypeDetector
-        }
-        
-        for detector_name, detector_class in base_detectors.items():
-            if not selected_detectors or detector_name in selected_detectors:
-                detector_list.append(detector_class(name=f'{detector_name}_{locale}'))
+    # Add private IP detector if selected or if no specific detectors are specified
+    if not selected_detectors or 'private_ip' in selected_detectors:
+        detector_list.append(PrivateIPDetector())
     
-    # Configure SpacyEntityDetector with the correct model for each locale
-    if locale == 'en_US':
-        if not selected_detectors or any(d in selected_detectors for d in ['name', 'organisation', 'location']):
+    # Configure detectors based on locale and selected detectors
+    if locale == 'nl_NL':
+        if not selected_detectors:
+            # Add all detectors if none specified
             detector_list.append(
-                scrubadub_spacy.detectors.SpacyEntityDetector(
-                    model='en_core_web_sm',
-                    name='spacy_en'
+                DutchJsonEntityDetector(
+                    name='dutch_json_entities',
+                    filth_types=['location', 'organization', 'name']
                 )
             )
-        if not selected_detectors or 'date_of_birth' in selected_detectors:
-            detector_list.append(scrubadub.detectors.DateOfBirthDetector(name='dob_en'))
-            
-    elif locale == 'nl_NL':
-        if not selected_detectors or any(d in selected_detectors for d in ['name', 'organisation', 'location']):
-            detector_list.append(
-                scrubadub_spacy.detectors.SpacyEntityDetector(
-                    model='nl_core_news_sm',
-                    name='spacy_nl'
+        else:
+            # Only add requested detectors with their specific filth types
+            requested_filth_types = [d for d in selected_detectors if d in available_detectors and d != 'private_ip']
+            if requested_filth_types:
+                detector_list.append(
+                    DutchJsonEntityDetector(
+                        name='dutch_json_entities',
+                        filth_types=requested_filth_types
+                    )
                 )
-            )
-        # Load and add known PII terms from entity lists only for Dutch
-        if not selected_detectors or 'known_pii' in selected_detectors:
-            known_pii = load_entity_lists()
-            detector_list.append(
-                KnownFilthDetector(
-                    known_filth_items=known_pii,
-                    name=f'known_pii_{locale}'
-                )
-            )
-    
-    # Custom post-processor to add hash to PII replacements
-    class HashedPIIReplacer(scrubadub.post_processors.PostProcessor):
-        name = 'hashed_pii_replacer'
-        def process_filth(self, filth_list):
-            for filth in filth_list:
-                filth_type = filth.type.upper()
-                filth.replacement_string = f"{filth_type}-{hash(filth.text) % 10000:04d}"
-            return filth_list
     
     # Initialize scrubber with selected detectors and custom post-processors
     scrubber = scrubadub.Scrubber(
@@ -143,10 +141,6 @@ def setup_scrubber(locale, selected_detectors=None):
         detector_list=detector_list,
         post_processor_list=[
             HashedPIIReplacer(),
-            scrubadub.post_processors.PrefixSuffixReplacer(
-                prefix='{{',
-                suffix='}}'
-            )
         ]
     )
     
@@ -173,22 +167,89 @@ class KnownFilthDetector(scrubadub.detectors.Detector):
         super().__init__(**kwargs)
 
     def iter_filth(self, text, document_name=None):
+        # Map filth types to filth classes
+        filth_class_map = {
+            'location': LocationFilth,
+            'organization': OrganizationFilth,
+            'name': NameFilth
+        }
+
         for item in self.known_filth_items:
             match = item['match']
+            filth_type = item['filth_type'].lower()
+            filth_class = filth_class_map.get(filth_type, Filth)  # Default to Filth if type not found
+            
             pos = 0
-            # Keep searching for matches until we reach the end of text
             while True:
                 start = text.find(match, pos)
                 if start == -1:  # No more matches
                     break
-                yield Filth(
+                # Use the appropriate filth class
+                yield filth_class(
                     beg=start,
                     end=start + len(match),
                     text=match,
                     detector_name=self.name,
-                    filth_type=item['filth_type']
+                    document_name=document_name
                 )
-                pos = start + 1  # Move position forward to find next occurrence
+                pos = start + 1
+
+class LocationFilth(Filth):
+    type = 'location'
+
+class OrganizationFilth(Filth):
+    type = 'organization'
+
+class NameFilth(Filth):
+    type = 'name'
+
+@register_detector
+class DutchJsonEntityDetector(scrubadub.detectors.Detector):
+    name = 'dutch_json_entity_detector'
+    filth_cls = [LocationFilth, OrganizationFilth, NameFilth]
+
+    def __init__(self, filth_types=None, **kwargs):
+        super().__init__(**kwargs)
+        self.entities = []
+        self.filth_types = [ft.lower() for ft in filth_types] if filth_types else None
+        self._load_json_entities()
+
+    def _load_json_entities(self):
+        json_files = {
+            'nl_entities/cities.json': (LocationFilth, 'location'),
+            'nl_entities/organizations.json': (OrganizationFilth, 'organization'),
+            'nl_entities/names.json': (NameFilth, 'name')
+        }
+        
+        import json
+        for file_path, (filth_class, filth_type) in json_files.items():
+            # Skip if this filth type wasn't requested
+            if self.filth_types and filth_type not in self.filth_types:
+                continue
+                
+            try:
+                with open(file_path, 'r') as f:
+                    entities = json.load(f)
+                    for entity in entities:
+                        self.entities.append((filth_class, entity['match'], filth_type))
+            except Exception as e:
+                click.echo(f"Warning: Could not load JSON entity file {file_path}: {str(e)}", err=True)
+
+    def iter_filth(self, text, document_name=None):
+        for filth_class, match, filth_type in self.entities:
+            pos = 0
+            while True:
+                start = text.find(match, pos)
+                if start == -1:  # No more matches
+                    break
+                yield filth_class(
+                    beg=start,
+                    end=start + len(match),
+                    text=match,
+                    detector_name=self.name,
+                    document_name=document_name
+                )
+                pos = start + 1
 
 @click.command()
 @click.option(
@@ -249,9 +310,13 @@ def scrub_pii(text, input, output, locale, detectors, list_detectors):
     """
     # If --list-detectors is used, show available detectors and exit
     if list_detectors:
-        click.echo("Available detectors:")
-        for detector in get_available_detectors():
-            click.echo(f"- {detector}")
+        detectors_by_locale = get_available_detectors()
+        click.echo("Available detectors by locale:\n")
+        for loc, detector_dict in detectors_by_locale.items():
+            click.echo(f"{loc}:")
+            for detector, description in detector_dict.items():
+                click.echo(f"  - {detector:<15} {description}")
+            click.echo()
         return
 
     # Suppress specific warnings
