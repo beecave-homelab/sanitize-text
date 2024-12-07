@@ -12,12 +12,46 @@ class MarkdownUrlDetector(RegexDetector):
     - Links with complex URLs
     - Links with query parameters
     - Links with fragments
+    - Links with bare domains
+    - Links with www prefixes
     """
     name = 'markdown_url'
     filth_cls = UrlFilth
 
+    # List of common TLDs to match against
+    COMMON_TLDS = (
+        'com|net|org|edu|gov|mil|biz|info|name|museum|coop|aero|'
+        '[a-z][a-z]|nl|uk|us|eu|de|fr|es|it|ru|cn|jp|br|pl|in|au|'
+        'dev|app|io|ai|cloud|digital|tech|online|site|web|blog|shop|store|'
+        'academy|agency|business|center|company|consulting|foundation|institute|'
+        'international|management|marketing|solutions|technology|university|'
+        'systems|services|support|science|software|studio|training|ventures'
+    )
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        
+        # Build the URL pattern piece by piece
+        tld_pattern = f"(?:{self.COMMON_TLDS})"
+        
+        # Comprehensive URL pattern similar to BareDomainDetector
+        url_pattern = (
+            r'(?:'
+            # Protocol URLs
+            r'(?:https?://(?:www\.)?|ftp://)'
+            r'(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*'  # subdomains
+            r'[a-z0-9](?:[a-z0-9-]*[a-z0-9])?'         # domain
+            r'\.' + tld_pattern +                       # TLD
+            r'(?:/[^\s<>)]*)?'                         # path and query (note: added ) to excluded chars)
+            r'|'
+            # Bare domains with optional www
+            r'(?:www\.)?'                              # optional www
+            r'(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*' # subdomains
+            r'[a-z0-9](?:[a-z0-9-]*[a-z0-9])?'        # domain
+            r'\.' + tld_pattern +                      # TLD
+            r'(?:/[^\s<>)]*)?'                        # path and query (note: added ) to excluded chars)
+            r')'
+        )
         
         # Pattern for markdown links that handles both empty and non-empty link text
         self.regex = re.compile(
@@ -25,7 +59,7 @@ class MarkdownUrlDetector(RegexDetector):
             r'([^\]]*)'        # Link text (can be empty)
             r'\]'              # Closing bracket
             r'\('              # Opening parenthesis
-            r'(https?://[^\s)]+)'  # URL part
+            f'({url_pattern})'  # URL part using comprehensive pattern
             r'\)',             # Closing parenthesis
             re.IGNORECASE
         )
