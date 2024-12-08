@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyScrub WebUI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sanitize Text - WebUI</h1>
+            <p>Anonymize Personal Identifiable Information in your text</p>
+        </header>
+        
+        <main>
+            <div class="text-area-container">
+                <label for="input-text">Input Text</label>
+                <textarea 
+                    id="input-text" 
+                    placeholder="Enter text containing PII here..."
+                    spellcheck="true"
+                ></textarea>
+            </div>
+
+            <div class="controls-container">
+                <div class="locale-selector">
+                    <label for="locale">Language:</label>
+                    <select id="locale">
+                        <option value="">Both (NL + EN)</option>
+                        <option value="nl_NL">Dutch (NL)</option>
+                        <option value="en_US">English (EN)</option>
+                    </select>
+                </div>
+
+                <div class="detector-options">
+                    <div class="detector-group">
+                        <h3>Universal Detectors</h3>
+                        <div class="detector-list">
+                            <label><input type="checkbox" name="detector" value="email" checked> Email</label>
+                            <label><input type="checkbox" name="detector" value="phone" checked> Phone</label>
+                            <label><input type="checkbox" name="detector" value="url" checked> URL</label>
+                            <label><input type="checkbox" name="detector" value="twitter" checked> Twitter</label>
+                            <label><input type="checkbox" name="detector" value="skype" checked> Skype</label>
+                            <label><input type="checkbox" name="detector" value="bare_domain" checked> Bare Domain</label>
+                            <label><input type="checkbox" name="detector" value="markdown_url" checked> Markdown URL</label>
+                            <label><input type="checkbox" name="detector" value="private_ip" checked> Private IP</label>
+                            <label><input type="checkbox" name="detector" value="public_ip" checked> Public IP</label>
+                        </div>
+                    </div>
+
+                    <div class="detector-group" id="en-detectors">
+                        <h3>English Detectors</h3>
+                        <div class="detector-list">
+                            <label><input type="checkbox" name="detector" value="spacy_en" checked> English Entities</label>
+                            <label><input type="checkbox" name="detector" value="dob_en" checked> Date of Birth</label>
+                        </div>
+                    </div>
+
+                    <div class="detector-group" id="nl-detectors">
+                        <h3>Dutch Detectors</h3>
+                        <div class="detector-list">
+                            <label><input type="checkbox" name="detector" value="spacy_nl" checked> Dutch Entities</label>
+                            <label><input type="checkbox" name="detector" value="known_pii" checked> Known PII</label>
+                            <label><input type="checkbox" name="detector" value="dutch_location" checked> Locations</label>
+                            <label><input type="checkbox" name="detector" value="dutch_organization" checked> Organizations</label>
+                            <label><input type="checkbox" name="detector" value="dutch_name" checked> Names</label>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="process-btn" class="primary">Process Text</button>
+            </div>
+
+            <div class="text-area-container">
+                <label for="output-text">Processed Text</label>
+                <textarea 
+                    id="output-text" 
+                    readonly 
+                    placeholder="Processed text will appear here..."
+                ></textarea>
+                <button id="copy-btn" class="secondary">
+                    Copy to Clipboard
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const localeSelect = document.getElementById('locale');
+        const enDetectors = document.getElementById('en-detectors');
+        const nlDetectors = document.getElementById('nl-detectors');
+
+        function updateDetectorVisibility() {
+            const locale = localeSelect.value;
+            if (locale === 'en_US') {
+                enDetectors.style.display = 'block';
+                nlDetectors.style.display = 'none';
+            } else if (locale === 'nl_NL') {
+                enDetectors.style.display = 'none';
+                nlDetectors.style.display = 'block';
+            } else {
+                enDetectors.style.display = 'block';
+                nlDetectors.style.display = 'block';
+            }
+        }
+
+        localeSelect.addEventListener('change', updateDetectorVisibility);
+        updateDetectorVisibility();
+
+        document.getElementById('process-btn').addEventListener('click', async () => {
+            const inputText = document.getElementById('input-text').value;
+            const locale = document.getElementById('locale').value;
+            const processBtn = document.getElementById('process-btn');
+            const outputText = document.getElementById('output-text');
+            
+            // Get selected detectors
+            const selectedDetectors = Array.from(document.querySelectorAll('input[name="detector"]:checked'))
+                .map(checkbox => checkbox.value);
+            
+            try {
+                processBtn.disabled = true;
+                processBtn.textContent = 'Processing...';
+                outputText.value = '';
+                
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        text: inputText,
+                        locale: locale || null,
+                        detectors: selectedDetectors
+                    }),
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.results) {
+                        const formattedText = data.results
+                            .map(result => `[${result.locale}]\n${result.text}`)
+                            .join('\n\n');
+                        outputText.value = formattedText;
+                    } else {
+                        outputText.value = 'No results returned';
+                    }
+                } else {
+                    alert(data.error || 'Error processing text');
+                }
+            } catch (error) {
+                alert('Error processing text. Please try again.');
+            } finally {
+                processBtn.disabled = false;
+                processBtn.textContent = 'Process Text';
+            }
+        });
+
+        document.getElementById('copy-btn').addEventListener('click', () => {
+            const outputText = document.getElementById('output-text');
+            outputText.select();
+            document.execCommand('copy');
+            
+            const copyBtn = document.getElementById('copy-btn');
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = 'Copied!';
+            
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+            }, 2000);
+        });
+    </script>
+
+    <style>
+        .controls-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .locale-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .locale-selector select {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .locale-selector label {
+            font-weight: bold;
+        }
+
+        .detector-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            padding: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .detector-group {
+            min-width: 200px;
+        }
+
+        .detector-group h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .detector-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .detector-list label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .detector-list input[type="checkbox"] {
+            margin: 0;
+        }
+
+        #process-btn {
+            align-self: flex-end;
+        }
+    </style>
+</body>
+</html> 
