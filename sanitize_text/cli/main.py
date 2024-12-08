@@ -1,6 +1,11 @@
 #!venv/bin/python3
 
-"""Command-line interface for text scrubbing."""
+"""Command-line interface for text scrubbing.
+
+This module provides a command-line interface for the text sanitization
+functionality, allowing users to process text files or direct input and
+remove personally identifiable information (PII).
+"""
 
 import os
 import sys
@@ -70,16 +75,25 @@ def main(
     list_detectors: bool,
     append: bool
 ) -> None:
-    """
-    Remove personally identifiable information (PII) from text.
+    """Remove personally identifiable information (PII) from text.
 
     This command-line tool processes text from various sources (direct input,
     file, or stdin) and removes PII using configurable detectors. It supports
     multiple locales and can handle various types of PII including emails,
     phone numbers, URLs, names, organizations, and locations.
 
-    The tool can be configured to use specific detectors and locales, and
-    supports both single-pass and multi-locale processing.
+    Examples:
+        # Process text directly
+        sanitize-text -t "John lives in Amsterdam"
+        
+        # Process a file
+        sanitize-text -i input.txt -o output.txt
+        
+        # Use specific detectors
+        sanitize-text -i input.txt -d "email url name"
+        
+        # Process Dutch text
+        sanitize-text -i input.txt -l nl_NL
     """
     # If --list-detectors is used, show available detectors and exit
     if list_detectors:

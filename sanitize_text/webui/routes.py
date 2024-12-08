@@ -1,4 +1,9 @@
 #!venv/bin/python3
+"""Web routes and API endpoints for the text sanitization web interface.
+
+This module provides the Flask routes and supporting functions for the web interface,
+including text processing endpoints and scrubber configuration.
+"""
 
 import os
 from flask import request, render_template, jsonify
@@ -16,8 +21,15 @@ from sanitize_text.utils.detectors import (
     DutchNameDetector
 )
 
-def load_spacy_model(model_name):
-    """Helper function to safely load spaCy model."""
+def load_spacy_model(model_name: str) -> spacy.language.Language:
+    """Load a spaCy language model, downloading it if necessary.
+    
+    Args:
+        model_name: Name of the spaCy model to load (e.g., 'en_core_web_sm')
+        
+    Returns:
+        The loaded spaCy model or None if loading fails
+    """
     try:
         return spacy.load(model_name)
     except OSError:
@@ -65,13 +77,34 @@ def load_entity_lists():
     return known_pii
 
 class KnownFilthDetector(scrubadub.detectors.Detector):
+    """Detector for known PII items loaded from entity lists.
+    
+    This detector uses predefined lists of entities (names, locations, etc.)
+    to identify PII in text. It supports case-insensitive matching and
+    different types of filth based on the entity lists.
+    """
     name = 'known_filth_detector'
 
     def __init__(self, known_filth_items, **kwargs):
+        """Initialize the detector with a list of known PII items.
+        
+        Args:
+            known_filth_items: List of dictionaries containing PII items and their types
+            **kwargs: Additional arguments passed to the parent Detector class
+        """
         self.known_filth_items = known_filth_items
         super().__init__(**kwargs)
 
     def iter_filth(self, text, document_name=None):
+        """Iterate through text to find matches from the known filth items.
+        
+        Args:
+            text: The text to search for PII
+            document_name: Optional name of the document being processed
+            
+        Yields:
+            Filth objects for each PII match found
+        """
         for item in self.known_filth_items:
             match = item['match']
             pos = 0
@@ -89,8 +122,23 @@ class KnownFilthDetector(scrubadub.detectors.Detector):
                 pos = start + 1
 
 class HashedPIIReplacer(scrubadub.post_processors.PostProcessor):
+    """Post-processor that replaces PII with hashed identifiers.
+    
+    This processor takes detected PII and replaces it with a combination
+    of the PII type and a hash of the original text, making it traceable
+    while maintaining privacy.
+    """
     name = 'hashed_pii_replacer'
+    
     def process_filth(self, filth_list):
+        """Process a list of filth objects, replacing text with hashed identifiers.
+        
+        Args:
+            filth_list: List of Filth objects to process
+            
+        Returns:
+            The processed list of Filth objects with replacement strings
+        """
         for filth in filth_list:
             filth_type = filth.type.upper()
             filth.replacement_string = f"{filth_type}-{hash(filth.text) % 10000:04d}"
@@ -149,12 +197,28 @@ def setup_scrubber(locale, selected_detectors=None):
     return scrubber
 
 def init_routes(app):
+    """Initialize Flask routes for the web interface.
+    
+    Args:
+        app: Flask application instance
+    """
     @app.route('/')
     def index():
+        """Render the main page of the web interface."""
         return render_template('index.html')
     
     @app.route('/process', methods=['POST'])
     def process():
+        """Process text and remove PII based on specified locale and detectors.
+        
+        Expects a JSON payload with:
+            - text: The text to process
+            - locale: Optional locale code ('nl_NL' or 'en_US')
+            - detectors: Optional list of detector names to use
+            
+        Returns:
+            JSON response with scrubbed text or error message
+        """
         data = request.json
         input_text = data.get('text', '')
         locale = data.get('locale')  # Can be 'nl_NL', 'en_US', or None for both

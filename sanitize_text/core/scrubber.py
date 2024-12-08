@@ -1,4 +1,8 @@
-"""Core functionality for text scrubbing."""
+"""Core functionality for text scrubbing.
+
+This module provides the main text scrubbing functionality, including setup of
+detectors, loading of entity lists, and text processing with multiple locales.
+"""
 
 import os
 import spacy
@@ -6,7 +10,7 @@ import scrubadub
 import warnings
 import json
 from pathlib import Path
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any, Union
 from ..utils.post_processors import HashedPIIReplacer
 from ..utils.custom_detectors import (
     BareDomainDetector,
@@ -20,8 +24,18 @@ from ..utils.custom_detectors import (
 from scrubadub.detectors.email import EmailDetector
 from scrubadub.detectors.phone import PhoneDetector
 
-def load_entity_lists() -> List[Dict]:
-    """Load entity lists from data directory."""
+def load_entity_lists() -> List[Dict[str, Any]]:
+    """Load entity lists from data directory.
+    
+    Loads predefined lists of entities (cities, organizations, names) from JSON files
+    in the data directory. These lists are used by the Dutch entity detectors.
+    
+    Returns:
+        List of dictionaries containing entity information with keys:
+            - match: The entity text to match
+            - filth_type: Type of the entity (location, organization, name)
+            - ignore_case: Whether to perform case-insensitive matching
+    """
     known_pii = []
     
     try:
@@ -60,7 +74,14 @@ def load_entity_lists() -> List[Dict]:
     return known_pii
 
 def load_spacy_model(model_name: str) -> Optional[spacy.language.Language]:
-    """Helper function to safely load spaCy model."""
+    """Load a spaCy language model, downloading it if necessary.
+    
+    Args:
+        model_name: Name of the spaCy model to load (e.g., 'en_core_web_sm')
+        
+    Returns:
+        The loaded spaCy model or None if loading fails
+    """
     try:
         return spacy.load(model_name)
     except OSError:
@@ -71,8 +92,15 @@ def load_spacy_model(model_name: str) -> Optional[spacy.language.Language]:
             print(f"Warning: Could not load or download model {model_name}: {str(e)}")
             return None
 
-def get_available_detectors(locale: Optional[str] = None) -> dict:
-    """Returns a list of available detector names for the given locale."""
+def get_available_detectors(locale: Optional[str] = None) -> Dict[str, str]:
+    """Get available detector names and descriptions for the given locale.
+    
+    Args:
+        locale: Optional locale code (e.g., 'nl_NL', 'en_US')
+        
+    Returns:
+        Dictionary mapping detector names to their descriptions
+    """
     generic_detectors = {
         'email': 'Detect email addresses (e.g., user@example.com)',
         'phone': 'Detect phone numbers',
@@ -100,8 +128,22 @@ def get_available_detectors(locale: Optional[str] = None) -> dict:
         return {**generic_detectors, **locale_detectors.get(locale, {})}
     return locale_detectors
 
-def setup_scrubber(locale: str, selected_detectors: Optional[List[str]] = None) -> scrubadub.Scrubber:
-    """Helper function to set up a scrubber with appropriate detectors and post-processors."""
+def setup_scrubber(
+    locale: str,
+    selected_detectors: Optional[List[str]] = None
+) -> scrubadub.Scrubber:
+    """Set up a scrubber with appropriate detectors and post-processors.
+    
+    Args:
+        locale: Locale code for text processing (e.g., 'nl_NL', 'en_US')
+        selected_detectors: Optional list of detector names to use
+        
+    Returns:
+        Configured scrubber instance ready for text processing
+        
+    Raises:
+        ValueError: If invalid detectors are specified for the locale
+    """
     detector_list = []
     available_detectors = get_available_detectors(locale).keys()
     
@@ -160,9 +202,16 @@ def setup_scrubber(locale: str, selected_detectors: Optional[List[str]] = None) 
     
     return scrubber
 
-def scrub_text(text: str, locale: Optional[str] = None, selected_detectors: Optional[List[str]] = None) -> List[str]:
-    """
-    Scrub PII from the given text using specified locale and detectors.
+def scrub_text(
+    text: str,
+    locale: Optional[str] = None,
+    selected_detectors: Optional[List[str]] = None
+) -> List[str]:
+    """Scrub PII from the given text using specified locale and detectors.
+    
+    This is the main function for text sanitization. It processes the input text
+    using the specified locale and detectors, removing personally identifiable
+    information (PII) and replacing it with anonymized placeholders.
     
     Args:
         text: The text to scrub
@@ -171,6 +220,9 @@ def scrub_text(text: str, locale: Optional[str] = None, selected_detectors: Opti
         
     Returns:
         List of scrubbed texts, one for each processed locale
+        
+    Raises:
+        Exception: If all processing attempts fail
     """
     # Suppress specific warnings
     warnings.filterwarnings("ignore", category=UserWarning, module="scrubadub")
