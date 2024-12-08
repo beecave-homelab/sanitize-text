@@ -11,7 +11,7 @@ import spacy
 from halo import Halo
 import warnings
 import nltk
-from typing import ClassVar
+from typing import ClassVar, Optional
 from scrubadub.detectors import register_detector
 from custom_detectors.private_ip_detector import PrivateIPDetector
 from custom_detectors.public_ip_detector import PublicIPDetector
@@ -193,67 +193,92 @@ def load_spacy_model(model_name):
 
 @click.command()
 @click.option(
-    "--text",
-    "-t",
+    "--text", "-t",
     type=str,
     help="Input text to scrub for PII.",
     default=None,
 )
 @click.option(
-    "--input",
-    "-i",
+    "--input", "-i",
     type=click.Path(exists=True),
     help="Path to input file containing text to scrub.",
     default=None,
 )
 @click.option(
-    "--output",
-    "-o",
+    "--output", "-o",
     type=click.Path(writable=True),
-    help="Path to output file where scrubbed text will be saved. Defaults to $PWD/output/scrubbed.txt",
+    help="Path to output file where scrubbed text will be saved. "
+         "Defaults to $PWD/output/scrubbed.txt",
     default=None,
 )
 @click.option(
-    "--append",
-    "-a",
+    "--append", "-a",
     is_flag=True,
-    help="If set, use the output file as input when it exists, ignoring the input file.",
+    help="If set, use the output file as input when it exists, "
+         "ignoring the input file.",
     default=False,
 )
 @click.option(
-    "--locale",
-    "-l",
+    "--locale", "-l",
     type=click.Choice(['nl_NL', 'en_US']),
     help="Locale for text processing (nl_NL or en_US)",
     default=None
 )
 @click.option(
-    "--detectors",
-    "-d",
-    help="Space-separated list of specific detectors to use (e.g., 'url name organisation')",
+    "--detectors", "-d",
+    help="Space-separated list of specific detectors to use "
+         "(e.g., 'url name organisation')",
     default=None
 )
 @click.option(
-    "--list-detectors",
-    "-ld",
+    "--list-detectors", "-ld",
     is_flag=True,
     help="List all available detectors",
 )
-def scrub_pii(text, input, output, locale, detectors, list_detectors, append):
+def scrub_pii(
+    text: Optional[str],
+    input: Optional[str],
+    output: Optional[str],
+    locale: Optional[str],
+    detectors: Optional[str],
+    list_detectors: bool,
+    append: bool
+) -> None:
     """
     Remove personally identifiable information (PII) from text.
-    
-    Available detectors include:
-    - email: Detect email addresses
-    - phone: Detect phone numbers
-    - url: Detect URLs
-    - twitter: Detect Twitter handles
-    - skype: Detect Skype usernames
-    - name: Detect person names
-    - organisation: Detect organization names
-    - location: Detect location names
-    - date_of_birth: Detect dates of birth
-    - known_pii: Detect known PII from custom lists (NL only)
+
+    This command-line tool processes text from various sources (direct input,
+    file, or stdin) and removes PII using configurable detectors. It supports
+    multiple locales and can handle various types of PII including emails,
+    phone numbers, URLs, names, organizations, and locations.
+
+    The tool can be configured to use specific detectors and locales, and
+    supports both single-pass and multi-locale processing.
+
+    Args:
+        text: Direct text input to process
+        input: Path to input file
+        output: Path to output file
+        locale: Language/locale code for processing
+        detectors: Space-separated list of detectors to use
+        list_detectors: Flag to list available detectors
+        append: Flag to append to existing output file
+
+    Returns:
+        None. Output is written to file or stdout.
+
+    Examples:
+        # Process text directly
+        $ python script.py -t "Hello, my email is user@example.com"
+
+        # Process a file
+        $ python script.py -i input.txt -o output.txt
+
+        # Use specific detectors
+        $ python script.py -i input.txt -d "email url name"
+
+        # List available detectors
+        $ python script.py --list-detectors
     """
     # If --list-detectors is used, show available detectors and exit
     if list_detectors:
@@ -299,12 +324,18 @@ def scrub_pii(text, input, output, locale, detectors, list_detectors, append):
     elif not sys.stdin.isatty():
         input_text = sys.stdin.read()
     else:
-        click.echo("Error: No input provided. Use --text, --input, or pipe input.", err=True)
+        click.echo(
+            "Error: No input provided. Use --text, --input, or pipe input.",
+            err=True
+        )
         sys.exit(1)
 
     # Validate append mode requirements
     if append and not output:
-        click.echo("Error: --append/-a requires --output/-o to be specified.", err=True)
+        click.echo(
+            "Error: --append/-a requires --output/-o to be specified.",
+            err=True
+        )
         sys.exit(1)
 
     # Set up spinner
@@ -321,11 +352,18 @@ def scrub_pii(text, input, output, locale, detectors, list_detectors, append):
             try:
                 # Load appropriate language model
                 lang_code = current_locale.split('_')[0]
-                model_name = "en_core_web_sm" if lang_code == "en" else "nl_core_news_sm"
+                model_name = (
+                    "en_core_web_sm" 
+                    if lang_code == "en" 
+                    else "nl_core_news_sm"
+                )
                 
                 nlp = load_spacy_model(model_name)
                 if nlp is None:
-                    click.echo(f"Skipping locale {current_locale} due to missing language model")
+                    click.echo(
+                        f"Skipping locale {current_locale} due to missing "
+                        "language model"
+                    )
                     continue
                 
                 # Process the input text
@@ -334,10 +372,16 @@ def scrub_pii(text, input, output, locale, detectors, list_detectors, append):
                 # Setup and run scrubber with selected detectors
                 scrubber = setup_scrubber(current_locale, selected_detectors)
                 scrubbed_text = scrubber.clean(input_text)
-                scrubbed_texts.append(f"Results for {current_locale}:\n{scrubbed_text}")
+                scrubbed_texts.append(
+                    f"Results for {current_locale}:\n{scrubbed_text}"
+                )
                 
             except Exception as e:
-                click.echo(f"Warning: Processing failed for locale {current_locale}: {str(e)}", err=True)
+                click.echo(
+                    f"Warning: Processing failed for locale {current_locale}: "
+                    f"{str(e)}",
+                    err=True
+                )
                 continue
         
         if not scrubbed_texts:
