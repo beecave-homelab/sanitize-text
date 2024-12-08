@@ -12,6 +12,8 @@
 !.dockerignore
 !docker-compose.yaml
 !Dockerfile
+!setup.py
+!MANIFEST.in
 
 # Include all files in these directories
 !nl_entities/
@@ -22,6 +24,8 @@
 !custom_entities/**
 !sanitize_webui/
 !sanitize_webui/**
+!sanitize_text/
+!sanitize_text/**
 
 # Explicitly ignore these
 .DS_Store
@@ -32,3 +36,6 @@ venv/
 output/
 tests/
 .git/
+*.egg-info/
+build/
+dist/
