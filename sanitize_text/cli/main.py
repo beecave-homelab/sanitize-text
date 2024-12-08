@@ -1,10 +1,23 @@
 #!venv/bin/python3
 
-"""Command-line interface for text scrubbing.
+"""Command-line interface for text sanitization.
 
-This module provides a command-line interface for the text sanitization
-functionality, allowing users to process text files or direct input and
-remove personally identifiable information (PII).
+This tool removes personally identifiable information (PII) from text using
+configurable detectors and locales. It can process text from various sources
+including direct input, files, or stdin.
+
+Examples:
+    Process text directly:
+        $ sanitize-text -t "John lives in Amsterdam"
+    
+    Process a file:
+        $ sanitize-text -i input.txt -o output.txt
+    
+    Use specific detectors:
+        $ sanitize-text -i input.txt -d "email url name"
+    
+    Process Dutch text:
+        $ sanitize-text -i input.txt -l nl_NL
 """
 
 import os
@@ -22,49 +35,48 @@ try:
 except Exception as e:
     click.echo(f"Warning: Could not download NLTK data: {str(e)}", err=True)
 
-@click.command()
+# Define custom context settings
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
+@click.command(context_settings=CONTEXT_SETTINGS)
 @click.option(
     "--text", "-t",
     type=str,
-    help="Input text to scrub for PII.",
-    default=None,
+    help="Text to scrub for PII. Use this for direct text input.",
+    metavar="<text>"
 )
 @click.option(
     "--input", "-i",
     type=click.Path(exists=True),
     help="Path to input file containing text to scrub.",
-    default=None,
+    metavar="<file>"
 )
 @click.option(
     "--output", "-o",
     type=click.Path(writable=True),
-    help="Path to output file where scrubbed text will be saved. "
-         "Defaults to $PWD/output/scrubbed.txt",
-    default=None,
+    help="Path to output file for scrubbed text. Defaults to ./output/scrubbed.txt",
+    metavar="<file>"
 )
 @click.option(
     "--append", "-a",
     is_flag=True,
-    help="If set, use the output file as input when it exists, "
-         "ignoring the input file.",
-    default=False,
+    help="Use output file as input when it exists, ignoring --input."
 )
 @click.option(
     "--locale", "-l",
     type=click.Choice(['nl_NL', 'en_US']),
-    help="Locale for text processing (nl_NL or en_US)",
-    default=None
+    help="Locale for text processing. Processes both if not specified.",
+    metavar="<locale>"
 )
 @click.option(
     "--detectors", "-d",
-    help="Space-separated list of specific detectors to use "
-         "(e.g., 'url name organisation')",
-    default=None
+    help="Space-separated list of detectors to use (e.g., 'url name email').",
+    metavar="<detectors>"
 )
 @click.option(
     "--list-detectors", "-ld",
     is_flag=True,
-    help="List all available detectors",
+    help="Show available detectors and exit."
 )
 def main(
     text: Optional[str],
@@ -77,23 +89,33 @@ def main(
 ) -> None:
     """Remove personally identifiable information (PII) from text.
 
-    This command-line tool processes text from various sources (direct input,
-    file, or stdin) and removes PII using configurable detectors. It supports
-    multiple locales and can handle various types of PII including emails,
-    phone numbers, URLs, names, organizations, and locations.
+    This tool processes text from various sources (direct input, file, or stdin)
+    and removes PII using configurable detectors. It supports multiple locales
+    and can handle various types of PII including emails, phone numbers, URLs,
+    names, organizations, and locations.
 
-    Examples:
-        # Process text directly
-        sanitize-text -t "John lives in Amsterdam"
-        
-        # Process a file
-        sanitize-text -i input.txt -o output.txt
-        
-        # Use specific detectors
-        sanitize-text -i input.txt -d "email url name"
-        
-        # Process Dutch text
-        sanitize-text -i input.txt -l nl_NL
+    \b
+    Input Sources (in order of precedence):
+    1. --text: Direct text input
+    2. --input: Text file
+    3. --append: Existing output file
+    4. stdin: Piped input
+    
+    \b
+    Detector Types:
+    - Generic: email, phone, url, private_ip, public_ip
+    - Dutch (nl_NL): location, organization, name
+    - English (en_US): location, organization, name, date_of_birth
+
+    \f
+    Args:
+        text: Direct text input to process
+        input: Path to input file
+        output: Path to output file
+        locale: Locale code for processing
+        detectors: Space-separated list of detectors
+        list_detectors: Whether to list available detectors
+        append: Whether to use output file as input
     """
     # If --list-detectors is used, show available detectors and exit
     if list_detectors:
