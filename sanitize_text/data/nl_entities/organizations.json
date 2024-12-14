@@ -8,11 +8,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "@EasePay B.V.",
+        "match": "'Petite Amélie' Nederland B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "@Fentures B.V.",
+        "match": "'Rotterdam Community Solutions B.V.' (Rotterdam C.S. B.V.)",
         "filth_type": "organization"
     },
     {
@@ -52,6 +52,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "2-B Energy Holding",
+        "filth_type": "organization"
+    },
+    {
         "match": "20Face B.V.",
         "filth_type": "organization"
     },
@@ -80,10 +84,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "2-B Energy Holding",
-        "filth_type": "organization"
-    },
-    {
         "match": "2Care4Kids Holding B.V.",
         "filth_type": "organization"
     },
@@ -96,7 +96,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "361\u00b0 Europe B.V.",
+        "match": "361° Europe B.V.",
         "filth_type": "organization"
     },
     {
@@ -208,6 +208,14 @@
         "filth_type": "organization"
     },
     {
+        "match": "@EasePay B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "@Fentures B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "A Beautiful Story B.V.",
         "filth_type": "organization"
     },
@@ -217,6 +225,22 @@
     },
     {
         "match": "A&S System Integrators B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "A-ccelerator B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "A-dato B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "A-Gas Nederland B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "A-Label IT B.V.",
         "filth_type": "organization"
     },
     {
@@ -536,10 +560,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "A-ccelerator B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Accell Global B.V.",
         "filth_type": "organization"
     },
@@ -564,7 +584,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Access Financial Services S\u00e0rl",
+        "match": "Access Financial Services Sàrl",
         "filth_type": "organization"
     },
     {
@@ -584,7 +604,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Accr\u00e8s Tandartsenpraktijk Purmerend B.V.",
+        "match": "Accrès Tandartsenpraktijk Purmerend B.V.",
         "filth_type": "organization"
     },
     {
@@ -636,7 +656,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Acetate Europe Co\u00f6peratief U.A.",
+        "match": "Acetate Europe Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -812,10 +832,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "A-dato B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "ADC Tech Netherlands B.V.",
         "filth_type": "organization"
     },
@@ -904,7 +920,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Admind Polska Sp\u00f3lka Z Ograniczona Odpowiedzialnoscia",
+        "match": "Admind Polska Spólka Z Ograniczona Odpowiedzialnoscia",
         "filth_type": "organization"
     },
     {
@@ -1088,7 +1104,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Aevitas Property Partners Co\u00f6peratief U.A.",
+        "match": "Aevitas Property Partners Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -1149,10 +1165,6 @@
     },
     {
         "match": "AG5 B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "A-Gas Nederland B.V.",
         "filth_type": "organization"
     },
     {
@@ -1220,7 +1232,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Agium Financi\u00eble Detachering B.V.",
+        "match": "Agium Financiële Detachering B.V.",
         "filth_type": "organization"
     },
     {
@@ -1376,6 +1388,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Air-Paq B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "AirBeamTV B.V.",
         "filth_type": "organization"
     },
@@ -1417,10 +1433,6 @@
     },
     {
         "match": "Airpack Nederland B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Air-Paq B.V.",
         "filth_type": "organization"
     },
     {
@@ -1516,7 +1528,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "A-Label IT B.V.",
+        "match": "Al-Khier Food B.V.",
         "filth_type": "organization"
     },
     {
@@ -1641,10 +1653,6 @@
     },
     {
         "match": "Aliter Networks B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Al-Khier Food B.V.",
         "filth_type": "organization"
     },
     {
@@ -1920,6 +1928,14 @@
         "filth_type": "organization"
     },
     {
+        "match": "AM-Flow Holding B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "AM-Pharma B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "AMADA WELD TECH B.V.",
         "filth_type": "organization"
     },
@@ -2064,10 +2080,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "AM-Flow Holding B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Amgen B.V.",
         "filth_type": "organization"
     },
@@ -2124,10 +2136,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "AM-Pharma B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Amphenol Benelux B.V.",
         "filth_type": "organization"
     },
@@ -2140,7 +2148,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Ampleon Co\u00f6peratief U.A.",
+        "match": "Ampleon Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -2672,6 +2680,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Apple/DB-Schenker",
+        "filth_type": "organization"
+    },
+    {
         "match": "Applied Drone Innovations B.V.",
         "filth_type": "organization"
     },
@@ -2740,7 +2752,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "AQS European Real Estate Co\u00f6peratief U.A.",
+        "match": "AQS European Real Estate Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -2752,6 +2764,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Aqua-Spark Operating B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "AquaBattery",
         "filth_type": "organization"
     },
@@ -2760,15 +2776,15 @@
         "filth_type": "organization"
     },
     {
-        "match": "Aqua-Spark Operating B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Aquatic Drones B.V.",
         "filth_type": "organization"
     },
     {
         "match": "Aquent LLC",
+        "filth_type": "organization"
+    },
+    {
+        "match": "AR-Development B.V.",
         "filth_type": "organization"
     },
     {
@@ -2812,7 +2828,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Arauco Europe Co\u00f6peratief U.A.",
+        "match": "Arauco Europe Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -2893,10 +2909,6 @@
     },
     {
         "match": "Ardena Oss B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "AR-Development B.V.",
         "filth_type": "organization"
     },
     {
@@ -3072,7 +3084,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Artsen zonder Grenzen (M\u00e9decins Sans Fronti\u00e8res, Nederland)",
+        "match": "Artsen zonder Grenzen (Médecins Sans Frontières, Nederland)",
         "filth_type": "organization"
     },
     {
@@ -3340,11 +3352,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "ATC Europe Co\u00f6peratief U.A.",
+        "match": "ATC Europe Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
-        "match": "ATC International Co\u00f6peratief U.A.",
+        "match": "ATC International Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -3508,11 +3520,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Audiokinetic B.V.",
+        "match": "Audio-Technica Benelux B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Audio-Technica Benelux B.V.",
+        "match": "Audiokinetic B.V.",
         "filth_type": "organization"
     },
     {
@@ -3580,7 +3592,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Auto K\u00f6kc\u00fc B.V.",
+        "match": "Auto Kökcü B.V.",
         "filth_type": "organization"
     },
     {
@@ -3928,6 +3940,26 @@
         "filth_type": "organization"
     },
     {
+        "match": "B+B Vakmedianet Groep B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "B-Built B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "B-Right Urban Living Development B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "B-Synergy B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "B-ware Business Software B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "B. Building Business B.V.",
         "filth_type": "organization"
     },
@@ -3977,10 +4009,6 @@
     },
     {
         "match": "B.V. VITESSE",
-        "filth_type": "organization"
-    },
-    {
-        "match": "B+B Vakmedianet Groep B.V.",
         "filth_type": "organization"
     },
     {
@@ -4092,7 +4120,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Bakken & B\u00e6ck B.V.",
+        "match": "Bakken & Bæck B.V.",
         "filth_type": "organization"
     },
     {
@@ -4440,10 +4468,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "B-Built B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "BC Distribution B.V.",
         "filth_type": "organization"
     },
@@ -4501,6 +4525,10 @@
     },
     {
         "match": "BE Semiconductor Industries N.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "BE-terna B.V.",
         "filth_type": "organization"
     },
     {
@@ -4744,10 +4772,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "BE-terna B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Betontechniek Noord B.V.",
         "filth_type": "organization"
     },
@@ -4896,11 +4920,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Bimasbikes",
+        "match": "BIM-Connected Consultancy B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "BIM-Connected Consultancy B.V.",
+        "match": "Bimasbikes",
         "filth_type": "organization"
     },
     {
@@ -4917,6 +4941,10 @@
     },
     {
         "match": "Bio Energy Netherlands B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Bio-ITech B.V.",
         "filth_type": "organization"
     },
     {
@@ -4941,10 +4969,6 @@
     },
     {
         "match": "BioGX B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Bio-ITech B.V.",
         "filth_type": "organization"
     },
     {
@@ -4984,7 +5008,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Bioventus Co\u00f6peratief U.A.",
+        "match": "Bioventus Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -5672,10 +5696,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "B\u00f6sch Boden Spies Import GmbH",
-        "filth_type": "organization"
-    },
-    {
         "match": "Bosch en Slabbers Den Haag B.V.",
         "filth_type": "organization"
     },
@@ -6036,10 +6056,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "B-Right Urban Living Development B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "BrightContact Technology B.V.",
         "filth_type": "organization"
     },
@@ -6068,15 +6084,15 @@
         "filth_type": "organization"
     },
     {
+        "match": "Brink's Solutions Holdings B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "Brinkman International B.V.",
         "filth_type": "organization"
     },
     {
         "match": "Brinks Components B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Brink's Solutions Holdings B.V.",
         "filth_type": "organization"
     },
     {
@@ -6184,10 +6200,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "B-Synergy B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "BTG BioLiquids B.V.",
         "filth_type": "organization"
     },
@@ -6229,10 +6241,6 @@
     },
     {
         "match": "Bugloos B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "B\u00fchler B.V.",
         "filth_type": "organization"
     },
     {
@@ -6388,10 +6396,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "B-ware Business Software B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "BWise B.V.",
         "filth_type": "organization"
     },
@@ -6436,6 +6440,14 @@
         "filth_type": "organization"
     },
     {
+        "match": "Bösch Boden Spies Import GmbH",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Bühler B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "C & C Asian Market",
         "filth_type": "organization"
     },
@@ -6453,6 +6465,26 @@
     },
     {
         "match": "C&J International Trading B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "C-Boost B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "C-Corp B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "C-Job & Partners B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "C-Monc B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "C-Shipping B.V.",
         "filth_type": "organization"
     },
     {
@@ -6572,10 +6604,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "\u00c7ak Textile B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "CAL Consult Nederland B.V.",
         "filth_type": "organization"
     },
@@ -6593,10 +6621,6 @@
     },
     {
         "match": "Caliber.global B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "\u00c7alik Denim B.V.",
         "filth_type": "organization"
     },
     {
@@ -6629,6 +6653,10 @@
     },
     {
         "match": "Campuskey B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "CAN-PACK Netherlands B.V.",
         "filth_type": "organization"
     },
     {
@@ -6669,10 +6697,6 @@
     },
     {
         "match": "Canon Production Printing Netherlands B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "CAN-PACK Netherlands B.V.",
         "filth_type": "organization"
     },
     {
@@ -6844,11 +6868,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Carri\u00e8re Detachering B.V.",
+        "match": "Carrière Detachering B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Carri\u00e8re Personeelsdiensten B.V.",
+        "match": "Carrière Personeelsdiensten B.V.",
         "filth_type": "organization"
     },
     {
@@ -6988,10 +7012,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "C-Boost B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "CBOX Containers Netherlands B.V.",
         "filth_type": "organization"
     },
@@ -7053,10 +7073,6 @@
     },
     {
         "match": "CCmath B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "C-Corp B.V.",
         "filth_type": "organization"
     },
     {
@@ -7316,6 +7332,14 @@
         "filth_type": "organization"
     },
     {
+        "match": "Chain-IC B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Chain-Sys Europa B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "ChainBalance B.V.",
         "filth_type": "organization"
     },
@@ -7328,19 +7352,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Chain-IC B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Chainn B.V.",
         "filth_type": "organization"
     },
     {
         "match": "ChainStock B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Chain-Sys Europa B.V.",
         "filth_type": "organization"
     },
     {
@@ -7389,10 +7405,6 @@
     },
     {
         "match": "Chartboost B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Ch\u00e2terais\u00e9 Europe B.V.",
         "filth_type": "organization"
     },
     {
@@ -7700,11 +7712,15 @@
         "filth_type": "organization"
     },
     {
-        "match": "CI IV Co\u00f6peratief U.A.",
+        "match": "Châteraisé Europe B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "CI NMF I Co\u00f6peratief U.A.",
+        "match": "CI IV Coöperatief U.A.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "CI NMF I Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -7852,7 +7868,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "CITYF\u00f6RSTER",
+        "match": "CITYFöRSTER",
         "filth_type": "organization"
     },
     {
@@ -7881,10 +7897,6 @@
     },
     {
         "match": "CJ Wildbird Foods Europe B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "C-Job & Partners B.V.",
         "filth_type": "organization"
     },
     {
@@ -8144,10 +8156,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "C-Monc B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "CMS Beheer B.V.",
         "filth_type": "organization"
     },
@@ -8165,6 +8173,10 @@
     },
     {
         "match": "CNS Media B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Co-Flo Enterprise B.V.",
         "filth_type": "organization"
     },
     {
@@ -8289,10 +8301,6 @@
     },
     {
         "match": "Coffee IT B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Co-Flo Enterprise B.V.",
         "filth_type": "organization"
     },
     {
@@ -8824,34 +8832,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "Co\u00f6peratie Koninklijke Avebe U.A.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Co\u00f6peratie Koninklijke Cosun U.A.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Co\u00f6peratie Koninklijke Fruitmasters U.A.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Co\u00f6peratie Studio CC Amsterdam U.A.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Co\u00f6peratie Tory Burch U.A.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Co\u00f6peratieve KazMunaiGaz U.A.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Co\u00f6peratieve Rabobank U.A.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Coosto B.V.",
         "filth_type": "organization"
     },
@@ -9108,6 +9088,34 @@
         "filth_type": "organization"
     },
     {
+        "match": "Coöperatie Koninklijke Avebe U.A.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Coöperatie Koninklijke Cosun U.A.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Coöperatie Koninklijke Fruitmasters U.A.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Coöperatie Studio CC Amsterdam U.A.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Coöperatie Tory Burch U.A.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Coöperatieve KazMunaiGaz U.A.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Coöperatieve Rabobank U.A.",
+        "filth_type": "organization"
+    },
+    {
         "match": "CPH Pharma B.V.",
         "filth_type": "organization"
     },
@@ -9181,10 +9189,6 @@
     },
     {
         "match": "Creative Strategy Digital B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Cr\u00e9dit Agricole Consumer Finance Nederland B.V.",
         "filth_type": "organization"
     },
     {
@@ -9352,15 +9356,15 @@
         "filth_type": "organization"
     },
     {
+        "match": "Crédit Agricole Consumer Finance Nederland B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "CS Digital Media B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "CSafe Global Co\u00f6peratief U.A.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "C-Shipping B.V.",
+        "match": "CSafe Global Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -9648,7 +9652,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "DAIA Luxembourg Holding S.\u00e0 r.l.",
+        "match": "DAIA Luxembourg Holding S.à r.l.",
         "filth_type": "organization"
     },
     {
@@ -9836,7 +9840,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Dassault Syst\u00e8mes B.V.",
+        "match": "Dassault Systèmes B.V.",
         "filth_type": "organization"
     },
     {
@@ -9845,6 +9849,10 @@
     },
     {
         "match": "Data eXcellence B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Data-Centric Engineering B.V.",
         "filth_type": "organization"
     },
     {
@@ -9857,10 +9865,6 @@
     },
     {
         "match": "Datacation B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Data-Centric Engineering B.V.",
         "filth_type": "organization"
     },
     {
@@ -10232,10 +10236,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "D\u00e9hora advies B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "DEITYcommerce B.V.",
         "filth_type": "organization"
     },
@@ -10281,6 +10281,10 @@
     },
     {
         "match": "Del Monte (Holland) B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Del-Mar Safety B.V.",
         "filth_type": "organization"
     },
     {
@@ -10332,10 +10336,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "Del-Mar Safety B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "DELMIC B.V.",
         "filth_type": "organization"
     },
@@ -10360,7 +10360,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Delos Sage Holdco Co\u00f6peratief U.A.",
+        "match": "Delos Sage Holdco Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -11140,10 +11140,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "D\u00f6hler Holland B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Dole Europe B.V.",
         "filth_type": "organization"
     },
@@ -11520,10 +11516,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "D\u00fcmmen Orange The Netherlands B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Dun & Bradstreet B.V.",
         "filth_type": "organization"
     },
@@ -11553,10 +11545,6 @@
     },
     {
         "match": "Durapower Technology Group B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "D\u00fcr\u00fcm Company NL B.V.",
         "filth_type": "organization"
     },
     {
@@ -11748,6 +11736,22 @@
         "filth_type": "organization"
     },
     {
+        "match": "Déhora advies B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Döhler Holland B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Dümmen Orange The Netherlands B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Dürüm Company NL B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "E D & F Man Holdings B.V.",
         "filth_type": "organization"
     },
@@ -11765,6 +11769,26 @@
     },
     {
         "match": "E Zilly B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "E-LLIS B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "E-magy B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "E-Mergo",
+        "filth_type": "organization"
+    },
+    {
+        "match": "E-Tailize B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "E-Trailer B.V.",
         "filth_type": "organization"
     },
     {
@@ -11828,6 +11852,14 @@
         "filth_type": "organization"
     },
     {
+        "match": "East-West International B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "East-West Trade",
+        "filth_type": "organization"
+    },
+    {
         "match": "Eastar The Netherlands B.V.",
         "filth_type": "organization"
     },
@@ -11849,14 +11881,6 @@
     },
     {
         "match": "Eastport Maritime Europe B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "East-West International B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "East-West Trade",
         "filth_type": "organization"
     },
     {
@@ -12012,6 +12036,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Eco-movement B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "EcoChain Technologies B.V.",
         "filth_type": "organization"
     },
@@ -12029,10 +12057,6 @@
     },
     {
         "match": "Ecommerce Operations B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Eco-movement B.V.",
         "filth_type": "organization"
     },
     {
@@ -12296,7 +12320,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "El Ni\u00f1o B.V.",
+        "match": "El Niño B.V.",
         "filth_type": "organization"
     },
     {
@@ -12352,7 +12376,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Eldorado Gold Co\u00f6peratief U.A.",
+        "match": "Eldorado Gold Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -12488,10 +12512,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "E-LLIS B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Ellis Enterprises B.V.",
         "filth_type": "organization"
     },
@@ -12536,10 +12556,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "E-magy B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Emakina B.V.",
         "filth_type": "organization"
     },
@@ -12557,10 +12573,6 @@
     },
     {
         "match": "Emendis B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "E-Mergo",
         "filth_type": "organization"
     },
     {
@@ -12828,11 +12840,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Enigmatry B.V.",
+        "match": "ENI-JR286 International Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
-        "match": "ENI-JR286 International Co\u00f6peratief U.A.",
+        "match": "Enigmatry B.V.",
         "filth_type": "organization"
     },
     {
@@ -12892,7 +12904,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Entersekt Europe Co\u00f6peratief U.A.",
+        "match": "Entersekt Europe Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -13025,10 +13037,6 @@
     },
     {
         "match": "EPS Europe B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "\u00c9psilon Inversiones B.V.",
         "filth_type": "organization"
     },
     {
@@ -13292,11 +13300,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "EST2021FW B.V.",
+        "match": "EST-Floattech B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "EST-Floattech B.V.",
+        "match": "EST2021FW B.V.",
         "filth_type": "organization"
     },
     {
@@ -13305,10 +13313,6 @@
     },
     {
         "match": "Estreme B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "E-Tailize B.V.",
         "filth_type": "organization"
     },
     {
@@ -13353,10 +13357,6 @@
     },
     {
         "match": "ETPA B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "E-Trailer B.V.",
         "filth_type": "organization"
     },
     {
@@ -13444,11 +13444,15 @@
         "filth_type": "organization"
     },
     {
-        "match": "Euroboor B.V.",
+        "match": "Euro-Caps Holding B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Euro-Caps Holding B.V.",
+        "match": "Euro-Kytex Engineering B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Euroboor B.V.",
         "filth_type": "organization"
     },
     {
@@ -13532,11 +13536,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Euro-Kytex Engineering B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Eurolida Co\u00f6peratief U.A.",
+        "match": "Eurolida Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -13644,7 +13644,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "European Network for Cyber Security (ENCS) Co\u00f6peratief U.A.",
+        "match": "European Network for Cyber Security (ENCS) Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -14032,6 +14032,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "F-Secure B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "F.G. Progress B.V.",
         "filth_type": "organization"
     },
@@ -14252,7 +14256,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Federaci\u00f3n Nacional de Cafeteros de Colombia B.V.",
+        "match": "Federación Nacional de Cafeteros de Colombia B.V.",
         "filth_type": "organization"
     },
     {
@@ -14460,7 +14464,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Financi\u00eble Diensten Amsterdam B.V.",
+        "match": "Financiële Diensten Amsterdam B.V.",
         "filth_type": "organization"
     },
     {
@@ -14596,15 +14600,15 @@
         "filth_type": "organization"
     },
     {
+        "match": "Fit-Fight Dojo",
+        "filth_type": "organization"
+    },
+    {
         "match": "Fitch Finance B.V.",
         "filth_type": "organization"
     },
     {
         "match": "Fited B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Fit-Fight Dojo",
         "filth_type": "organization"
     },
     {
@@ -14648,7 +14652,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Flamingo\u00b4s Plaza B.V.",
+        "match": "Flamingo´s Plaza B.V.",
         "filth_type": "organization"
     },
     {
@@ -14660,7 +14664,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "FleetCor Technologie\u00ebn B.V.",
+        "match": "FleetCor Technologieën B.V.",
         "filth_type": "organization"
     },
     {
@@ -14896,15 +14900,15 @@
         "filth_type": "organization"
     },
     {
+        "match": "FM's Dienstverlening B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "FMC Separation Systems B.V.",
         "filth_type": "organization"
     },
     {
         "match": "FMI HTS Eindhoven B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "FM's Dienstverlening B.V.",
         "filth_type": "organization"
     },
     {
@@ -14936,11 +14940,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "FocusCura B.V.",
+        "match": "FOCUS-ON V.O.F.",
         "filth_type": "organization"
     },
     {
-        "match": "FOCUS-ON V.O.F.",
+        "match": "FocusCura B.V.",
         "filth_type": "organization"
     },
     {
@@ -14984,7 +14988,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Fonterra (Europe) Co\u00f6peratie U.A.",
+        "match": "Fonterra (Europe) Coöperatie U.A.",
         "filth_type": "organization"
     },
     {
@@ -15236,11 +15240,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Foxess Netherlands B.V.",
+        "match": "Fox-IT",
         "filth_type": "organization"
     },
     {
-        "match": "Fox-IT",
+        "match": "Foxess Netherlands B.V.",
         "filth_type": "organization"
     },
     {
@@ -15292,11 +15296,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Frankort & Koning B.V.",
+        "match": "Frank's International Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
-        "match": "Frank's International Co\u00f6peratief U.A.",
+        "match": "Frankort & Koning B.V.",
         "filth_type": "organization"
     },
     {
@@ -15453,10 +15457,6 @@
     },
     {
         "match": "FS NL Hilton Rotterdam OpCo 19 B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "F-Secure B.V.",
         "filth_type": "organization"
     },
     {
@@ -15676,6 +15676,14 @@
         "filth_type": "organization"
     },
     {
+        "match": "G-Nius",
+        "filth_type": "organization"
+    },
+    {
+        "match": "G-Star Raw C.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "G. Vermes B.V.",
         "filth_type": "organization"
     },
@@ -15824,7 +15832,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Gazprom Holding Co\u00f6peratie U.A.",
+        "match": "Gazprom Holding Coöperatie U.A.",
         "filth_type": "organization"
     },
     {
@@ -15856,7 +15864,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "GCP Europe Management S.\u00e0 r.l., Dutch branch",
+        "match": "GCP Europe Management S.à r.l., Dutch branch",
         "filth_type": "organization"
     },
     {
@@ -15897,10 +15905,6 @@
     },
     {
         "match": "GEA Refrigeration Netherlands N.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "G\u00c9ANT Vereniging",
         "filth_type": "organization"
     },
     {
@@ -15972,7 +15976,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Gelber Co\u00f6peratief U.A.",
+        "match": "Gelber Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -16152,11 +16156,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Getaround B.V.",
+        "match": "Get-E International B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Get-E International B.V.",
+        "match": "Getaround B.V.",
         "filth_type": "organization"
     },
     {
@@ -16200,11 +16204,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "GGzE",
+        "match": "GGZ-Reflection Haaglanden B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "GGZ-Reflection Haaglanden B.V.",
+        "match": "GGzE",
         "filth_type": "organization"
     },
     {
@@ -16500,10 +16504,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "G-Nius",
-        "filth_type": "organization"
-    },
-    {
         "match": "Go Daddy Netherlands B.V.",
         "filth_type": "organization"
     },
@@ -16524,7 +16524,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Gocase Int Co\u00f6peratief U.A.",
+        "match": "Gocase Int Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -16884,7 +16884,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Greystar Netherlands Co\u00f6peratief U.A.",
+        "match": "Greystar Netherlands Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -16940,15 +16940,15 @@
         "filth_type": "organization"
     },
     {
+        "match": "Group-IB Europe B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "GROUP9 B.V.",
         "filth_type": "organization"
     },
     {
         "match": "GroupA B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Group-IB Europe B.V.",
         "filth_type": "organization"
     },
     {
@@ -16992,15 +16992,15 @@
         "filth_type": "organization"
     },
     {
-        "match": "Gr\u00fcnenthal B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Grus B.V.",
         "filth_type": "organization"
     },
     {
         "match": "Grutto B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Grünenthal B.V.",
         "filth_type": "organization"
     },
     {
@@ -17025,10 +17025,6 @@
     },
     {
         "match": "GSR - Vereniging voor Gereformeerd Voortgezet Onderwijs in de Randstad",
-        "filth_type": "organization"
-    },
-    {
-        "match": "G-Star Raw C.V.",
         "filth_type": "organization"
     },
     {
@@ -17068,10 +17064,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "G\u00fcller G\u00fcller Architecture Urbanism",
-        "filth_type": "organization"
-    },
-    {
         "match": "Gunnebo Doetinchem B.V.",
         "filth_type": "organization"
     },
@@ -17097,10 +17089,6 @@
     },
     {
         "match": "Gutami Solar Development B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "G\u00fcven Supermarkt B.V.",
         "filth_type": "organization"
     },
     {
@@ -17136,6 +17124,18 @@
         "filth_type": "organization"
     },
     {
+        "match": "GÉANT Vereniging",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Güller Güller Architecture Urbanism",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Güven Supermarkt B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "H & H Select B.V.",
         "filth_type": "organization"
     },
@@ -17148,7 +17148,15 @@
         "filth_type": "organization"
     },
     {
-        "match": "H. J. Baker Sulphur International Co\u00f6peratief U.A.",
+        "match": "H+N+S B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "H-Stream B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "H. J. Baker Sulphur International Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -17181,10 +17189,6 @@
     },
     {
         "match": "H.W.I. Techniek B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "H+N+S B.V.",
         "filth_type": "organization"
     },
     {
@@ -17517,10 +17521,6 @@
     },
     {
         "match": "HaskoningDHV Nederland B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "H\u00e4stens Beds International B.V.",
         "filth_type": "organization"
     },
     {
@@ -17880,10 +17880,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "H\u00e9roult Marine Modules B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Heroyam B.V.",
         "filth_type": "organization"
     },
@@ -17933,6 +17929,14 @@
     },
     {
         "match": "HHOYA B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Hi-Tech Electronic Components B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Hi-tech Spring Europe B.V.",
         "filth_type": "organization"
     },
     {
@@ -17996,6 +18000,14 @@
         "filth_type": "organization"
     },
     {
+        "match": "Hill's Pet Nutrition B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Hill's Pet Nutrition Manufacturing B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "Hill+Knowlton Strategies B.V.",
         "filth_type": "organization"
     },
@@ -18005,14 +18017,6 @@
     },
     {
         "match": "Hillel Hospitality GP B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Hill's Pet Nutrition B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Hill's Pet Nutrition Manufacturing B.V.",
         "filth_type": "organization"
     },
     {
@@ -18088,14 +18092,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "Hi-Tech Electronic Components B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Hi-tech Spring Europe B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "HITMA Groep B.V.",
         "filth_type": "organization"
     },
@@ -18124,7 +18120,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "HLB Bl\u00f6mer accountants en adviseurs B.V.",
+        "match": "HLB Blömer accountants en adviseurs B.V.",
         "filth_type": "organization"
     },
     {
@@ -18168,7 +18164,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Hobr\u00e9 Instruments B.V.",
+        "match": "Hobré Instruments B.V.",
         "filth_type": "organization"
     },
     {
@@ -18532,7 +18528,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Houthoff Co\u00f6peratief U.A.",
+        "match": "Houthoff Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -18640,10 +18636,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "H-Stream B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "HSU.nl",
         "filth_type": "organization"
     },
@@ -18672,7 +18664,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Huawei Technologies Co\u00f6peratief U.A.",
+        "match": "Huawei Technologies Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -18760,11 +18752,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Hunkem\u00f6ller B.V.",
+        "match": "Hunkemöller B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Hunkem\u00f6ller International B.V.",
+        "match": "Hunkemöller International B.V.",
         "filth_type": "organization"
     },
     {
@@ -18904,6 +18896,14 @@
         "filth_type": "organization"
     },
     {
+        "match": "Hästens Beds International B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Héroult Marine Modules B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "I & C Services B.V.",
         "filth_type": "organization"
     },
@@ -18916,15 +18916,31 @@
         "filth_type": "organization"
     },
     {
+        "match": "i+ Solutions",
+        "filth_type": "organization"
+    },
+    {
+        "match": "i-PRO EMEA B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "i-psy PsyQ Brijder B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "I-SEC International Security B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "i-team Professional",
+        "filth_type": "organization"
+    },
+    {
         "match": "I.A.A. Architecten B.V.",
         "filth_type": "organization"
     },
     {
         "match": "I.D.B. Holland B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "i+ Solutions",
         "filth_type": "organization"
     },
     {
@@ -19092,7 +19108,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "ICL Europe Co\u00f6peratief U.A.",
+        "match": "ICL Europe Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -19136,11 +19152,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Ideaworks Netherlands B.V.",
+        "match": "Idea-X B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Idea-X B.V.",
+        "match": "Ideaworks Netherlands B.V.",
         "filth_type": "organization"
     },
     {
@@ -19256,6 +19272,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "IKC Laterna Magica",
+        "filth_type": "organization"
+    },
+    {
         "match": "IKEA B.V.",
         "filth_type": "organization"
     },
@@ -19296,7 +19316,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Ilumno Licensing Co\u00f6peratief U.A.",
+        "match": "Ilumno Licensing Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -19308,11 +19328,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "im | innovating B.V.",
+        "match": "IM Efficiency Technologies B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "IM Efficiency Technologies B.V.",
+        "match": "im | innovating B.V.",
         "filth_type": "organization"
     },
     {
@@ -19752,6 +19772,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Ingenieurs-op-Zuid B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "Ingenieursbureau BT Geoconsult B.V.",
         "filth_type": "organization"
     },
@@ -19769,10 +19793,6 @@
     },
     {
         "match": "Ingenieursbureau-XYZ B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Ingenieurs-op-Zuid B.V.",
         "filth_type": "organization"
     },
     {
@@ -19812,7 +19832,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Inguran Europe Co\u00f6peratief U.A.",
+        "match": "Inguran Europe Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -19896,6 +19916,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Inno-Metaal B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "INNOBIO Europe B.V.",
         "filth_type": "organization"
     },
@@ -19929,10 +19953,6 @@
     },
     {
         "match": "Innomet Specials B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Inno-Metaal B.V.",
         "filth_type": "organization"
     },
     {
@@ -20304,7 +20324,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "International Internet Investment Co\u00f6peratief U.A.",
+        "match": "International Internet Investment Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -20384,7 +20404,15 @@
         "filth_type": "organization"
     },
     {
+        "match": "Interteach",
+        "filth_type": "organization"
+    },
+    {
         "match": "Interteach B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Interteach Elementary",
         "filth_type": "organization"
     },
     {
@@ -20596,7 +20624,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "IPAC eu Co\u00f6peratie U.A.",
+        "match": "IPAC eu Coöperatie U.A.",
         "filth_type": "organization"
     },
     {
@@ -20628,10 +20656,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "i-PRO EMEA B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "iProspect Nederland B.V.",
         "filth_type": "organization"
     },
@@ -20657,10 +20681,6 @@
     },
     {
         "match": "IPSS Engineering B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "i-psy PsyQ Brijder B.V.",
         "filth_type": "organization"
     },
     {
@@ -20748,10 +20768,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "I-SEC International Security B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "iSIGHT Partners Europe Holdings B.V.",
         "filth_type": "organization"
     },
@@ -20808,6 +20824,18 @@
         "filth_type": "organization"
     },
     {
+        "match": "It's Value Consultancy B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "IT-Button.com B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "IT-People B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "Italiaans Restaurant La Madonnina",
         "filth_type": "organization"
     },
@@ -20816,15 +20844,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "IT-Button.com B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "ITC Infotech India Limited",
-        "filth_type": "organization"
-    },
-    {
-        "match": "i-team Professional",
         "filth_type": "organization"
     },
     {
@@ -20845,10 +20865,6 @@
     },
     {
         "match": "Itonomy B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "IT-People B.V.",
         "filth_type": "organization"
     },
     {
@@ -20880,10 +20896,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "It's Value Consultancy B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "ITSync B.V.",
         "filth_type": "organization"
     },
@@ -20912,10 +20924,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "Ivanti Software B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Iv-Bouw B.V.",
         "filth_type": "organization"
     },
@@ -20924,15 +20932,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Ivent Mobile B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Iv-Groep B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Ivido B.V.",
         "filth_type": "organization"
     },
     {
@@ -20944,15 +20944,27 @@
         "filth_type": "organization"
     },
     {
-        "match": "Ivium Technologies B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Iv-Offshore & Energy B.V.",
         "filth_type": "organization"
     },
     {
         "match": "Iv-Water B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Ivanti Software B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Ivent Mobile B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Ivido B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Ivium Technologies B.V.",
         "filth_type": "organization"
     },
     {
@@ -21392,7 +21404,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Jonctions P\u00e9riph\u00e9riques syst\u00e8mes informatiques (JPS Informatique)",
+        "match": "Jonctions Périphériques systèmes informatiques (JPS Informatique)",
         "filth_type": "organization"
     },
     {
@@ -21548,10 +21560,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "K_Dekker bouw & infra b.v.",
-        "filth_type": "organization"
-    },
-    {
         "match": "K2View B.V.",
         "filth_type": "organization"
     },
@@ -21568,6 +21576,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "K_Dekker bouw & infra b.v.",
+        "filth_type": "organization"
+    },
+    {
         "match": "Kaak Food Processing Systems B.V.",
         "filth_type": "organization"
     },
@@ -21580,7 +21592,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Kaasmakerij \u00d6zgazi B.V.",
+        "match": "Kaasmakerij Özgazi B.V.",
         "filth_type": "organization"
     },
     {
@@ -21781,6 +21793,10 @@
     },
     {
         "match": "KazMunaiGaz Finance Sub B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "KC De Uitdaging",
         "filth_type": "organization"
     },
     {
@@ -22588,10 +22604,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "K\u00f6rber Supply Chain NL B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "KORE Wireless Nederland B.V.",
         "filth_type": "organization"
     },
@@ -22832,10 +22844,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "K\u00fchne + Heitz Holland B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Kuhn-Geldrop B.V.",
         "filth_type": "organization"
     },
@@ -22896,7 +22904,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Kuriyama Europe Co\u00f6peratief U.A.",
+        "match": "Kuriyama Europe Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -22984,11 +22992,35 @@
         "filth_type": "organization"
     },
     {
+        "match": "Körber Supply Chain NL B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Kühne + Heitz Holland B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "L - founders of loyalty Group B.V.",
         "filth_type": "organization"
     },
     {
         "match": "L&T Technology Services Limited",
+        "filth_type": "organization"
+    },
+    {
+        "match": "L'Arbre Chiropratique B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "L'Oreal Nederland B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "L-Groep Totaalonderhoud B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "L-IFT B.V.",
         "filth_type": "organization"
     },
     {
@@ -23112,11 +23144,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Lanser's Trio Industri\u00eble Diensten B.V.",
+        "match": "Lanser's Trio Industriële Diensten B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Lantech.com Co\u00f6peratie U.A.",
+        "match": "Lantech.com Coöperatie U.A.",
         "filth_type": "organization"
     },
     {
@@ -23129,10 +23161,6 @@
     },
     {
         "match": "Lapidus Management & Beheer B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "L'Arbre Chiropratique B.V.",
         "filth_type": "organization"
     },
     {
@@ -23161,6 +23189,10 @@
     },
     {
         "match": "Laterite B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Laterna Magica",
         "filth_type": "organization"
     },
     {
@@ -23408,7 +23440,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Lenovo International Co\u00f6peratief U.A.",
+        "match": "Lenovo International Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -23524,10 +23556,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "L-Groep Totaalonderhoud B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "LHIC Netherlands II B.V.",
         "filth_type": "organization"
     },
@@ -23576,7 +23604,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Lifecell Ventures Co\u00f6peratief U.A.",
+        "match": "Lifecell Ventures Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -23596,10 +23624,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "L-IFT B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "LIFT International B.V.",
         "filth_type": "organization"
     },
@@ -23612,7 +23636,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Lighthouse Financial Technologies Co\u00f6peratief U.A.",
+        "match": "Lighthouse Financial Technologies Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -23696,7 +23720,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Lindt & Spr\u00fcngli (Netherlands) B.V.",
+        "match": "Lindt & Sprüngli (Netherlands) B.V.",
         "filth_type": "organization"
     },
     {
@@ -23704,7 +23728,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Lineage Dutch Co\u00f6peratief U.A.",
+        "match": "Lineage Dutch Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -23796,11 +23820,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Litecad B.V.",
+        "match": "Lite-On Technology (Europe) B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Lite-On Technology (Europe) B.V.",
+        "match": "Litecad B.V.",
         "filth_type": "organization"
     },
     {
@@ -23856,11 +23880,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Lloyds Bank GmbH",
+        "match": "Lloyd's Register EMEA",
         "filth_type": "organization"
     },
     {
-        "match": "Lloyd's Register EMEA",
+        "match": "Lloyds Bank GmbH",
         "filth_type": "organization"
     },
     {
@@ -23924,7 +23948,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Logisch industri\u00eble automatisering B.V.",
+        "match": "Logisch industriële automatisering B.V.",
         "filth_type": "organization"
     },
     {
@@ -24013,10 +24037,6 @@
     },
     {
         "match": "Loparex B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "L'Oreal Nederland B.V.",
         "filth_type": "organization"
     },
     {
@@ -24232,11 +24252,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Luxexcel Group B.V.",
+        "match": "Lux-mate Europe B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Lux-mate Europe B.V.",
+        "match": "Luxexcel Group B.V.",
         "filth_type": "organization"
     },
     {
@@ -24320,6 +24340,14 @@
         "filth_type": "organization"
     },
     {
+        "match": "M+P, raadgevende ingenieurs B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "M-Wise B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "M. Velings Holding B.V.",
         "filth_type": "organization"
     },
@@ -24328,15 +24356,19 @@
         "filth_type": "organization"
     },
     {
-        "match": "M+P, raadgevende ingenieurs B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "M11 B.V.",
         "filth_type": "organization"
     },
     {
         "match": "M7 Real Estate Netherlands B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "MA-IT B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "MA-TRAC",
         "filth_type": "organization"
     },
     {
@@ -24601,10 +24633,6 @@
     },
     {
         "match": "Maistering B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "MA-IT B.V.",
         "filth_type": "organization"
     },
     {
@@ -24944,11 +24972,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "MarshBerry International Co\u00f6peratief U.A.",
+        "match": "MarshBerry International Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
-        "match": "Marubeni Foods Investment Asia Co\u00f6peratief U.A.",
+        "match": "Marubeni Foods Investment Asia Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -24976,7 +25004,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Masdar Solar & Wind Co\u00f6peratief U.A.",
+        "match": "Masdar Solar & Wind Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -25012,6 +25040,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Mat-Tech B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "Matchcare B.V.",
         "filth_type": "organization"
     },
@@ -25036,19 +25068,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "MA-TRAC",
-        "filth_type": "organization"
-    },
-    {
         "match": "Matras Recycling EU Nederland B.V.",
         "filth_type": "organization"
     },
     {
         "match": "Matrix Vastgoed B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Mat-Tech B.V.",
         "filth_type": "organization"
     },
     {
@@ -25080,7 +25104,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Maverick Derivatives Co\u00f6peratief U.A.",
+        "match": "Maverick Derivatives Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -25092,7 +25116,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Max B\u00f6gl Nederland B.V.",
+        "match": "Max Bögl Nederland B.V.",
         "filth_type": "organization"
     },
     {
@@ -25112,7 +25136,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Maxbuff Co\u00f6peratie U.A.",
+        "match": "Maxbuff Coöperatie U.A.",
         "filth_type": "organization"
     },
     {
@@ -25936,6 +25960,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Micro-Star Netherlands Holding",
+        "filth_type": "organization"
+    },
+    {
         "match": "MicroAlign B.V.",
         "filth_type": "organization"
     },
@@ -25972,7 +26000,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "MicroPort Scientific Co\u00f6peratief U.A.",
+        "match": "MicroPort Scientific Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -25981,10 +26009,6 @@
     },
     {
         "match": "Microsoft Datacenter Netherlands B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Micro-Star Netherlands Holding",
         "filth_type": "organization"
     },
     {
@@ -26336,11 +26360,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "MMD-Monitors & Displays Nederland B.V.",
+        "match": "MM-Guide B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "MM-Guide B.V.",
+        "match": "MMD-Monitors & Displays Nederland B.V.",
         "filth_type": "organization"
     },
     {
@@ -26904,7 +26928,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Mulkl\u00e9 Metaal B.V.",
+        "match": "Mulklé Metaal B.V.",
         "filth_type": "organization"
     },
     {
@@ -27020,10 +27044,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "M-Wise B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "MX3D B.V.",
         "filth_type": "organization"
     },
@@ -27096,6 +27116,14 @@
         "filth_type": "organization"
     },
     {
+        "match": "N-able Acquisition Company B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "N-Sea Services B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "N.V. ADO Den Haag",
         "filth_type": "organization"
     },
@@ -27148,19 +27176,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "N-able Acquisition Company B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Nabtesco Marine Europe B.V.",
         "filth_type": "organization"
     },
     {
         "match": "Naess Ship Management B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Na\u00eff Care B.V.",
         "filth_type": "organization"
     },
     {
@@ -27281,6 +27301,10 @@
     },
     {
         "match": "NAXCON B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Naïf Care B.V.",
         "filth_type": "organization"
     },
     {
@@ -27564,7 +27588,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Nestl\u00e9 Nederland B.V.",
+        "match": "Nestlé Nederland B.V.",
         "filth_type": "organization"
     },
     {
@@ -27760,7 +27784,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "NewCold Co\u00f6peratief U.A.",
+        "match": "NewCold Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -28248,7 +28272,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Noblesse Prote\u00efns B.V.",
+        "match": "Noblesse Proteïns B.V.",
         "filth_type": "organization"
     },
     {
@@ -28448,7 +28472,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Nouryon Co\u00f6peratief U.A.",
+        "match": "Nouryon Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -28465,6 +28489,10 @@
     },
     {
         "match": "Nouvall Engineering Services Nederland B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Nova-X Europe B.V.",
         "filth_type": "organization"
     },
     {
@@ -28501,10 +28529,6 @@
     },
     {
         "match": "NovaTech Automation Solutions B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Nova-X Europe B.V.",
         "filth_type": "organization"
     },
     {
@@ -28592,19 +28616,15 @@
         "filth_type": "organization"
     },
     {
-        "match": "N-Sea Services B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "NSI N.V.",
         "filth_type": "organization"
     },
     {
-        "match": "NTC Wismettac Europe B.V.",
+        "match": "NT-MDT B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "NT-MDT B.V.",
+        "match": "NTC Wismettac Europe B.V.",
         "filth_type": "organization"
     },
     {
@@ -28816,6 +28836,14 @@
         "filth_type": "organization"
     },
     {
+        "match": "O'Neill Europe B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "O-I Netherlands B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "o9 Solutions Netherlands B.V.",
         "filth_type": "organization"
     },
@@ -28940,11 +28968,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Odd.Bot",
+        "match": "Odd-e Netherlands B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Odd-e Netherlands B.V.",
+        "match": "Odd.Bot",
         "filth_type": "organization"
     },
     {
@@ -29036,10 +29064,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "O-I Netherlands B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "OIKOCREDIT, Ecumenical Development Cooperative Society U.A.",
         "filth_type": "organization"
     },
@@ -29116,7 +29140,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Oldenburg Bons\u00e8l Nederland B.V.",
+        "match": "Oldenburg Bonsèl Nederland B.V.",
         "filth_type": "organization"
     },
     {
@@ -29308,19 +29332,19 @@
         "filth_type": "organization"
     },
     {
-        "match": "One2few B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "One-Consultants B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Onedayone Fruit Europe B.V.",
+        "match": "ONE-Dyas B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "ONE-Dyas B.V.",
+        "match": "One2few B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Onedayone Fruit Europe B.V.",
         "filth_type": "organization"
     },
     {
@@ -29333,10 +29357,6 @@
     },
     {
         "match": "Onego Shipping & Chartering B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "O'Neill Europe B.V.",
         "filth_type": "organization"
     },
     {
@@ -29460,7 +29480,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Open Text Co\u00f6peratief U.A.",
+        "match": "Open Text Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -29840,10 +29860,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "\u00d6ssur Europe B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Ostate B.V.",
         "filth_type": "organization"
     },
@@ -29984,19 +30000,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "\u00d6z & Er Food B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "OZ Export B.V.",
         "filth_type": "organization"
     },
     {
         "match": "OZ Import B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "\u00d6zbaktat Supermarkt B.V.",
         "filth_type": "organization"
     },
     {
@@ -30076,6 +30084,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "PAL-V Operations B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "Pala Betonstaal B.V.",
         "filth_type": "organization"
     },
@@ -30112,7 +30124,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "PAL-V Operations B.V.",
+        "match": "Pan-Invest B.V.",
         "filth_type": "organization"
     },
     {
@@ -30145,10 +30157,6 @@
     },
     {
         "match": "Pandora Intelligence B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Pan-Invest B.V.",
         "filth_type": "organization"
     },
     {
@@ -30340,7 +30348,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Patagonia Europe Co\u00f6peratief U.A.",
+        "match": "Patagonia Europe Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -30380,7 +30388,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Pattern Amsterdam Co\u00f6peratief U.A.",
+        "match": "Pattern Amsterdam Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -30476,7 +30484,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "PCS Wireless NL Co\u00f6peratief U.A.",
+        "match": "PCS Wireless NL Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -30484,11 +30492,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "PDM Industrial Excellence Manufacturing Solutions B.V.",
+        "match": "PD-value B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "PD-value B.V.",
+        "match": "PDM Industrial Excellence Manufacturing Solutions B.V.",
         "filth_type": "organization"
     },
     {
@@ -30700,10 +30708,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "'Petite Am\u00e9lie' Nederland B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "PETROBRAS GLOBAL TRADING B.V.",
         "filth_type": "organization"
     },
@@ -30724,7 +30728,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Petrogas International E&P Co\u00f6peratief U.A.",
+        "match": "Petrogas International E&P Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -30744,7 +30748,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "PF Concept International Co\u00f6peratief U.A.",
+        "match": "PF Concept International Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -30804,7 +30808,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "PharMerit Co\u00f6peratief U.A.",
+        "match": "PharMerit Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -31012,7 +31016,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Piton Capital Investments Co\u00f6peratief B.A.",
+        "match": "Piton Capital Investments Coöperatief B.A.",
         "filth_type": "organization"
     },
     {
@@ -31280,7 +31284,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "PolyOne S.\u00e0 r.l., Netherlands branch",
+        "match": "PolyOne S.à r.l., Netherlands branch",
         "filth_type": "organization"
     },
     {
@@ -31392,6 +31396,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Power-Packer Europa B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "Power2X Services B.V.",
         "filth_type": "organization"
     },
@@ -31409,10 +31417,6 @@
     },
     {
         "match": "Powerhouse Company International B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Power-Packer Europa B.V.",
         "filth_type": "organization"
     },
     {
@@ -31497,14 +31501,6 @@
     },
     {
         "match": "Praxis Works EU B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "PR\u00e9",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Pr\u00e9 Pain B.V.",
         "filth_type": "organization"
     },
     {
@@ -31621,6 +31617,10 @@
     },
     {
         "match": "Pro Liquid B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Pro-face Europe B.V.",
         "filth_type": "organization"
     },
     {
@@ -31741,10 +31741,6 @@
     },
     {
         "match": "Prodware Nederland B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Pro-face Europe B.V.",
         "filth_type": "organization"
     },
     {
@@ -31988,6 +31984,14 @@
         "filth_type": "organization"
     },
     {
+        "match": "PRé",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Pré Pain B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "PSP Projecten B.V.",
         "filth_type": "organization"
     },
@@ -31996,11 +32000,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Psybizz B.V.",
+        "match": "PSY-ray International B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "PSY-ray International B.V.",
+        "match": "Psybizz B.V.",
         "filth_type": "organization"
     },
     {
@@ -32072,7 +32076,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "PureTerra Management Co\u00f6peratief U.A.",
+        "match": "PureTerra Management Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -32168,11 +32172,27 @@
         "filth_type": "organization"
     },
     {
-        "match": "Qatar Airways Group (Q.C.S.C.)",
+        "match": "Q-Aviation B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Q-Aviation B.V.",
+        "match": "Q-Concepts Accountancy B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Q-Concepts Advies B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Q-Free Netherlands B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Q-Shipping B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Qatar Airways Group (Q.C.S.C.)",
         "filth_type": "organization"
     },
     {
@@ -32192,14 +32212,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "Q-Concepts Accountancy B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Q-Concepts Advies B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "QDI systems B.V.",
         "filth_type": "organization"
     },
@@ -32209,10 +32221,6 @@
     },
     {
         "match": "QFR Solutions B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Q-Free Netherlands B.V.",
         "filth_type": "organization"
     },
     {
@@ -32297,10 +32305,6 @@
     },
     {
         "match": "Qseven",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Q-Shipping B.V.",
         "filth_type": "organization"
     },
     {
@@ -32592,10 +32596,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "ra\u00efnara\u00ef",
-        "filth_type": "organization"
-    },
-    {
         "match": "Rainforest Alliance B.V.",
         "filth_type": "organization"
     },
@@ -32708,15 +32708,19 @@
         "filth_type": "organization"
     },
     {
-        "match": "RAYANET",
-        "filth_type": "organization"
-    },
-    {
         "match": "Ray-Links B.V.",
         "filth_type": "organization"
     },
     {
+        "match": "RAYANET",
+        "filth_type": "organization"
+    },
+    {
         "match": "Razorleaf B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "raïnaraï",
         "filth_type": "organization"
     },
     {
@@ -32756,6 +32760,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Re-Teck Reverse Supply Chain Management B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "Re/Gent B.V.",
         "filth_type": "organization"
     },
@@ -32788,7 +32796,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Realterm Europe Management Co\u00f6peratief U.A.",
+        "match": "Realterm Europe Management Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -32908,6 +32916,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "RED-TO-GREEN B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "Reddit Netherlands B.V.",
         "filth_type": "organization"
     },
@@ -32937,10 +32949,6 @@
     },
     {
         "match": "Redstack B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "RED-TO-GREEN B.V.",
         "filth_type": "organization"
     },
     {
@@ -33188,10 +33196,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "R\u00e9seaux IP Europ\u00e9ens Network Coordination Centre (RIPE NCC)",
-        "filth_type": "organization"
-    },
-    {
         "match": "Resleeve B.V.",
         "filth_type": "organization"
     },
@@ -33240,7 +33244,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Result Financi\u00eble Dienstverlening B.V.",
+        "match": "Result Financiële Dienstverlening B.V.",
         "filth_type": "organization"
     },
     {
@@ -33256,15 +33260,15 @@
         "filth_type": "organization"
     },
     {
-        "match": "Re-Teck Reverse Supply Chain Management B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Returnista B.V.",
         "filth_type": "organization"
     },
     {
         "match": "Reunion Ventures B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "REV'IT! SPORT INTERNATIONAL B.V.",
         "filth_type": "organization"
     },
     {
@@ -33277,10 +33281,6 @@
     },
     {
         "match": "Revinate B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "REV'IT! SPORT INTERNATIONAL B.V.",
         "filth_type": "organization"
     },
     {
@@ -33600,6 +33600,14 @@
         "filth_type": "organization"
     },
     {
+        "match": "ROC Nijmegen",
+        "filth_type": "organization"
+    },
+    {
+        "match": "ROC-Nijmegen",
+        "filth_type": "organization"
+    },
+    {
         "match": "Roca Plant B.V.",
         "filth_type": "organization"
     },
@@ -33744,10 +33752,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "R\u00f6ntgen Technische Dienst B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Roodhart Emission Control B.V.",
         "filth_type": "organization"
     },
@@ -33829,10 +33833,6 @@
     },
     {
         "match": "Rotork Gears Holding B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "'Rotterdam Community Solutions B.V.' (Rotterdam C.S. B.V.)",
         "filth_type": "organization"
     },
     {
@@ -34072,7 +34072,23 @@
         "filth_type": "organization"
     },
     {
+        "match": "Réseaux IP Européens Network Coordination Centre (RIPE NCC)",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Röntgen Technische Dienst B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "S&P DJI Netherlands B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "S-OIL Corporation",
+        "filth_type": "organization"
+    },
+    {
+        "match": "S-RM B.V.",
         "filth_type": "organization"
     },
     {
@@ -34332,7 +34348,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Samsung SDS Global SCL Netherlands Co\u00f6peratief U.A.",
+        "match": "Samsung SDS Global SCL Netherlands Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -34760,10 +34776,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "Sch\u00fcco Nederland B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Schuiteman Audit & Assurance B.V.",
         "filth_type": "organization"
     },
@@ -34781,6 +34793,10 @@
     },
     {
         "match": "Schweppes International Limited",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Schüco Nederland B.V.",
         "filth_type": "organization"
     },
     {
@@ -34868,11 +34884,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "SDC Engineering B.V.",
+        "match": "SD-Insights B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "SD-Insights B.V.",
+        "match": "SDC Engineering B.V.",
         "filth_type": "organization"
     },
     {
@@ -35248,7 +35264,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Seoil Holding Co\u00f6peratief U.A.",
+        "match": "Seoil Holding Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -35328,11 +35344,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Sevenhills Logistics B.V.",
+        "match": "Seven-Up Nederland B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Seven-Up Nederland B.V.",
+        "match": "Sevenhills Logistics B.V.",
         "filth_type": "organization"
     },
     {
@@ -35440,7 +35456,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "ShawCor International Co\u00f6peratie U.A.",
+        "match": "ShawCor International Coöperatie U.A.",
         "filth_type": "organization"
     },
     {
@@ -35452,11 +35468,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Shell B.V.",
+        "match": "Shell Asset Management Company B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Shell Asset Management Company B.V.",
+        "match": "Shell B.V.",
         "filth_type": "organization"
     },
     {
@@ -35536,10 +35552,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "SHINE Europe B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Shin-Etsu International Europe B.V.",
         "filth_type": "organization"
     },
@@ -35553,6 +35565,10 @@
     },
     {
         "match": "Shin-Etsu Silicones Europe B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "SHINE Europe B.V.",
         "filth_type": "organization"
     },
     {
@@ -35884,6 +35900,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Sino-Ned Business Consultancy B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "Sinoboom B.V.",
         "filth_type": "organization"
     },
@@ -35893,10 +35913,6 @@
     },
     {
         "match": "Sinomedik B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Sino-Ned Business Consultancy B.V.",
         "filth_type": "organization"
     },
     {
@@ -36080,7 +36096,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "SkyTeam Airline Alliance Management Co\u00f6peratie U.A.",
+        "match": "SkyTeam Airline Alliance Management Coöperatie U.A.",
         "filth_type": "organization"
     },
     {
@@ -36488,10 +36504,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "S-OIL Corporation",
-        "filth_type": "organization"
-    },
-    {
         "match": "Sojitz Aviation and Marine B.V.",
         "filth_type": "organization"
     },
@@ -36640,15 +36652,15 @@
         "filth_type": "organization"
     },
     {
-        "match": "Solv\u00e8s Employee B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Solvinity",
         "filth_type": "organization"
     },
     {
         "match": "Solvy B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Solvès Employee B.V.",
         "filth_type": "organization"
     },
     {
@@ -36896,7 +36908,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "SPDF Business Advisory Co\u00f6peratie U.A.",
+        "match": "SPDF Business Advisory Coöperatie U.A.",
         "filth_type": "organization"
     },
     {
@@ -37145,10 +37157,6 @@
     },
     {
         "match": "Sram Europe Sales and Services B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "S-RM B.V.",
         "filth_type": "organization"
     },
     {
@@ -37572,7 +37580,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Stichting Autoriteit Financi\u00eble Markten",
+        "match": "Stichting Autoriteit Financiële Markten",
         "filth_type": "organization"
     },
     {
@@ -38048,7 +38056,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Stichting IUCN Nederlands Comit\u00e9 (IUCN National Committee of the Netherlands Foundation)",
+        "match": "Stichting IUCN Nederlands Comité (IUCN National Committee of the Netherlands Foundation)",
         "filth_type": "organization"
     },
     {
@@ -38184,7 +38192,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Stichting Nederlands Helsinki Comit\u00e9",
+        "match": "Stichting Nederlands Helsinki Comité",
         "filth_type": "organization"
     },
     {
@@ -38704,10 +38712,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "St\u00f6rk-Tronic NL B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Story of AMS B.V.",
         "filth_type": "organization"
     },
@@ -38720,11 +38724,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Straightforward",
+        "match": "Straight-Line Leadership Group B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Straight-Line Leadership Group B.V.",
+        "match": "Straightforward",
         "filth_type": "organization"
     },
     {
@@ -38784,10 +38788,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "Str\u00f6dter Handling Systems NL",
-        "filth_type": "organization"
-    },
-    {
         "match": "Strohm B.V.",
         "filth_type": "organization"
     },
@@ -38813,6 +38813,10 @@
     },
     {
         "match": "Stryker Nederland B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Strödter Handling Systems NL",
         "filth_type": "organization"
     },
     {
@@ -38868,6 +38872,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Störk-Tronic NL B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "SU Biomedicine B.V.",
         "filth_type": "organization"
     },
@@ -38892,7 +38900,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Sucorrico International Co\u00f6peratief U.A.",
+        "match": "Sucorrico International Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -38960,7 +38968,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Sun Chemical Group Co\u00f6peratief U.A.",
+        "match": "Sun Chemical Group Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -39340,7 +39348,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Synova Co\u00f6peratief U.A.",
+        "match": "Synova Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -39433,6 +39441,18 @@
     },
     {
         "match": "T&P Projecten B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "T-Hive B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "T-Pion B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "T-Systems Nederland B.V.",
         "filth_type": "organization"
     },
     {
@@ -39868,7 +39888,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "TAV Tepe Akfen Yat\u0131r\u0131m \u0130n\u015faat ve \u0130\u015fletme A.\u015e.",
+        "match": "TAV Tepe Akfen Yatırım İnşaat ve İşletme A.Ş.",
         "filth_type": "organization"
     },
     {
@@ -40252,7 +40272,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Telford Offshore Netherlands Co\u00f6peratie U.A.",
+        "match": "Telford Offshore Netherlands Coöperatie U.A.",
         "filth_type": "organization"
     },
     {
@@ -40537,10 +40557,6 @@
     },
     {
         "match": "Tetra Pak Processing Systems B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "T\u00e9tris Design & Build B.V.",
         "filth_type": "organization"
     },
     {
@@ -40965,10 +40981,6 @@
     },
     {
         "match": "ThisWorks EOR Services B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "T-Hive B.V.",
         "filth_type": "organization"
     },
     {
@@ -41548,7 +41560,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Topicus.com Co\u00f6peratief U.A.",
+        "match": "Topicus.com Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -41681,10 +41693,6 @@
     },
     {
         "match": "TP Vision Europe B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "T-Pion B.V.",
         "filth_type": "organization"
     },
     {
@@ -41892,11 +41900,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Tr\u00e9sviri Cost Engineering Solutions B.V.",
+        "match": "TRG Global B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "TRG Global B.V.",
+        "match": "Tri-ennium Software B.V.",
         "filth_type": "organization"
     },
     {
@@ -41921,10 +41929,6 @@
     },
     {
         "match": "Tricycle MSS B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Tri-ennium Software B.V.",
         "filth_type": "organization"
     },
     {
@@ -42136,6 +42140,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Trésviri Cost Engineering Solutions B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "TSC Leeuwarden B.V.",
         "filth_type": "organization"
     },
@@ -42177,10 +42185,6 @@
     },
     {
         "match": "Tsubakimoto Europe B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "T-Systems Nederland B.V.",
         "filth_type": "organization"
     },
     {
@@ -42256,10 +42260,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "T\u00dcV Rheinland Sonovation B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "TUX mobility B.V.",
         "filth_type": "organization"
     },
@@ -42288,11 +42288,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Twintec Nederland B.V.",
+        "match": "Twin-Tech Engineering B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Twin-Tech Engineering B.V.",
+        "match": "Twintec Nederland B.V.",
         "filth_type": "organization"
     },
     {
@@ -42353,6 +42353,26 @@
     },
     {
         "match": "Tyson Foods Oosterwolde B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Tétris Design & Build B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "TÜV Rheinland Sonovation B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "U-center B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "U-Logs B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "U-People B.V.",
         "filth_type": "organization"
     },
     {
@@ -42424,10 +42444,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "U-center B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "UFF African Agri Investments B.V.",
         "filth_type": "organization"
     },
@@ -42457,10 +42473,6 @@
     },
     {
         "match": "UL TS B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "U-Logs B.V.",
         "filth_type": "organization"
     },
     {
@@ -42540,7 +42552,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Unicharm M\u00f6lnlycke Incontinence B.V.",
+        "match": "Unicharm Mölnlycke Incontinence B.V.",
         "filth_type": "organization"
     },
     {
@@ -42732,10 +42744,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "Univ\u00e9 Dichtbij Organisatie B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Universal Africa Lines B.V.",
         "filth_type": "organization"
     },
@@ -42808,6 +42816,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Univé Dichtbij Organisatie B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "UNLOQ",
         "filth_type": "organization"
     },
@@ -42825,10 +42837,6 @@
     },
     {
         "match": "Unusual People B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "U-People B.V.",
         "filth_type": "organization"
     },
     {
@@ -42860,7 +42868,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Uranium One Co\u00f6peratief U.A.",
+        "match": "Uranium One Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -42949,6 +42957,14 @@
     },
     {
         "match": "Uxus Europe B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "V-Silicon Netherlands B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "V-Tron B.V.",
         "filth_type": "organization"
     },
     {
@@ -44292,7 +44308,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Vitol Netherlands Co\u00f6peratief U.A.",
+        "match": "Vitol Netherlands Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -44432,11 +44448,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "Vogelaar-Vredehof B.V.",
+        "match": "Vogel's Products B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Vogel's Products B.V.",
+        "match": "Vogelaar-Vredehof B.V.",
         "filth_type": "organization"
     },
     {
@@ -44604,10 +44620,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "V-Silicon Netherlands B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "VSL B.V.",
         "filth_type": "organization"
     },
@@ -44633,10 +44645,6 @@
     },
     {
         "match": "VTEC Lasers & Sensors Ltd.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "V-Tron B.V.",
         "filth_type": "organization"
     },
     {
@@ -44752,7 +44760,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "Walking The Talk Holding Co\u00f6peratie U.A.",
+        "match": "Walking The Talk Holding Coöperatie U.A.",
         "filth_type": "organization"
     },
     {
@@ -44809,10 +44817,6 @@
     },
     {
         "match": "Wartenbergh Engineering Bureau B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "W\u00e4rtsil\u00e4 Netherlands",
         "filth_type": "organization"
     },
     {
@@ -44924,6 +44928,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "WE-Force B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "We4Sea B.V.",
         "filth_type": "organization"
     },
@@ -44972,6 +44980,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Web-IQ B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "WEBB Traders B.V.",
         "filth_type": "organization"
     },
@@ -44993,10 +45005,6 @@
     },
     {
         "match": "WebinarGeek B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "Web-IQ B.V.",
         "filth_type": "organization"
     },
     {
@@ -45037,10 +45045,6 @@
     },
     {
         "match": "Wefabricate HR B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "WE-Force B.V.",
         "filth_type": "organization"
     },
     {
@@ -45204,7 +45208,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "WeVestr Co\u00f6peratie U.A.",
+        "match": "WeVestr Coöperatie U.A.",
         "filth_type": "organization"
     },
     {
@@ -45420,7 +45424,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "WOK Het Oosten Ori\u00ebntaal restaurant & partycatering",
+        "match": "WOK Het Oosten Oriëntaal restaurant & partycatering",
         "filth_type": "organization"
     },
     {
@@ -45712,6 +45716,18 @@
         "filth_type": "organization"
     },
     {
+        "match": "Wärtsilä Netherlands",
+        "filth_type": "organization"
+    },
+    {
+        "match": "X-Flow B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "X-Systems B.V.",
+        "filth_type": "organization"
+    },
+    {
         "match": "X17 Group B.V.",
         "filth_type": "organization"
     },
@@ -45784,19 +45800,15 @@
         "filth_type": "organization"
     },
     {
-        "match": "X-Flow B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Xiamen Airlines Amsterdam Office",
         "filth_type": "organization"
     },
     {
-        "match": "Xiaomi Technology Netherlands B.V.",
+        "match": "Xiao's Import & Export B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Xiao's Import & Export B.V.",
+        "match": "Xiaomi Technology Netherlands B.V.",
         "filth_type": "organization"
     },
     {
@@ -45889,10 +45901,6 @@
     },
     {
         "match": "Xstate B.V.",
-        "filth_type": "organization"
-    },
-    {
-        "match": "X-Systems B.V.",
         "filth_type": "organization"
     },
     {
@@ -46196,11 +46204,11 @@
         "filth_type": "organization"
     },
     {
-        "match": "YourCampus B.V.",
+        "match": "Your-Career B.V.",
         "filth_type": "organization"
     },
     {
-        "match": "Your-Career B.V.",
+        "match": "YourCampus B.V.",
         "filth_type": "organization"
     },
     {
@@ -46281,6 +46289,10 @@
     },
     {
         "match": "Yxion B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Z-H Kabeltechniek B.V.",
         "filth_type": "organization"
     },
     {
@@ -46480,10 +46492,6 @@
         "filth_type": "organization"
     },
     {
-        "match": "Z-H Kabeltechniek B.V.",
-        "filth_type": "organization"
-    },
-    {
         "match": "Zhonghongjian (Holland) B.V.",
         "filth_type": "organization"
     },
@@ -46640,7 +46648,7 @@
         "filth_type": "organization"
     },
     {
-        "match": "ZTE Co\u00f6peratief U.A.",
+        "match": "ZTE Coöperatief U.A.",
         "filth_type": "organization"
     },
     {
@@ -46669,6 +46677,30 @@
     },
     {
         "match": "ZyXel Communications B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Çak Textile B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Çalik Denim B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Épsilon Inversiones B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Össur Europe B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Öz & Er Food B.V.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Özbaktat Supermarkt B.V.",
         "filth_type": "organization"
     }
 ]
