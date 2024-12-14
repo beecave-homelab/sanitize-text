@@ -1,5 +1,101 @@
 [
     {
+        "match": "'s Gravenmoer",
+        "filth_type": "location"
+    },
+    {
+        "match": "'s-Graveland",
+        "filth_type": "location"
+    },
+    {
+        "match": "'s-Gravendeel",
+        "filth_type": "location"
+    },
+    {
+        "match": "'s-Gravenhage",
+        "filth_type": "location"
+    },
+    {
+        "match": "'s-Gravenpolder",
+        "filth_type": "location"
+    },
+    {
+        "match": "'s-Gravenzande",
+        "filth_type": "location"
+    },
+    {
+        "match": "'s-Heer Abtskerke",
+        "filth_type": "location"
+    },
+    {
+        "match": "'s-Heer Arendskerke",
+        "filth_type": "location"
+    },
+    {
+        "match": "'s-Heer Hendrikskinderen",
+        "filth_type": "location"
+    },
+    {
+        "match": "'s-Heerenberg",
+        "filth_type": "location"
+    },
+    {
+        "match": "'s-Heerenbroek",
+        "filth_type": "location"
+    },
+    {
+        "match": "'s-Heerenhoek",
+        "filth_type": "location"
+    },
+    {
+        "match": "'s-Hertogenbosch",
+        "filth_type": "location"
+    },
+    {
+        "match": "'t Buurtje",
+        "filth_type": "location"
+    },
+    {
+        "match": "'t Goy",
+        "filth_type": "location"
+    },
+    {
+        "match": "'t Haagje",
+        "filth_type": "location"
+    },
+    {
+        "match": "'t Haantje",
+        "filth_type": "location"
+    },
+    {
+        "match": "'t Harde",
+        "filth_type": "location"
+    },
+    {
+        "match": "'t Loo Oldebroek",
+        "filth_type": "location"
+    },
+    {
+        "match": "'t Rooth",
+        "filth_type": "location"
+    },
+    {
+        "match": "'t Veld",
+        "filth_type": "location"
+    },
+    {
+        "match": "'t Waar",
+        "filth_type": "location"
+    },
+    {
+        "match": "'t Zand nh",
+        "filth_type": "location"
+    },
+    {
+        "match": "'t Zandt gn",
+        "filth_type": "location"
+    },
+    {
         "match": "Aadorp",
         "filth_type": "location"
     },
@@ -236,6 +332,10 @@
         "filth_type": "location"
     },
     {
+        "match": "Alteveer, De Wolden",
+        "filth_type": "location"
+    },
+    {
         "match": "Alteveer, Groningen",
         "filth_type": "location"
     },
@@ -245,10 +345,6 @@
     },
     {
         "match": "Alteveer, Noordenveld",
-        "filth_type": "location"
-    },
-    {
-        "match": "Alteveer, De Wolden",
         "filth_type": "location"
     },
     {
@@ -436,11 +532,11 @@
         "filth_type": "location"
     },
     {
-        "match": "Arri\u00ebn",
+        "match": "Arriën",
         "filth_type": "location"
     },
     {
-        "match": "Arri\u00ebrveld",
+        "match": "Arriërveld",
         "filth_type": "location"
     },
     {
@@ -560,11 +656,11 @@
         "filth_type": "location"
     },
     {
-        "match": "Baarschot, Hilvarenbeek",
+        "match": "Baarschot, Deurne",
         "filth_type": "location"
     },
     {
-        "match": "Baarschot, Deurne",
+        "match": "Baarschot, Hilvarenbeek",
         "filth_type": "location"
     },
     {
@@ -580,7 +676,7 @@
         "filth_type": "location"
     },
     {
-        "match": "Babyloni\u00ebnbroek",
+        "match": "Babyloniënbroek",
         "filth_type": "location"
     },
     {
@@ -636,7 +732,7 @@
         "filth_type": "location"
     },
     {
-        "match": "Ballo\u00ebrveld",
+        "match": "Balloërveld",
         "filth_type": "location"
     },
     {
@@ -732,11 +828,11 @@
         "filth_type": "location"
     },
     {
-        "match": "Beek en Donk",
+        "match": "Beek",
         "filth_type": "location"
     },
     {
-        "match": "Beek",
+        "match": "Beek en Donk",
         "filth_type": "location"
     },
     {
@@ -820,11 +916,11 @@
         "filth_type": "location"
     },
     {
-        "match": "Beltrum",
+        "match": "Belt-Schutsloot",
         "filth_type": "location"
     },
     {
-        "match": "Belt-Schutsloot",
+        "match": "Beltrum",
         "filth_type": "location"
     },
     {
@@ -892,15 +988,15 @@
         "filth_type": "location"
     },
     {
+        "match": "Bergen op Zoom",
+        "filth_type": "location"
+    },
+    {
         "match": "Bergen, Limburg",
         "filth_type": "location"
     },
     {
         "match": "Bergen, North Holland",
-        "filth_type": "location"
-    },
-    {
-        "match": "Bergen op Zoom",
         "filth_type": "location"
     },
     {
@@ -952,11 +1048,11 @@
         "filth_type": "location"
     },
     {
-        "match": "Berkelaar",
+        "match": "Berkel-Enschot",
         "filth_type": "location"
     },
     {
-        "match": "Berkel-Enschot",
+        "match": "Berkelaar",
         "filth_type": "location"
     },
     {
@@ -1308,15 +1404,15 @@
         "filth_type": "location"
     },
     {
+        "match": "Boven-Leeuwen",
+        "filth_type": "location"
+    },
+    {
         "match": "Bovenkarspel",
         "filth_type": "location"
     },
     {
         "match": "Bovenkerk",
-        "filth_type": "location"
-    },
-    {
-        "match": "Boven-Leeuwen",
         "filth_type": "location"
     },
     {
@@ -1440,7 +1536,7 @@
         "filth_type": "location"
     },
     {
-        "match": "Broeksterw\u00e2ld",
+        "match": "Broeksterwâld",
         "filth_type": "location"
     },
     {
@@ -1624,11 +1720,11 @@
         "filth_type": "location"
     },
     {
-        "match": "Capelle aan den IJssel",
+        "match": "Capelle",
         "filth_type": "location"
     },
     {
-        "match": "Capelle",
+        "match": "Capelle aan den IJssel",
         "filth_type": "location"
     },
     {
@@ -1660,7 +1756,7 @@
         "filth_type": "location"
     },
     {
-        "match": "Ch\u00e8vremont",
+        "match": "Chèvremont",
         "filth_type": "location"
     },
     {
@@ -1764,7 +1860,7 @@
         "filth_type": "location"
     },
     {
-        "match": "Damw\u00e2ld",
+        "match": "Damwâld",
         "filth_type": "location"
     },
     {
@@ -1908,6 +2004,10 @@
         "filth_type": "location"
     },
     {
+        "match": "De Rips",
+        "filth_type": "location"
+    },
+    {
         "match": "De Stapel",
         "filth_type": "location"
     },
@@ -1937,6 +2037,10 @@
     },
     {
         "match": "De Weere",
+        "filth_type": "location"
+    },
+    {
+        "match": "De Westereen",
         "filth_type": "location"
     },
     {
@@ -2129,10 +2233,6 @@
     },
     {
         "match": "Deventer",
-        "filth_type": "location"
-    },
-    {
-        "match": "De Westereen",
         "filth_type": "location"
     },
     {
@@ -2584,6 +2684,10 @@
         "filth_type": "location"
     },
     {
+        "match": "Een-West",
+        "filth_type": "location"
+    },
+    {
         "match": "Eenigenburg",
         "filth_type": "location"
     },
@@ -2593,10 +2697,6 @@
     },
     {
         "match": "Eenum",
-        "filth_type": "location"
-    },
-    {
-        "match": "Een-West",
         "filth_type": "location"
     },
     {
@@ -2620,7 +2720,7 @@
         "filth_type": "location"
     },
     {
-        "match": "Eerste Exlo\u00ebrmond",
+        "match": "Eerste Exloërmond",
         "filth_type": "location"
     },
     {
@@ -3004,11 +3104,11 @@
         "filth_type": "location"
     },
     {
-        "match": "Exlo\u00ebrveen",
+        "match": "Exloo",
         "filth_type": "location"
     },
     {
-        "match": "Exloo",
+        "match": "Exloërveen",
         "filth_type": "location"
     },
     {
@@ -3200,15 +3300,15 @@
         "filth_type": "location"
     },
     {
+        "match": "Gasselter-Nijveensche-mond",
+        "filth_type": "location"
+    },
+    {
         "match": "Gasselterboerveen",
         "filth_type": "location"
     },
     {
         "match": "Gasselternijveen",
-        "filth_type": "location"
-    },
-    {
-        "match": "Gasselter-Nijveensche-mond",
         "filth_type": "location"
     },
     {
@@ -3428,14 +3528,6 @@
         "filth_type": "location"
     },
     {
-        "match": "Go\u00ebnga",
-        "filth_type": "location"
-    },
-    {
-        "match": "Go\u00ebngahuizen",
-        "filth_type": "location"
-    },
-    {
         "match": "Goes",
         "filth_type": "location"
     },
@@ -3485,6 +3577,14 @@
     },
     {
         "match": "Goutum",
+        "filth_type": "location"
+    },
+    {
+        "match": "Goënga",
+        "filth_type": "location"
+    },
+    {
+        "match": "Goëngahuizen",
         "filth_type": "location"
     },
     {
@@ -3756,10 +3856,6 @@
         "filth_type": "location"
     },
     {
-        "match": "Hardinxveld-Giessendam",
-        "filth_type": "location"
-    },
-    {
         "match": "Hank",
         "filth_type": "location"
     },
@@ -3805,6 +3901,10 @@
     },
     {
         "match": "Harderwijk",
+        "filth_type": "location"
+    },
+    {
+        "match": "Hardinxveld-Giessendam",
         "filth_type": "location"
     },
     {
@@ -4504,6 +4604,10 @@
         "filth_type": "location"
     },
     {
+        "match": "Hoog-Keppel",
+        "filth_type": "location"
+    },
+    {
         "match": "Hoogblokland",
         "filth_type": "location"
     },
@@ -4553,10 +4657,6 @@
     },
     {
         "match": "Hoogkarspel",
-        "filth_type": "location"
-    },
-    {
-        "match": "Hoog-Keppel",
         "filth_type": "location"
     },
     {
@@ -4892,7 +4992,7 @@
         "filth_type": "location"
     },
     {
-        "match": "Jonkersl\u00e2n",
+        "match": "Jonkerslân",
         "filth_type": "location"
     },
     {
@@ -5028,19 +5128,19 @@
         "filth_type": "location"
     },
     {
-        "match": "Katwijk, North Brabant",
-        "filth_type": "location"
-    },
-    {
-        "match": "Katwijk, South Holland",
-        "filth_type": "location"
-    },
-    {
         "match": "Katwijk aan de Rijn",
         "filth_type": "location"
     },
     {
         "match": "Katwijk aan Zee",
+        "filth_type": "location"
+    },
+    {
+        "match": "Katwijk, North Brabant",
+        "filth_type": "location"
+    },
+    {
+        "match": "Katwijk, South Holland",
         "filth_type": "location"
     },
     {
@@ -5216,6 +5316,10 @@
         "filth_type": "location"
     },
     {
+        "match": "Klooster-Lidlum",
+        "filth_type": "location"
+    },
+    {
         "match": "Kloosterburen",
         "filth_type": "location"
     },
@@ -5225,10 +5329,6 @@
     },
     {
         "match": "Kloosterhaar",
-        "filth_type": "location"
-    },
-    {
-        "match": "Klooster-Lidlum",
         "filth_type": "location"
     },
     {
@@ -5472,19 +5572,19 @@
         "filth_type": "location"
     },
     {
-        "match": "Laaghalen",
-        "filth_type": "location"
-    },
-    {
-        "match": "Laaghalerveen",
-        "filth_type": "location"
-    },
-    {
         "match": "Laag-Keppel",
         "filth_type": "location"
     },
     {
         "match": "Laag-Soeren",
+        "filth_type": "location"
+    },
+    {
+        "match": "Laaghalen",
+        "filth_type": "location"
+    },
+    {
+        "match": "Laaghalerveen",
         "filth_type": "location"
     },
     {
@@ -5868,11 +5968,11 @@
         "filth_type": "location"
     },
     {
-        "match": "Linde, Drenthe",
+        "match": "Linde gem. Diepenveen",
         "filth_type": "location"
     },
     {
-        "match": "Linde gem. Diepenveen",
+        "match": "Linde, Drenthe",
         "filth_type": "location"
     },
     {
@@ -5949,10 +6049,6 @@
     },
     {
         "match": "Loenersloot",
-        "filth_type": "location"
-    },
-    {
-        "match": "Lo\u00ebnga",
         "filth_type": "location"
     },
     {
@@ -6033,6 +6129,10 @@
     },
     {
         "match": "Lottum",
+        "filth_type": "location"
+    },
+    {
+        "match": "Loënga",
         "filth_type": "location"
     },
     {
@@ -6188,7 +6288,7 @@
         "filth_type": "location"
     },
     {
-        "match": "Makkum, S\u00fadwest-Frysl\u00e2n",
+        "match": "Makkum, Súdwest-Fryslân",
         "filth_type": "location"
     },
     {
@@ -6240,19 +6340,19 @@
         "filth_type": "location"
     },
     {
-        "match": "Mari\u00ebnberg",
-        "filth_type": "location"
-    },
-    {
-        "match": "Mari\u00ebnheem",
-        "filth_type": "location"
-    },
-    {
-        "match": "Mari\u00ebnvelde",
-        "filth_type": "location"
-    },
-    {
         "match": "Marijenkampen",
+        "filth_type": "location"
+    },
+    {
+        "match": "Mariënberg",
+        "filth_type": "location"
+    },
+    {
+        "match": "Mariënheem",
+        "filth_type": "location"
+    },
+    {
+        "match": "Mariënvelde",
         "filth_type": "location"
     },
     {
@@ -6648,10 +6748,6 @@
         "filth_type": "location"
     },
     {
-        "match": "M\u00fbnein",
-        "filth_type": "location"
-    },
-    {
         "match": "Munnekemoer",
         "filth_type": "location"
     },
@@ -6673,6 +6769,10 @@
     },
     {
         "match": "Musselkanaal",
+        "filth_type": "location"
+    },
+    {
+        "match": "Mûnein",
         "filth_type": "location"
     },
     {
@@ -6756,15 +6856,15 @@
         "filth_type": "location"
     },
     {
-        "match": "Nes, Ameland",
-        "filth_type": "location"
-    },
-    {
         "match": "Nes gem. Boarsterhim",
         "filth_type": "location"
     },
     {
         "match": "Nes gem. Dongeradeel",
+        "filth_type": "location"
+    },
+    {
+        "match": "Nes, Ameland",
         "filth_type": "location"
     },
     {
@@ -6816,10 +6916,6 @@
         "filth_type": "location"
     },
     {
-        "match": "Nieuw-Beerta",
-        "filth_type": "location"
-    },
-    {
         "match": "Nieuw Bergen",
         "filth_type": "location"
     },
@@ -6848,10 +6944,6 @@
         "filth_type": "location"
     },
     {
-        "match": "Nieuwaal",
-        "filth_type": "location"
-    },
-    {
         "match": "Nieuw-Amsterdam",
         "filth_type": "location"
     },
@@ -6864,11 +6956,63 @@
         "filth_type": "location"
     },
     {
+        "match": "Nieuw-Beerta",
+        "filth_type": "location"
+    },
+    {
         "match": "Nieuw-Beijerland",
         "filth_type": "location"
     },
     {
         "match": "Nieuw-Buinen",
+        "filth_type": "location"
+    },
+    {
+        "match": "Nieuw-Heeten",
+        "filth_type": "location"
+    },
+    {
+        "match": "Nieuw-Lekkerland",
+        "filth_type": "location"
+    },
+    {
+        "match": "Nieuw-Loosdrecht",
+        "filth_type": "location"
+    },
+    {
+        "match": "Nieuw-Namen",
+        "filth_type": "location"
+    },
+    {
+        "match": "Nieuw-Roden",
+        "filth_type": "location"
+    },
+    {
+        "match": "Nieuw-Scheemda",
+        "filth_type": "location"
+    },
+    {
+        "match": "Nieuw-Schoonebeek",
+        "filth_type": "location"
+    },
+    {
+        "match": "Nieuw-Vennep",
+        "filth_type": "location"
+    },
+    {
+        "match": "Nieuw-Vossemeer",
+        "filth_type": "location"
+    },
+    {
+        "match": "Nieuw-Weerdinge",
+        "filth_type": "location"
+    },
+    {
+        "match": "Nieuw-Wehl",
+        "filth_type": "location"
+    },
+    {
+        "match": "Nieuwaal",
         "filth_type": "location"
     },
     {
@@ -6897,6 +7041,10 @@
     },
     {
         "match": "Nieuwe Wetering",
+        "filth_type": "location"
+    },
+    {
+        "match": "Nieuwe-Tonge",
         "filth_type": "location"
     },
     {
@@ -6944,11 +7092,11 @@
         "filth_type": "location"
     },
     {
-        "match": "Nieuwerkerk aan den IJssel",
+        "match": "Nieuwerkerk",
         "filth_type": "location"
     },
     {
-        "match": "Nieuwerkerk",
+        "match": "Nieuwerkerk aan den IJssel",
         "filth_type": "location"
     },
     {
@@ -6972,14 +7120,6 @@
         "filth_type": "location"
     },
     {
-        "match": "Nieuwe-Tonge",
-        "filth_type": "location"
-    },
-    {
-        "match": "Nieuw-Heeten",
-        "filth_type": "location"
-    },
-    {
         "match": "Nieuwkoop",
         "filth_type": "location"
     },
@@ -6996,19 +7136,7 @@
         "filth_type": "location"
     },
     {
-        "match": "Nieuw-Lekkerland",
-        "filth_type": "location"
-    },
-    {
         "match": "Nieuwleusden",
-        "filth_type": "location"
-    },
-    {
-        "match": "Nieuw-Loosdrecht",
-        "filth_type": "location"
-    },
-    {
-        "match": "Nieuw-Namen",
         "filth_type": "location"
     },
     {
@@ -7020,18 +7148,6 @@
         "filth_type": "location"
     },
     {
-        "match": "Nieuw-Roden",
-        "filth_type": "location"
-    },
-    {
-        "match": "Nieuw-Scheemda",
-        "filth_type": "location"
-    },
-    {
-        "match": "Nieuw-Schoonebeek",
-        "filth_type": "location"
-    },
-    {
         "match": "Nieuwstadt",
         "filth_type": "location"
     },
@@ -7040,23 +7156,7 @@
         "filth_type": "location"
     },
     {
-        "match": "Nieuw-Vennep",
-        "filth_type": "location"
-    },
-    {
         "match": "Nieuwvliet",
-        "filth_type": "location"
-    },
-    {
-        "match": "Nieuw-Vossemeer",
-        "filth_type": "location"
-    },
-    {
-        "match": "Nieuw-Weerdinge",
-        "filth_type": "location"
-    },
-    {
-        "match": "Nieuw-Wehl",
         "filth_type": "location"
     },
     {
@@ -7152,6 +7252,10 @@
         "filth_type": "location"
     },
     {
+        "match": "Nijmegen-Oost",
+        "filth_type": "location"
+    },
+    {
         "match": "Nijnsel",
         "filth_type": "location"
     },
@@ -7185,6 +7289,14 @@
     },
     {
         "match": "Noord Deurningen",
+        "filth_type": "location"
+    },
+    {
+        "match": "Noord-Scharwoude",
+        "filth_type": "location"
+    },
+    {
+        "match": "Noord-Sleen",
         "filth_type": "location"
     },
     {
@@ -7248,15 +7360,7 @@
         "filth_type": "location"
     },
     {
-        "match": "Noord-Scharwoude",
-        "filth_type": "location"
-    },
-    {
         "match": "Noordsche Schut",
-        "filth_type": "location"
-    },
-    {
-        "match": "Noord-Sleen",
         "filth_type": "location"
     },
     {
@@ -7388,7 +7492,7 @@
         "filth_type": "location"
     },
     {
-        "match": "Oh\u00e9 en Laak",
+        "match": "Ohé en Laak",
         "filth_type": "location"
     },
     {
@@ -7560,6 +7664,14 @@
         "filth_type": "location"
     },
     {
+        "match": "Oost-Graftdijk",
+        "filth_type": "location"
+    },
+    {
+        "match": "Oost-Souburg",
+        "filth_type": "location"
+    },
+    {
         "match": "Oostbierum",
         "filth_type": "location"
     },
@@ -7597,6 +7709,10 @@
     },
     {
         "match": "Oosterend, Noord-Holland",
+        "filth_type": "location"
+    },
+    {
+        "match": "Oosterend, Terschelling",
         "filth_type": "location"
     },
     {
@@ -7672,10 +7788,6 @@
         "filth_type": "location"
     },
     {
-        "match": "Oost-Graftdijk",
-        "filth_type": "location"
-    },
-    {
         "match": "Oosthem",
         "filth_type": "location"
     },
@@ -7697,10 +7809,6 @@
     },
     {
         "match": "Oostrum",
-        "filth_type": "location"
-    },
-    {
-        "match": "Oost-Souburg",
         "filth_type": "location"
     },
     {
@@ -7884,6 +7992,22 @@
         "filth_type": "location"
     },
     {
+        "match": "Oud-Loosdrecht",
+        "filth_type": "location"
+    },
+    {
+        "match": "Oud-Vossemeer",
+        "filth_type": "location"
+    },
+    {
+        "match": "Oud-Zevenaar",
+        "filth_type": "location"
+    },
+    {
+        "match": "Oud-Zuilen",
+        "filth_type": "location"
+    },
+    {
         "match": "Ouddorp zh",
         "filth_type": "location"
     },
@@ -7920,7 +8044,11 @@
         "filth_type": "location"
     },
     {
-        "match": "Oudega gem. Gaasterl\u00e2n-Sleat",
+        "match": "Oude-Tonge",
+        "filth_type": "location"
+    },
+    {
+        "match": "Oudega gem. Gaasterlân-Sleat",
         "filth_type": "location"
     },
     {
@@ -7937,10 +8065,6 @@
     },
     {
         "match": "Oudehorne",
-        "filth_type": "location"
-    },
-    {
-        "match": "Ouderkerk aan de Amstel",
         "filth_type": "location"
     },
     {
@@ -7976,6 +8100,10 @@
         "filth_type": "location"
     },
     {
+        "match": "Ouderkerk aan de Amstel",
+        "filth_type": "location"
+    },
+    {
         "match": "Ouderkerk aan den IJssel",
         "filth_type": "location"
     },
@@ -8000,10 +8128,6 @@
         "filth_type": "location"
     },
     {
-        "match": "Oude-Tonge",
-        "filth_type": "location"
-    },
-    {
         "match": "Oudewater",
         "filth_type": "location"
     },
@@ -8024,15 +8148,7 @@
         "filth_type": "location"
     },
     {
-        "match": "Oud-Loosdrecht",
-        "filth_type": "location"
-    },
-    {
         "match": "Oudorp",
-        "filth_type": "location"
-    },
-    {
-        "match": "Oud-Vossemeer",
         "filth_type": "location"
     },
     {
@@ -8040,23 +8156,15 @@
         "filth_type": "location"
     },
     {
-        "match": "Oud-Zevenaar",
-        "filth_type": "location"
-    },
-    {
-        "match": "Oud-Zuilen",
-        "filth_type": "location"
-    },
-    {
         "match": "Ouwerkerk",
         "filth_type": "location"
     },
     {
-        "match": "Ouwsterhaule",
+        "match": "Ouwster-Nijega",
         "filth_type": "location"
     },
     {
-        "match": "Ouwster-Nijega",
+        "match": "Ouwsterhaule",
         "filth_type": "location"
     },
     {
@@ -8608,10 +8716,6 @@
         "filth_type": "location"
     },
     {
-        "match": "De Rips",
-        "filth_type": "location"
-    },
-    {
         "match": "Rockanje",
         "filth_type": "location"
     },
@@ -9148,58 +9252,6 @@
         "filth_type": "location"
     },
     {
-        "match": "'s Gravenmoer",
-        "filth_type": "location"
-    },
-    {
-        "match": "'s-Graveland",
-        "filth_type": "location"
-    },
-    {
-        "match": "'s-Gravendeel",
-        "filth_type": "location"
-    },
-    {
-        "match": "'s-Gravenhage",
-        "filth_type": "location"
-    },
-    {
-        "match": "'s-Gravenpolder",
-        "filth_type": "location"
-    },
-    {
-        "match": "'s-Gravenzande",
-        "filth_type": "location"
-    },
-    {
-        "match": "'s-Heer Abtskerke",
-        "filth_type": "location"
-    },
-    {
-        "match": "'s-Heer Arendskerke",
-        "filth_type": "location"
-    },
-    {
-        "match": "'s-Heer Hendrikskinderen",
-        "filth_type": "location"
-    },
-    {
-        "match": "'s-Heerenberg",
-        "filth_type": "location"
-    },
-    {
-        "match": "'s-Heerenbroek",
-        "filth_type": "location"
-    },
-    {
-        "match": "'s-Heerenhoek",
-        "filth_type": "location"
-    },
-    {
-        "match": "'s-Hertogenbosch",
-        "filth_type": "location"
-    },
-    {
         "match": "Sibbe",
         "filth_type": "location"
     },
@@ -9288,11 +9340,11 @@
         "filth_type": "location"
     },
     {
-        "match": "Slijkenburg",
+        "match": "Slijk-Ewijk",
         "filth_type": "location"
     },
     {
-        "match": "Slijk-Ewijk",
+        "match": "Slijkenburg",
         "filth_type": "location"
     },
     {
@@ -9564,15 +9616,15 @@
         "filth_type": "location"
     },
     {
+        "match": "St Maartens-vlotbrug",
+        "filth_type": "location"
+    },
+    {
         "match": "St Maartensbrug",
         "filth_type": "location"
     },
     {
         "match": "St Maartensdijk",
-        "filth_type": "location"
-    },
-    {
-        "match": "St Maartens-vlotbrug",
         "filth_type": "location"
     },
     {
@@ -9588,7 +9640,7 @@
         "filth_type": "location"
     },
     {
-        "match": "St Odili\u00ebnberg",
+        "match": "St Odiliënberg",
         "filth_type": "location"
     },
     {
@@ -9868,50 +9920,6 @@
         "filth_type": "location"
     },
     {
-        "match": "'t Buurtje",
-        "filth_type": "location"
-    },
-    {
-        "match": "'t Goy",
-        "filth_type": "location"
-    },
-    {
-        "match": "'t Haagje",
-        "filth_type": "location"
-    },
-    {
-        "match": "'t Haantje",
-        "filth_type": "location"
-    },
-    {
-        "match": "'t Harde",
-        "filth_type": "location"
-    },
-    {
-        "match": "'t Loo Oldebroek",
-        "filth_type": "location"
-    },
-    {
-        "match": "'t Rooth",
-        "filth_type": "location"
-    },
-    {
-        "match": "'t Veld",
-        "filth_type": "location"
-    },
-    {
-        "match": "'t Waar",
-        "filth_type": "location"
-    },
-    {
-        "match": "'t Zand nh",
-        "filth_type": "location"
-    },
-    {
-        "match": "'t Zandt gn",
-        "filth_type": "location"
-    },
-    {
         "match": "Taarlo",
         "filth_type": "location"
     },
@@ -10076,10 +10084,6 @@
         "filth_type": "location"
     },
     {
-        "match": "Oosterend, Terschelling",
-        "filth_type": "location"
-    },
-    {
         "match": "Terschelling Seerijp",
         "filth_type": "location"
     },
@@ -10152,11 +10156,11 @@
         "filth_type": "location"
     },
     {
-        "match": "Tienhoven, Stichtse Vecht",
+        "match": "Tienhoven aan de Lek",
         "filth_type": "location"
     },
     {
-        "match": "Tienhoven aan de Lek",
+        "match": "Tienhoven, Stichtse Vecht",
         "filth_type": "location"
     },
     {
@@ -10300,7 +10304,7 @@
         "filth_type": "location"
     },
     {
-        "match": "Tweede Exlo\u00ebrmond",
+        "match": "Tweede Exloërmond",
         "filth_type": "location"
     },
     {
@@ -10624,6 +10628,10 @@
         "filth_type": "location"
     },
     {
+        "match": "Ven-Zelderheide",
+        "filth_type": "location"
+    },
+    {
         "match": "Venebrugge",
         "filth_type": "location"
     },
@@ -10641,10 +10649,6 @@
     },
     {
         "match": "Venray",
-        "filth_type": "location"
-    },
-    {
-        "match": "Ven-Zelderheide",
         "filth_type": "location"
     },
     {
@@ -11256,6 +11260,18 @@
         "filth_type": "location"
     },
     {
+        "match": "West-Graftdijk",
+        "filth_type": "location"
+    },
+    {
+        "match": "West-Souburg",
+        "filth_type": "location"
+    },
+    {
+        "match": "West-Terschelling",
+        "filth_type": "location"
+    },
+    {
         "match": "Westbeemster",
         "filth_type": "location"
     },
@@ -11348,10 +11364,6 @@
         "filth_type": "location"
     },
     {
-        "match": "West-Graftdijk",
-        "filth_type": "location"
-    },
-    {
         "match": "Westhem",
         "filth_type": "location"
     },
@@ -11381,14 +11393,6 @@
     },
     {
         "match": "Westmaas",
-        "filth_type": "location"
-    },
-    {
-        "match": "West-Souburg",
-        "filth_type": "location"
-    },
-    {
-        "match": "West-Terschelling",
         "filth_type": "location"
     },
     {
@@ -11824,15 +11828,15 @@
         "filth_type": "location"
     },
     {
+        "match": "Ypecolsga",
+        "filth_type": "location"
+    },
+    {
         "match": "Ypelo, Enter",
         "filth_type": "location"
     },
     {
         "match": "Ypelo, Wierden",
-        "filth_type": "location"
-    },
-    {
-        "match": "Ypecolsga",
         "filth_type": "location"
     },
     {
@@ -12056,6 +12060,10 @@
         "filth_type": "location"
     },
     {
+        "match": "Zuid-Scharwoude",
+        "filth_type": "location"
+    },
+    {
         "match": "Zuidbroek, Groningen",
         "filth_type": "location"
     },
@@ -12117,10 +12125,6 @@
     },
     {
         "match": "Zuidoostbeemster",
-        "filth_type": "location"
-    },
-    {
-        "match": "Zuid-Scharwoude",
         "filth_type": "location"
     },
     {
