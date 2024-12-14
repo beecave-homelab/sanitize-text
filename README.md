@@ -1,22 +1,25 @@
-# Text PII Sanitizer
+# Sanitize Text | A Sanitizer for PII
 
 A powerful tool for detecting and sanitizing personally identifiable information (PII) in text, with support for both English and Dutch languages.
 
 ## Badges
 
 ![Python](https://img.shields.io/badge/Python-3.11-green)
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-yellow)
 
 ## Versions
 
-**Current version**: 0.1.0
+**Current version**: 0.2.0
 
 ## Table of Contents
 
 - [System Requirements](#system-requirements)
 - [Installation](#installation)
 - [Usage](#usage)
+  - [CLI Tool](#cli-tool)
+  - [Web Interface](#web-interface)
+  - [Entity Management](#entity-management)
 - [License](#license)
 - [Contributing](#contributing)
 
@@ -56,23 +59,25 @@ A powerful tool for detecting and sanitizing personally identifiable information
 
 ## Usage
 
-### Command Line Interface
+### CLI Tool
+
+Run the CLI tool using the Python module syntax:
 
 ```bash
 # Process text directly
-python sanitize-cli.py -t "Your text here" -l nl_NL
+python -m sanitize_text -t "Your text here" -l nl_NL
 
 # Process from a file
-python sanitize-cli.py -i input.txt -o output.txt
+python -m sanitize_text -i input.txt -o output.txt
 
 # List available detectors
-python sanitize-cli.py --list-detectors
+python -m sanitize_text --list-detectors
 
 # Use specific detectors
-python sanitize-cli.py -i input.txt -d "email url name"
+python -m sanitize_text -i input.txt -d "email url name"
 
 # Append to existing output
-python sanitize-cli.py -i input.txt -o output.txt -a
+python -m sanitize_text -i input.txt -o output.txt -a
 ```
 
 Available options:
@@ -84,6 +89,41 @@ Available options:
 - `-d, --detectors`: Space-separated list of specific detectors to use
 - `-a, --append`: Append to existing output file
 - `--list-detectors`: List all available detectors
+
+### Web Interface
+
+Launch the web interface using:
+
+```bash
+python -m sanitize_text.webui
+```
+
+The web interface provides a user-friendly way to sanitize text and manage entities. Access it through your web browser at `http://localhost:5000` after starting the server.
+
+### Entity Management
+
+The project includes a utility script for managing entities in the Dutch (nl_NL) locale. You can add new names, organizations, or cities using the `add_entity.py` script:
+
+```bash
+# Add a new city
+python -m sanitize_text.utils.add_entity -c "Amsterdam"
+
+# Add a new name
+python -m sanitize_text.utils.add_entity -n "John Smith"
+
+# Add a new organization
+python -m sanitize_text.utils.add_entity -o "Example B.V."
+
+# Add multiple entities at once
+python -m sanitize_text.utils.add_entity -c "Amsterdam" -n "John Smith" -o "Example B.V."
+```
+
+Available options:
+
+- `-c, --city`: Add a new city
+- `-n, --name`: Add a new person name
+- `-o, --organization`: Add a new organization
+- `-h, --help`: Show help message
 
 Supported Detectors:
 
