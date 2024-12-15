@@ -8,16 +8,16 @@ respective JSON files.
 
 Examples:
     Add a new city:
-        $ add-entity -c "Amsterdam"
+        $ python -m sanitize_text.add_entity -c "Amsterdam"
     
     Add a new name:
-        $ add-entity -n "John Smith"
+        $ python -m sanitize_text.add_entity -n "John Smith"
     
     Add a new organization:
-        $ add-entity -o "Example B.V."
+        $ python -m sanitize_text.add_entity -o "Example B.V."
     
     Add multiple entities:
-        $ add-entity -c "Amsterdam" -n "John Smith" -o "Example B.V."
+        $ python -m sanitize_text.add_entity -c "Amsterdam" -n "John Smith" -o "Example B.V."
 """
 
 import json
