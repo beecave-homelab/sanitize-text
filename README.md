@@ -17,6 +17,8 @@ A powerful tool for detecting and sanitizing personally identifiable information
 - [System Requirements](#system-requirements)
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Supported Locales](#supported-locales)
+  - [Available Detectors](#available-detectors)
   - [CLI Tool](#cli-tool)
   - [Web Interface](#web-interface)
   - [Entity Management](#entity-management)
@@ -58,6 +60,58 @@ A powerful tool for detecting and sanitizing personally identifiable information
    ```
 
 ## Usage
+
+### Supported Locales
+
+The package supports two locales for PII detection and sanitization:
+
+- **Dutch (nl_NL)**:
+  - Specialized detection for Dutch names, organizations, and locations
+  - Support for Dutch address formats and postal codes
+  - Recognition of Dutch-specific organizational suffixes (B.V., N.V., etc.)
+  - Dutch phone number formats
+
+- **English (en_US)**:
+  - Detection of English names and locations
+  - US-format dates and social security numbers
+  - US address formats
+  - US-specific organizational suffixes (Inc., LLC, etc.)
+
+### Available Detectors
+
+The package includes both locale-specific and general-purpose detectors:
+
+#### General Detectors (All Locales)
+
+- **Email**: Detects email addresses in standard formats
+- **Phone**: Identifies phone numbers in various formats
+- **URL**: Detects web URLs, including domains and full paths
+- **Markdown URL**: Specifically identifies URLs within Markdown link syntax
+- **Private IP**: Detects private IP addresses (e.g., 192.168.x.x, 10.x.x.x)
+- **Public IP**: Identifies public-facing IP addresses
+- **Credit Card**: Recognizes common credit card number patterns
+- **Bank Account**: Detects IBAN and other bank account number formats
+
+#### Dutch (nl_NL) Specific Detectors
+
+- **Location**: Dutch cities, provinces, and addresses
+- **Organization**: Dutch company names and legal entities
+- **Name**: Dutch personal names (first names, surnames, and combinations)
+- **BSN**: Dutch social security numbers (Burgerservicenummer)
+- **Postal Code**: Dutch postal code format (e.g., 1234 AB)
+- **KvK**: Dutch Chamber of Commerce numbers
+
+#### English (en_US) Specific Detectors
+
+- **Name**: English/American personal names
+- **Organization**: US company names and legal entities
+- **Location**: US cities, states, and addresses
+- **Date of Birth**: Various US date formats
+- **SSN**: US Social Security Numbers
+- **ZIP Code**: US ZIP code formats (5 and 9 digit)
+- **Driver License**: US driver's license numbers
+
+Each detector can be used individually or in combination using the `-d` flag in the CLI tool.
 
 ### CLI Tool
 
@@ -124,27 +178,6 @@ Available options:
 - `-n, --name`: Add a new person name
 - `-o, --organization`: Add a new organization
 - `-h, --help`: Show help message
-
-Supported Detectors:
-
-- Generic (all locales):
-  - email: Detect email addresses
-  - phone: Detect phone numbers
-  - url: Detect URLs (domains, paths, etc.)
-  - markdown_url: Detect URLs in Markdown links
-  - private_ip: Detect private IP addresses
-  - public_ip: Detect public IP addresses
-
-- Dutch (nl_NL):
-  - location: Dutch locations/cities
-  - organization: Dutch organization names
-  - name: Dutch person names
-
-- English (en_US):
-  - name: English person names
-  - organization: English organization names
-  - location: English locations
-  - date_of_birth: Dates of birth
 
 ## License
 
