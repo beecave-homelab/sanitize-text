@@ -10,7 +10,7 @@ A powerful tool for detecting and sanitizing personally identifiable information
 
 ## Versions
 
-**Current version**: 0.2.0
+**Current version**: 0.2.1
 
 ## Table of Contents
 
