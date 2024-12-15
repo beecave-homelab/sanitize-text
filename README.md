@@ -97,9 +97,6 @@ The package includes both locale-specific and general-purpose detectors:
 - **Location**: Dutch cities, provinces, and addresses
 - **Organization**: Dutch company names and legal entities
 - **Name**: Dutch personal names (first names, surnames, and combinations)
-- **BSN**: Dutch social security numbers (Burgerservicenummer)
-- **Postal Code**: Dutch postal code format (e.g., 1234 AB)
-- **KvK**: Dutch Chamber of Commerce numbers
 
 #### English (en_US) Specific Detectors
 
