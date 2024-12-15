@@ -5,7 +5,7 @@ A powerful tool for detecting and sanitizing personally identifiable information
 ## Badges
 
 ![Python](https://img.shields.io/badge/Python-3.11-green)
-![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-yellow)
 
 ## Versions
