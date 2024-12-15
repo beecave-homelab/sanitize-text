@@ -102,20 +102,20 @@ The web interface provides a user-friendly way to sanitize text and manage entit
 
 ### Entity Management
 
-The project includes a utility script for managing entities in the Dutch (nl_NL) locale. You can add new names, organizations, or cities using the `add_entity.py` script:
+The project includes a utility for managing entities in the Dutch (nl_NL) locale. You can add new names, organizations, or cities using the add_entity module:
 
 ```bash
 # Add a new city
-python -m sanitize_text.utils.add_entity -c "Amsterdam"
+python -m sanitize_text.add_entity -c "Amsterdam"
 
 # Add a new name
-python -m sanitize_text.utils.add_entity -n "John Smith"
+python -m sanitize_text.add_entity -n "John Smith"
 
 # Add a new organization
-python -m sanitize_text.utils.add_entity -o "Example B.V."
+python -m sanitize_text.add_entity -o "Example B.V."
 
 # Add multiple entities at once
-python -m sanitize_text.utils.add_entity -c "Amsterdam" -n "John Smith" -o "Example B.V."
+python -m sanitize_text.add_entity -c "Amsterdam" -n "John Smith" -o "Example B.V."
 ```
 
 Available options:
