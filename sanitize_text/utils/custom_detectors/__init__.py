@@ -1,8 +1,10 @@
-"""Custom detectors for text scrubbing."""
+"""Custom detectors for text sanitization."""
 
+from .base import DutchEntityDetector
+from .custom_word import CustomWordDetector
+from .ip_detectors import PrivateIPDetector, PublicIPDetector
 from .url_detector import BareDomainDetector
 from .markdown_url_detector import MarkdownUrlDetector
-from .ip_detectors import PrivateIPDetector, PublicIPDetector
 from .dutch_detectors import (
     DutchLocationDetector,
     DutchOrganizationDetector,
@@ -10,11 +12,13 @@ from .dutch_detectors import (
 )
 
 __all__ = [
-    'BareDomainDetector',
-    'MarkdownUrlDetector',
+    'DutchEntityDetector',
+    'CustomWordDetector',
     'PrivateIPDetector',
     'PublicIPDetector',
+    'BareDomainDetector',
+    'MarkdownUrlDetector',
     'DutchLocationDetector',
     'DutchOrganizationDetector',
-    'DutchNameDetector',
+    'DutchNameDetector'
 ] 
