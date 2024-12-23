@@ -19,7 +19,8 @@ from ..utils.custom_detectors import (
     PublicIPDetector,
     DutchLocationDetector,
     DutchOrganizationDetector,
-    DutchNameDetector
+    DutchNameDetector,
+    CustomWordDetector
 )
 from scrubadub.detectors.email import EmailDetector
 from scrubadub.detectors.phone import PhoneDetector
@@ -130,19 +131,18 @@ def get_available_detectors(locale: Optional[str] = None) -> Dict[str, str]:
 
 def setup_scrubber(
     locale: str,
-    selected_detectors: Optional[List[str]] = None
+    selected_detectors: Optional[List[str]] = None,
+    custom_text: Optional[str] = None
 ) -> scrubadub.Scrubber:
     """Set up a scrubber with appropriate detectors and post-processors.
     
     Args:
         locale: Locale code for text processing (e.g., 'nl_NL', 'en_US')
         selected_detectors: Optional list of detector names to use
+        custom_text: Optional custom text to detect and replace
         
     Returns:
         Configured scrubber instance ready for text processing
-        
-    Raises:
-        ValueError: If invalid detectors are specified for the locale
     """
     detector_list = []
     available_detectors = get_available_detectors(locale).keys()
@@ -152,6 +152,10 @@ def setup_scrubber(
         invalid_detectors = [d for d in selected_detectors if d not in available_detectors]
         if invalid_detectors:
             print(f"Warning: Invalid detector(s) for locale {locale}: {', '.join(invalid_detectors)}")
+    
+    # Add custom word detector if custom text is provided
+    if custom_text:
+        detector_list.append(CustomWordDetector(custom_text=custom_text))
     
     # Add generic detectors
     generic_detectors = {
@@ -205,7 +209,8 @@ def setup_scrubber(
 def scrub_text(
     text: str,
     locale: Optional[str] = None,
-    selected_detectors: Optional[List[str]] = None
+    selected_detectors: Optional[List[str]] = None,
+    custom_text: Optional[str] = None
 ) -> List[str]:
     """Scrub PII from the given text using specified locale and detectors.
     
@@ -217,6 +222,7 @@ def scrub_text(
         text: The text to scrub
         locale: Optional locale code (e.g., 'nl_NL', 'en_US')
         selected_detectors: Optional list of detector names to use
+        custom_text: Optional custom text to detect and replace
         
     Returns:
         List of scrubbed texts, one for each processed locale
@@ -246,7 +252,7 @@ def scrub_text(
             doc = nlp(text)
             
             # Setup and run scrubber
-            scrubber = setup_scrubber(current_locale, selected_detectors)
+            scrubber = setup_scrubber(current_locale, selected_detectors, custom_text)
             scrubbed_text = scrubber.clean(text)
             scrubbed_texts.append(f"Results for {current_locale}:\n{scrubbed_text}")
             
