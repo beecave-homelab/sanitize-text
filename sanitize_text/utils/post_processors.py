@@ -4,6 +4,7 @@ This module provides post-processors that modify or transform the output
 of text sanitization after PII detection.
 """
 
+import hashlib
 from scrubadub.post_processors import PostProcessor
 
 class HashedPIIReplacer(PostProcessor):
@@ -19,16 +20,22 @@ class HashedPIIReplacer(PostProcessor):
     """
     name = 'hashed_pii_replacer'
     
+    def __init__(self):
+        self.seen_values = {}
+        self.counter = 1
+    
     def process_filth(self, filth_list):
-        """Process a list of filth objects, replacing text with hashed identifiers.
-        
-        Args:
-            filth_list: List of Filth objects to process
-            
-        Returns:
-            The processed list of Filth objects with replacement strings
-        """
+        """Process a list of filth and replace with hashed identifiers."""
         for filth in filth_list:
-            filth_type = filth.type.upper()
-            filth.replacement_string = f"{filth_type}-{hash(filth.text) % 10000:04d}"
-        return filth_list 
+            # Generate a unique identifier based on filth type and text
+            key = f"{filth.type}:{filth.text}"
+            if key not in self.seen_values:
+                # Create a hash of the text for consistent replacement
+                hash_obj = hashlib.md5(key.encode())
+                hash_val = int(hash_obj.hexdigest(), 16) % 1000
+                self.seen_values[key] = f"{filth.type.upper()}-{hash_val:03d}"
+            
+            # Replace the text with the hashed identifier
+            filth.replacement_string = self.seen_values[key]
+        
+        return filth_list
