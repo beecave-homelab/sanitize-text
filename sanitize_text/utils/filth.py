@@ -8,27 +8,15 @@ from scrubadub.filth import Filth
 from scrubadub.filth.url import UrlFilth
 
 class LocationFilth(Filth):
-    """Filth subclass for geographical locations.
-    
-    This class represents detected location information in text,
-    such as cities, towns, addresses, and other geographical references.
-    """
+    """Filth for location names."""
     type = 'location'
 
 class OrganizationFilth(Filth):
-    """Filth subclass for organization names.
-    
-    This class represents detected organization information in text,
-    such as company names, institutions, and other organizational entities.
-    """
+    """Filth for organization names."""
     type = 'organization'
 
 class NameFilth(Filth):
-    """Filth subclass for person names.
-    
-    This class represents detected personal names in text,
-    including first names, last names, and full names.
-    """
+    """Filth for person names."""
     type = 'name'
 
 class PrivateIPFilth(Filth):
