@@ -74,6 +74,11 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     metavar="<detectors>"
 )
 @click.option(
+    "--custom", "-c",
+    help="Custom text to detect and replace with a unique identifier.",
+    metavar="<text>"
+)
+@click.option(
     "--list-detectors", "-ld",
     is_flag=True,
     help="Show available detectors and exit."
@@ -84,6 +89,7 @@ def main(
     output: Optional[str],
     locale: Optional[str],
     detectors: Optional[str],
+    custom: Optional[str],
     list_detectors: bool,
     append: bool
 ) -> None:
@@ -175,7 +181,12 @@ def main(
     try:
         # Process text with selected detectors
         selected_detectors = detectors.split() if detectors else None
-        scrubbed_texts = scrub_text(input_text, locale, selected_detectors)
+        scrubbed_texts = scrub_text(
+            input_text,
+            locale,
+            selected_detectors,
+            custom_text=custom
+        )
         scrubbed_text = "\n\n".join(scrubbed_texts)
     except Exception as e:
         spinner.fail("Scrubbing failed")
