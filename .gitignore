@@ -6,6 +6,7 @@
 !.gitignore
 !README.md
 !requirements.txt
+!requirements.dev.txt
 !run.py
 !sanitize-cli.py
 !LICENSE
@@ -14,6 +15,8 @@
 !Dockerfile
 !setup.py
 !MANIFEST.in
+!pyproject.toml
+!AGENTS.md
 
 # Include all files in these directories
 !nl_entities/
