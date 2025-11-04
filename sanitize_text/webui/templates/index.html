@@ -37,36 +37,41 @@
                     <div class="detector-group">
                         <h3>Universal Detectors</h3>
                         <div class="detector-list">
-                            <label><input type="checkbox" name="detector" value="email" checked> Email</label>
-                            <label><input type="checkbox" name="detector" value="phone" checked> Phone</label>
-                            <label><input type="checkbox" name="detector" value="url" checked> URL</label>
-                            <label><input type="checkbox" name="detector" value="twitter" checked> Twitter</label>
-                            <label><input type="checkbox" name="detector" value="skype" checked> Skype</label>
-                            <label><input type="checkbox" name="detector" value="bare_domain" checked> Bare Domain</label>
-                            <label><input type="checkbox" name="detector" value="markdown_url" checked> Markdown URL</label>
-                            <label><input type="checkbox" name="detector" value="private_ip" checked> Private IP</label>
-                            <label><input type="checkbox" name="detector" value="public_ip" checked> Public IP</label>
+                            {% for key, description in generic_detectors.items() %}
+                                <label title="{{ description }}">
+                                    <input type="checkbox" name="detector" value="{{ key }}" checked>
+                                    {{ key.replace('_', ' ').title() }}
+                                </label>
+                            {% endfor %}
                         </div>
                     </div>
 
                     <div class="detector-group" id="en-detectors">
                         <h3>English Detectors</h3>
                         <div class="detector-list">
-                            <label><input type="checkbox" name="detector" value="spacy_en" checked> English Entities</label>
-                            <label><input type="checkbox" name="detector" value="dob_en" checked> Date of Birth</label>
+                            {% for key, description in english_detectors.items() %}
+                                <label title="{{ description }}">
+                                    <input type="checkbox" name="detector" value="en:{{ key }}" checked>
+                                    {{ key.replace('_', ' ').title() }}
+                                </label>
+                            {% endfor %}
                         </div>
                     </div>
 
                     <div class="detector-group" id="nl-detectors">
                         <h3>Dutch Detectors</h3>
                         <div class="detector-list">
-                            <label><input type="checkbox" name="detector" value="spacy_nl" checked> Dutch Entities</label>
-                            <label><input type="checkbox" name="detector" value="known_pii" checked> Known PII</label>
-                            <label><input type="checkbox" name="detector" value="dutch_location" checked> Locations</label>
-                            <label><input type="checkbox" name="detector" value="dutch_organization" checked> Organizations</label>
-                            <label><input type="checkbox" name="detector" value="dutch_name" checked> Names</label>
+                            {% for key, description in dutch_detectors.items() %}
+                                <label title="{{ description }}">
+                                    <input type="checkbox" name="detector" value="nl:{{ key }}" checked>
+                                    {{ key.replace('_', ' ').title() }}
+                                </label>
+                            {% endfor %}
                         </div>
                     </div>
+                    {% if not spacy_available %}
+                        <p class="detector-note">Install <code>sanitize-text[spacy]</code> to enable optional spaCy-powered entity detectors.</p>
+                    {% endif %}
                 </div>
 
                 <button id="process-btn" class="primary">Process Text</button>
@@ -205,6 +210,13 @@
             border: 1px solid #ccc;
             border-radius: 4px;
             background-color: #f9f9f9;
+        }
+
+        .detector-note {
+            width: 100%;
+            margin: 0;
+            font-size: 0.9rem;
+            color: #555;
         }
 
         .detector-group {

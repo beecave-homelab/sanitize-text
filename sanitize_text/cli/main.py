@@ -23,17 +23,9 @@ Examples:
 import os
 import sys
 import click
-import nltk
 from typing import Optional
 from halo import Halo
 from ..core.scrubber import scrub_text, get_available_detectors
-
-# Download required NLTK data
-try:
-    nltk.download('punkt', quiet=True)
-    nltk.download('averaged_perceptron_tagger', quiet=True)
-except Exception as e:
-    click.echo(f"Warning: Could not download NLTK data: {str(e)}", err=True)
 
 # Define custom context settings
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])

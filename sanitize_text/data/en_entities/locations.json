@@ -1,0 +1,22 @@
+[
+  {"match": "New York"},
+  {"match": "Los Angeles"},
+  {"match": "Chicago"},
+  {"match": "Houston"},
+  {"match": "Phoenix"},
+  {"match": "Philadelphia"},
+  {"match": "San Antonio"},
+  {"match": "San Diego"},
+  {"match": "Dallas"},
+  {"match": "San Jose"},
+  {"match": "Seattle"},
+  {"match": "Boston"},
+  {"match": "Miami"},
+  {"match": "Denver"},
+  {"match": "Atlanta"},
+  {"match": "Washington"},
+  {"match": "San Francisco"},
+  {"match": "Portland"},
+  {"match": "Austin"},
+  {"match": "Orlando"}
+]

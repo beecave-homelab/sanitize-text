@@ -1,0 +1,22 @@
+[
+  {"match": "Google"},
+  {"match": "Microsoft"},
+  {"match": "Amazon"},
+  {"match": "Apple"},
+  {"match": "Facebook"},
+  {"match": "Netflix"},
+  {"match": "Tesla"},
+  {"match": "SpaceX"},
+  {"match": "IBM"},
+  {"match": "Intel"},
+  {"match": "Oracle"},
+  {"match": "Salesforce"},
+  {"match": "Adobe"},
+  {"match": "Uber"},
+  {"match": "Airbnb"},
+  {"match": "Visa"},
+  {"match": "Mastercard"},
+  {"match": "Coca-Cola"},
+  {"match": "Pepsi"},
+  {"match": "General Electric"}
+]
