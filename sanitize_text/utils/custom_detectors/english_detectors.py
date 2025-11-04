@@ -2,32 +2,36 @@
 
 from scrubadub.detectors import register_detector
 
-from ..filth import LocationFilth, NameFilth, OrganizationFilth
-from .base import EnglishEntityDetector
+from sanitize_text.utils.custom_detectors.base import EnglishEntityDetector
+from sanitize_text.utils.filth import (
+    LocationFilth,
+    NameFilth,
+    OrganizationFilth,
+)
 
 
 @register_detector
 class EnglishLocationDetector(EnglishEntityDetector):
     """Detector for English-language locations."""
 
-    name = 'location'
+    name = "location"
     filth_cls = LocationFilth
-    json_file = 'locations.json'
+    json_file = "locations.json"
 
 
 @register_detector
 class EnglishOrganizationDetector(EnglishEntityDetector):
     """Detector for English-language organizations."""
 
-    name = 'organization'
+    name = "organization"
     filth_cls = OrganizationFilth
-    json_file = 'organizations.json'
+    json_file = "organizations.json"
 
 
 @register_detector
 class EnglishNameDetector(EnglishEntityDetector):
     """Detector for English-language personal names."""
 
-    name = 'name'
+    name = "name"
     filth_cls = NameFilth
-    json_file = 'names.json'
+    json_file = "names.json"

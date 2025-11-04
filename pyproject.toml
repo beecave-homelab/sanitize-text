@@ -31,14 +31,16 @@ test = [
 [tool.ruff]
 # Align with repo guidance; adjust if project standard differs
 line-length = 100
-# Target Python 3.10 features; update if project pins another version
-target-version = "py310"
+# Target Python 3.12 features; update if project pins another version
+target-version = "py312"
+preview = true
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "lf"
+
 
 [tool.ruff.lint]
 # Enable rule families from AGENTS.md

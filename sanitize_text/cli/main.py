@@ -9,83 +9,88 @@ including direct input, files, or stdin.
 Examples:
     Process text directly:
         $ sanitize-text -t "John lives in Amsterdam"
-    
+
     Process a file:
         $ sanitize-text -i input.txt -o output.txt
-    
+
     Use specific detectors:
         $ sanitize-text -i input.txt -d "email url name"
-    
+
     Process Dutch text:
         $ sanitize-text -i input.txt -l nl_NL
 """
 
 import os
 import sys
+
 import click
-from typing import Optional
 from halo import Halo
-from ..core.scrubber import scrub_text, get_available_detectors
+
+from sanitize_text.core.scrubber import get_available_detectors, scrub_text
 
 # Define custom context settings
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+
 
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.option(
-    "--text", "-t",
+    "--text",
+    "-t",
     type=str,
     help="Text to scrub for PII. Use this for direct text input.",
-    metavar="<text>"
+    metavar="<text>",
 )
 @click.option(
-    "--input", "-i",
+    "--input",
+    "-i",
     type=click.Path(exists=True),
     help="Path to input file containing text to scrub.",
-    metavar="<file>"
+    metavar="<file>",
 )
 @click.option(
-    "--output", "-o",
+    "--output",
+    "-o",
     type=click.Path(writable=True),
     help="Path to output file for scrubbed text. Defaults to ./output/scrubbed.txt",
-    metavar="<file>"
+    metavar="<file>",
 )
 @click.option(
-    "--append", "-a",
+    "--append",
+    "-a",
     is_flag=True,
-    help="Use output file as input when it exists, ignoring --input."
+    help="Use output file as input when it exists, ignoring --input.",
 )
 @click.option(
-    "--locale", "-l",
-    type=click.Choice(['nl_NL', 'en_US']),
+    "--locale",
+    "-l",
+    type=click.Choice(["nl_NL", "en_US"]),
     help="Locale for text processing. Processes both if not specified.",
-    metavar="<locale>"
+    metavar="<locale>",
 )
 @click.option(
-    "--detectors", "-d",
+    "--detectors",
+    "-d",
     help="Space-separated list of detectors to use (e.g., 'url name email').",
-    metavar="<detectors>"
+    metavar="<detectors>",
 )
 @click.option(
-    "--custom", "-c",
+    "--custom",
+    "-c",
     help="Custom text to detect and replace with a unique identifier.",
-    metavar="<text>"
+    metavar="<text>",
 )
-@click.option(
-    "--list-detectors", "-ld",
-    is_flag=True,
-    help="Show available detectors and exit."
-)
+@click.option("--list-detectors", "-ld", is_flag=True, help="Show available detectors and exit.")
 def main(
-    text: Optional[str],
-    input: Optional[str],
-    output: Optional[str],
-    locale: Optional[str],
-    detectors: Optional[str],
-    custom: Optional[str],
+    text: str | None,
+    input: str | None,
+    output: str | None,
+    locale: str | None,
+    detectors: str | None,
+    custom: str | None,
     list_detectors: bool,
-    append: bool
+    append: bool,
 ) -> None:
-    """Remove personally identifiable information (PII) from text.
+    r"""Remove personally identifiable information (PII) from text.
 
     This tool processes text from various sources (direct input, file, or stdin)
     and removes PII using configurable detectors. It supports multiple locales
@@ -98,7 +103,7 @@ def main(
     2. --input: Text file
     3. --append: Existing output file
     4. stdin: Piped input
-    
+
     \b
     Detector Types:
     - Generic: email, phone, url, private_ip, public_ip
@@ -119,19 +124,19 @@ def main(
     if list_detectors:
         detectors_by_locale = get_available_detectors()
         generic_detectors = {
-            'email': 'Detect email addresses',
-            'phone': 'Detect phone numbers',
-            'url': 'Detect URLs',
-            'private_ip': 'Detect private IP addresses',
-            'public_ip': 'Detect public IP addresses'
+            "email": "Detect email addresses",
+            "phone": "Detect phone numbers",
+            "url": "Detect URLs",
+            "private_ip": "Detect private IP addresses",
+            "public_ip": "Detect public IP addresses",
         }
-        
+
         click.echo("Available detectors:\n")
         click.echo("Generic detectors (available for all locales):")
         for detector, description in generic_detectors.items():
             click.echo(f"  - {detector:<15} {description}")
         click.echo()
-        
+
         click.echo("Locale-specific detectors:")
         for loc, detector_dict in detectors_by_locale.items():
             click.echo(f"\n{loc}:")
@@ -142,28 +147,22 @@ def main(
 
     # Validate append mode requirements
     if append and not output:
-        click.echo(
-            "Error: --append/-a requires --output/-o to be specified.",
-            err=True
-        )
+        click.echo("Error: --append/-a requires --output/-o to be specified.", err=True)
         sys.exit(1)
 
     # Determine input text
     if append and output and os.path.exists(output):
-        with open(output, "r") as output_file:
+        with open(output) as output_file:
             input_text = output_file.read()
     elif input:
-        with open(input, "r") as input_file:
+        with open(input) as input_file:
             input_text = input_file.read()
     elif text:
         input_text = text
     elif not sys.stdin.isatty():
         input_text = sys.stdin.read()
     else:
-        click.echo(
-            "Error: No input provided. Use --text, --input, or pipe input.",
-            err=True
-        )
+        click.echo("Error: No input provided. Use --text, --input, or pipe input.", err=True)
         sys.exit(1)
 
     # Set up spinner
@@ -173,12 +172,7 @@ def main(
     try:
         # Process text with selected detectors
         selected_detectors = detectors.split() if detectors else None
-        scrubbed_texts = scrub_text(
-            input_text,
-            locale,
-            selected_detectors,
-            custom_text=custom
-        )
+        scrubbed_texts = scrub_text(input_text, locale, selected_detectors, custom_text=custom)
         scrubbed_text = "\n\n".join(scrubbed_texts)
     except Exception as e:
         spinner.fail("Scrubbing failed")
@@ -197,10 +191,11 @@ def main(
             output_dir = os.path.join(os.getcwd(), "output")
             os.makedirs(output_dir, exist_ok=True)
             output = os.path.join(output_dir, "scrubbed.txt")
-        
+
         with open(output, "w") as output_file:
             output_file.write(scrubbed_text)
         click.echo(f"Scrubbed text saved to {output}")
 
+
 if __name__ == "__main__":
-    main() 
+    main()

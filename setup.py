@@ -1,6 +1,6 @@
 """Setup configuration for the sanitize-text package."""
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 setup(
     name="sanitize-text",
@@ -8,9 +8,9 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={
-        'sanitize_text': [
-            'data/nl_entities/*.json',
-            'data/en_entities/*.json',
+        "sanitize_text": [
+            "data/nl_entities/*.json",
+            "data/en_entities/*.json",
         ],
     },
     install_requires=[
@@ -51,4 +51,4 @@ setup(
         "Programming Language :: Python :: 3.11",
     ],
     python_requires=">=3.11",
-) 
+)
