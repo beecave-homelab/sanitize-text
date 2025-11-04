@@ -3,7 +3,7 @@ name = "sanitize-text"
 version = "0.1.0"
 description = ""
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.13"
 dependencies = [
   "Flask",
   "python-dotenv",
