@@ -33,46 +33,28 @@ class MarkdownUrlDetector(RegexDetector):
         """Initialize the detector with optional configuration."""
         super().__init__(**kwargs)
 
-        # Build the URL pattern piece by piece
-        tld_pattern = f"(?:{self.COMMON_TLDS})"
+        # Build the URL pattern piece by piece (not needed explicitly with DOTALL capture)
 
-        # Comprehensive URL pattern similar to BareDomainDetector
-        url_pattern = (
-            r"(?:"
-            # Protocol URLs
-            r"(?:https?://(?:www\.)?|ftp://)"
-            r"(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*"  # subdomains
-            r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"  # domain
-            r"\."
-            + tld_pattern  # TLD
-            + r"(?:/[^\s<>)]*)?"  # path and query
-            r"|"
-            # Bare domains with optional www
-            r"(?:www\.)?"  # optional www
-            r"(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*"  # subdomains
-            r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"  # domain
-            r"\."
-            + tld_pattern  # TLD
-            + r"(?:/[^\s<>)]*)?"  # path and query
-            r")"
-        )
-
-        # Pattern for markdown links that handles both empty and non-empty link text
+        # Pattern for markdown links that handles both empty and non-empty link text.
+        # Allow the URL part to span multiple lines/whitespace until the closing ')'.
         self.regex = re.compile(
             r"\["  # Opening bracket
             r"([^\]]*)"  # Link text (can be empty)
-            r"\]"  # Closing bracket
+            r"\]+"  # One or more closing brackets to handle ']]('
             r"\("  # Opening parenthesis
-            f"({url_pattern})"  # URL part using comprehensive pattern
+            r"([^)]+?)"  # URL part (non-greedy), may contain newlines/spaces
             r"\)",  # Closing parenthesis
-            re.IGNORECASE,
+            re.IGNORECASE | re.DOTALL,
         )
 
     def iter_filth(self, text: str, document_name: str | None = None) -> Iterator[UrlFilth]:
         """Yield ``UrlFilth`` for each URL found in Markdown links."""
         for match in self.regex.finditer(text):
             link_text = match.group(1)  # The text part [text] (might be empty)
-            url = match.group(2)  # The URL part (url)
+            url_raw = match.group(2)  # The URL part (possibly across lines)
+
+            # Normalize by removing internal whitespace/newlines to reconstruct the URL
+            url = re.sub(r"\s+", "", url_raw)
 
             # Generate a consistent hash for the URL
             url_hash = hash(url) % 10000

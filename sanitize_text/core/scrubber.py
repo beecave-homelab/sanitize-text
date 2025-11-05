@@ -127,14 +127,15 @@ def setup_scrubber(
     if custom_text:
         detector_list.append(CustomWordDetector(custom_text=custom_text))
 
-    detector_factories: dict[str, Any] = {
-        "email": lambda: EmailDetector(locale=locale),
-        "phone": PhoneDetector,
-        "url": BareDomainDetector,
-        "markdown_url": MarkdownUrlDetector,
-        "private_ip": PrivateIPDetector,
-        "public_ip": PublicIPDetector,
-    }
+    # Use an ordered list to ensure markdown URL detection happens before plain URL
+    detector_factories_ordered: list[tuple[str, Any]] = [
+        ("markdown_url", MarkdownUrlDetector),
+        ("url", BareDomainDetector),
+        ("email", lambda: EmailDetector(locale=locale)),
+        ("phone", PhoneDetector),
+        ("private_ip", PrivateIPDetector),
+        ("public_ip", PublicIPDetector),
+    ]
 
     locale_factories: dict[str, dict[str, Any]] = {
         "nl_NL": {
@@ -158,7 +159,7 @@ def setup_scrubber(
             lambda: spacy_entity_detector_cls(model="en_core_web_sm", name="spacy_en")
         )
 
-    for detector_name, factory in detector_factories.items():
+    for detector_name, factory in detector_factories_ordered:
         if detector_name in normalized_selection:
             try:
                 detector_list.append(factory())
