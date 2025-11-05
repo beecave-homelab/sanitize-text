@@ -20,6 +20,7 @@ A powerful tool for detecting and sanitizing personally identifiable information
   - [Supported Locales](#supported-locales)
   - [Available Detectors](#available-detectors)
   - [CLI Tool](#cli-tool)
+  - [Handling binary/rich formats](#handling-binaryrich-formats)
   - [Web Interface](#web-interface)
   - [Entity Management](#entity-management)
 - [License](#license)
@@ -147,6 +148,29 @@ Available options:
 - `-d, --detectors`: Space-separated list of specific detectors to use
 - `-a, --append`: Append to existing output file
 - `--list-detectors`: List all available detectors
+
+### Handling binary/rich formats
+
+Binary or rich document formats (e.g., PDF, DOC/DOCX, RTF, images) are not parsed natively. Convert or extract text first, then pass the resulting text to the CLI or Python API. Examples:
+
+```bash
+# PDF → text (requires pdftotext from poppler)
+pdftotext input.pdf - | python -m sanitize_text
+
+# DOCX → text (docx2txt)
+docx2txt input.docx - | python -m sanitize_text
+
+# RTF → text (pandoc)
+pandoc input.rtf -t plain | python -m sanitize_text
+
+# Image → text via OCR (tesseract)
+tesseract image.png stdout | python -m sanitize_text
+```
+
+Notes:
+
+- These commands stream extracted UTF-8 text to stdin; all content is treated as plain text.
+- For structured files (CSV/JSON), sanitize-text processes raw text without field-aware parsing.
 
 ### Web Interface
 
