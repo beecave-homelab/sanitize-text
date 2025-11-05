@@ -4,3 +4,6 @@ python-dotenv
 click
 halo
 scrubadub
+pdfminer.six
+python-docx
+striprtf
