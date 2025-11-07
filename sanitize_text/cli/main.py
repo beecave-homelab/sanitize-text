@@ -28,7 +28,10 @@ import click
 from halo import Halo
 
 from sanitize_text.core.scrubber import get_available_detectors, scrub_text
+from sanitize_text.output import get_writer
 from sanitize_text.utils import preconvert
+from sanitize_text.utils.cleanup import cleanup_output
+from sanitize_text.utils.normalize import normalize_pdf_text
 
 # Define custom context settings
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
@@ -40,6 +43,9 @@ def _normalize_text_for_pdf(text: str, mode: str) -> str:
     - Remove soft hyphens and non-breaking hyphens.
     - De-hyphenate line-wrapped words.
     - Optionally merge lines into paragraphs (para mode).
+
+    Returns:
+        str: Normalized text
     """
     # Remove soft hyphen and non-breaking hyphen
     text = text.replace("\u00ad", "").replace("\u2011", "-")
@@ -89,7 +95,8 @@ def _normalize_text_for_pdf(text: str, mode: str) -> str:
         if prev.endswith((".", "!", "?", ":")):
             buf.append(ln.strip())
         else:
-            # If next line starts lowercase/alphanumeric, consider it a wrapped continuation
+            # If next line starts lowercase/alphanumeric, consider it a wrapped
+            # continuation
             first = ln.lstrip()[:1]
             if first and (first.islower() or first.isdigit()):
                 buf[-1] = prev + " " + ln.strip()
@@ -132,9 +139,7 @@ def _normalize_text_for_pdf(text: str, mode: str) -> str:
     type=click.Choice(["pre", "para"]),
     default="pre",
     show_default=True,
-    help=(
-        "PDF layout: 'pre' preserves line breaks, 'para' wraps into paragraphs."
-    ),
+    help=("PDF layout: 'pre' preserves line breaks, 'para' wraps into paragraphs."),
 )
 @click.option(
     "--pdf-font",
@@ -147,6 +152,12 @@ def _normalize_text_for_pdf(text: str, mode: str) -> str:
     default=11,
     show_default=True,
     help="Font size for PDF output.",
+)
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    help="Show mapping of found PII and their replacements.",
 )
 @click.option(
     "--append",
@@ -173,7 +184,21 @@ def _normalize_text_for_pdf(text: str, mode: str) -> str:
     help="Custom text to detect and replace with a unique identifier.",
     metavar="<text>",
 )
-@click.option("--list-detectors", "-ld", is_flag=True, help="Show available detectors and exit.")
+@click.option(
+    "--list-detectors",
+    "-ld",
+    is_flag=True,
+    help="Show available detectors and exit.",
+)
+@click.option(
+    "--cleanup/--no-cleanup",
+    default=True,
+    show_default=True,
+    help=(
+        "Apply a conservative cleanup pass to final output "
+        "(dedupe lines, remove UNKNOWN placeholders, ensure trailing newline)."
+    ),
+)
 def main(
     text: str | None,
     input: str | None,
@@ -182,11 +207,13 @@ def main(
     detectors: str | None,
     custom: str | None,
     list_detectors: bool,
+    verbose: bool,
     append: bool,
     output_format: str | None,
     pdf_mode: str,
     pdf_font: str | None,
     font_size: int,
+    cleanup: bool,
 ) -> None:
     r"""Remove personally identifiable information (PII) from text.
 
@@ -255,7 +282,10 @@ def main(
     elif input:
         ext = Path(input).suffix.lower()
         if ext == ".pdf":
-            input_text = preconvert.pdf_to_text(input)
+            # Prefer Markdown extraction using markitdown for better fidelity
+            raw_md = preconvert.to_markdown(input)
+            # Light normalization: remove form feeds, tidy spacing/URLs, no forced H1
+            input_text = normalize_pdf_text(raw_md, title=None)
         elif ext in {".doc", ".docx"}:
             input_text = preconvert.docx_to_text(input)
         elif ext == ".rtf":
@@ -270,7 +300,10 @@ def main(
     elif not sys.stdin.isatty():
         input_text = sys.stdin.read()
     else:
-        click.echo("Error: No input provided. Use --text, --input, or pipe input.", err=True)
+        click.echo(
+            "Error: No input provided. Use --text, --input, or pipe input.",
+            err=True,
+        )
         sys.exit(1)
 
     # Set up spinner
@@ -280,8 +313,30 @@ def main(
     try:
         # Process text with selected detectors
         selected_detectors = detectors.split() if detectors else None
-        scrubbed_texts = scrub_text(input_text, locale, selected_detectors, custom_text=custom)
+        scrubbed_texts = scrub_text(
+            input_text,
+            locale,
+            selected_detectors,
+            custom_text=custom,
+        )
         scrubbed_text = "\n\n".join(scrubbed_texts)
+        if cleanup:
+            scrubbed_text = cleanup_output(scrubbed_text)
+
+        if verbose:
+            from sanitize_text.core.scrubber import collect_filth
+
+            filth_map = collect_filth(
+                input_text,
+                locale,
+                selected_detectors,
+                custom_text=custom,
+            )
+            for loc, filths in filth_map.items():
+                click.echo(f"\nFound PII for {loc}:")
+                for f in filths:
+                    mapping = f"  - {f.type}: '{f.text}' -> '{f.replacement_string}'"
+                    click.echo(mapping)
     except Exception as e:
         spinner.fail("Scrubbing failed")
         click.echo(f"Error: {str(e)}", err=True)
@@ -291,126 +346,28 @@ def main(
 
     # Handle output
     if text and output is None and output_format is None:
-        # Print scrubbed text to terminal when --text is used
         click.echo(scrubbed_text)
     else:
-        # Determine output path and format
         if output is None:
-            output_dir = os.path.join(os.getcwd(), "output")
-            os.makedirs(output_dir, exist_ok=True)
-            output = os.path.join(output_dir, "scrubbed.txt")
+            output_dir = Path.cwd() / "output"
+            output_dir.mkdir(exist_ok=True)
+            output = output_dir / "scrubbed.txt"
         out_ext = Path(output).suffix.lower()
-        fmt = output_format
-        if fmt is None:
-            if out_ext in {".doc", ".docx"}:
-                fmt = "docx"
-            elif out_ext == ".pdf":
-                fmt = "pdf"
-            else:
-                fmt = "txt"
+        fmt = output_format or (
+            "docx" if out_ext in {".doc", ".docx"} else "pdf" if out_ext == ".pdf" else "txt"
+        )
 
-        # Write according to format
-        if fmt == "txt":
-            with open(output, "w", encoding="utf-8") as output_file:
-                output_file.write(scrubbed_text)
-        elif fmt == "docx":
-            try:
-                import docx  # type: ignore
-
-                doc = docx.Document()
-                for line in scrubbed_text.splitlines():
-                    doc.add_paragraph(line)
-                # Ensure directory exists
-                Path(output).parent.mkdir(parents=True, exist_ok=True)
-                doc.save(output)
-            except Exception as exc:  # pragma: no cover
-                click.echo(f"Error writing DOCX output: {exc}", err=True)
-                sys.exit(1)
-        elif fmt == "pdf":
-            try:
-                # Use Platypus for wrapping/pagination; support pre/para modes
-                from reportlab.lib.pagesizes import A4  # type: ignore
-                from reportlab.lib.styles import (  # type: ignore
-                    ParagraphStyle,
-                    getSampleStyleSheet,
-                )
-                from reportlab.lib.units import cm  # type: ignore
-                from reportlab.pdfbase import pdfmetrics  # type: ignore
-                from reportlab.pdfbase.ttfonts import TTFont  # type: ignore
-                from reportlab.platypus import (  # type: ignore
-                    Paragraph,
-                    Preformatted,
-                    SimpleDocTemplate,
-                    Spacer,
-                )
-
-                Path(output).parent.mkdir(parents=True, exist_ok=True)
-
-                doc = SimpleDocTemplate(
-                    output,
-                    pagesize=A4,
-                    leftMargin=2 * cm,
-                    rightMargin=2 * cm,
-                    topMargin=2 * cm,
-                    bottomMargin=2 * cm,
-                    title="Sanitized Output",
-                    author="sanitize-text",
-                )
-                styles = getSampleStyleSheet()
-                # Register custom TTF if provided
-                font_name = "Helvetica"
-                if pdf_font:
-                    try:
-                        pdfmetrics.registerFont(TTFont("CustomTTF", pdf_font))
-                        font_name = "CustomTTF"
-                    except Exception:
-                        # Fallback silently to default font
-                        font_name = "Helvetica"
-                # Build style
-                style = ParagraphStyle(
-                    name="SanitizeTextBody",
-                    parent=styles["BodyText"],
-                    fontName=font_name,
-                    fontSize=font_size,
-                    leading=int(font_size * 1.2),
-                )
-                story = []
-
-                # Normalize extracted text to improve readability
-                normalized = _normalize_text_for_pdf(scrubbed_text, pdf_mode)
-
-                if pdf_mode == "pre":
-                    # Preserve line breaks; wrap within margins
-                    # Escape minimal HTML entities
-                    safe = (
-                        normalized.replace("&", "&amp;")
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                    )
-                    story.append(Preformatted(safe, style))
-                else:
-                    # Paragraph mode: split on blank lines to create paragraphs
-                    paragraphs = [
-                        p for p in normalized.split("\n\n") if p.strip()
-                    ]
-                    for p in paragraphs:
-                        safe = (
-                            p.replace("&", "&amp;")
-                            .replace("<", "&lt;")
-                            .replace(">", "&gt;")
-                        )
-                        story.append(Paragraph(safe, style))
-                        story.append(Spacer(1, 0.4 * cm))
-
-                if not story:
-                    story.append(Paragraph("", style))
-
-                doc.build(story)
-            except Exception as exc:  # pragma: no cover
-                click.echo(f"Error writing PDF output: {exc}", err=True)
-                sys.exit(1)
-        else:
-            click.echo(f"Error: Unsupported output format '{fmt}'", err=True)
+        try:
+            writer = get_writer(fmt)
+            writer.write(
+                scrubbed_text,
+                output,
+                pdf_mode=pdf_mode,
+                pdf_font=pdf_font,
+                font_size=font_size,
+            )
+        except Exception as exc:  # pragma: no cover
+            click.echo(f"Error writing output: {exc}", err=True)
             sys.exit(1)
 
         click.echo(f"Scrubbed text saved to {output}")

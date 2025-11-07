@@ -27,10 +27,14 @@ def get_available_detectors(locale: str | None = None) -> dict[str, str]:
         "email": "Detect email addresses (e.g., user@example.com)",
         "phone": "Detect phone numbers",
         "url": (
-            "Detect URLs (bare domains, www prefixes, http(s), complex paths, query parameters)"
+            "Detect URLs (bare domains, www prefixes, http(s),\n"
+            "complex paths, query parameters)"
         ),
+        "sharepoint_url": "Detect SharePoint URLs (runs before generic URL)",
         "markdown_url": "Detect URLs within Markdown links [text](url)",
-        "private_ip": ("Detect private IP addresses (192.168.x.x, 10.0.x.x, 172.16-31.x.x)"),
+        "private_ip": (
+            "Detect private IP addresses (192.168.x.x, 10.0.x.x, 172.16-31.x.x)"
+        ),
         "public_ip": "Detect public IP addresses (any non-private IP)",
     }
 
@@ -50,12 +54,16 @@ def get_available_detectors(locale: str | None = None) -> dict[str, str]:
 
     # Detect availability of spaCy-based detector without importing heavy modules
     try:
-        spacy_available = importlib_util.find_spec("scrubadub_spacy.detectors") is not None
+        spacy_available = importlib_util.find_spec(
+            "scrubadub_spacy.detectors"
+        ) is not None
     except ModuleNotFoundError:
         spacy_available = False
 
     if spacy_available:
-        description = "Detect named entities using spaCy (requires sanitize-text[spacy])"
+        description = (
+            "Detect named entities using spaCy (requires sanitize-text[spacy])"
+        )
         locale_detectors["nl_NL"]["spacy_entities"] = description
         locale_detectors["en_US"]["spacy_entities"] = description
 
@@ -96,6 +104,7 @@ def setup_scrubber(
         MarkdownUrlDetector,
         PrivateIPDetector,
         PublicIPDetector,
+        SharePointUrlDetector,
     )
     from sanitize_text.utils.post_processors import HashedPIIReplacer
 
@@ -115,10 +124,13 @@ def setup_scrubber(
     normalized_selection: list[str] | None = None
     if selected_detectors:
         normalized_selection = [detector.lower() for detector in selected_detectors]
-        invalid_detectors = [d for d in normalized_selection if d not in available_detectors]
+        invalid_detectors = [
+            d for d in normalized_selection if d not in available_detectors
+        ]
         if invalid_detectors:
             print(
-                f"Warning: Invalid detector(s) for locale {locale}: {', '.join(invalid_detectors)}"
+                f"Warning: Invalid detector(s) for locale {locale}:"
+                f"{', '.join(invalid_detectors)}"
             )
 
     if normalized_selection is None:
@@ -130,6 +142,7 @@ def setup_scrubber(
     # Use an ordered list to ensure markdown URL detection happens before plain URL
     detector_factories_ordered: list[tuple[str, Any]] = [
         ("markdown_url", MarkdownUrlDetector),
+        ("sharepoint_url", SharePointUrlDetector),
         ("url", BareDomainDetector),
         ("email", lambda: EmailDetector(locale=locale)),
         ("phone", PhoneDetector),
@@ -225,3 +238,38 @@ def scrub_text(
     if not scrubbed_texts:
         raise Exception("All processing attempts failed")
     return scrubbed_texts
+
+
+def collect_filth(
+    text: str,
+    locale: str | None = None,
+    selected_detectors: list[str] | None = None,
+    custom_text: str | None = None,
+) -> dict[str, list[scrubadub.filth.Filth]]:
+    """Collect filth objects (with replacement strings) for the given text.
+
+    Args:
+        text: The text to analyse.
+        locale: Optional locale (default: both).
+        selected_detectors: Optional list of detectors.
+        custom_text: Optional custom text.
+
+    Returns:
+        Mapping ``locale -> list[Filth]`` where each filth has
+        ``replacement_string`` populated by post-processors.
+    """
+    from scrubadub import filth as _filth  # noqa: F401  # imported for typing only
+
+    out: dict[str, list[scrubadub.filth.Filth]] = {}
+    locales_to_process = [locale] if locale else ["en_US", "nl_NL"]
+
+    for current_locale in locales_to_process:
+        scrubber = setup_scrubber(current_locale, selected_detectors, custom_text)
+        filths = list(scrubber.iter_filth(text))
+        # Apply our HashedPIIReplacer explicitly to populate replacement_string
+        from sanitize_text.utils.post_processors import HashedPIIReplacer
+
+        replacer = HashedPIIReplacer()
+        filths = replacer.process_filth(filths)
+        out[current_locale] = filths
+    return out

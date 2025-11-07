@@ -1,11 +1,11 @@
 """Main entry point for the sanitize-text webui."""
 
-from .run import create_app, download_required_models
+from .run import create_app, download_optional_models
 
 
-def main():
+def main() -> None:
     """Main entry point for the webui."""
-    download_required_models()
+    download_optional_models()
     app = create_app()
     app.run(debug=True)
 
