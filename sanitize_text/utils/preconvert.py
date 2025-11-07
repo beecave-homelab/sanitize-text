@@ -8,10 +8,13 @@ binary via its CLI.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import shutil
 import subprocess
 from pathlib import Path
+
+from markitdown import MarkItDown
 
 
 class ConversionError(Exception):
@@ -82,17 +85,23 @@ def pdf_to_text(path: str | Path) -> str:
     p = str(Path(path))
     # Prefer external CLI if available (usually quieter & cleaner)
     if shutil.which("pdftotext") is not None:
-        return _run_command(["pdftotext", p, "-"])
+        return _run_command(["pdftotext", "-layout", "-enc", "UTF-8", p, "-"])
 
     # Fallback to pdfminer.six with reduced logging noise
     try:
         from pdfminer.high_level import extract_text  # type: ignore
+        from pdfminer.layout import LAParams  # type: ignore
 
         logger = logging.getLogger("pdfminer")
         prev = logger.level
         try:
             logger.setLevel(logging.ERROR)
-            text = extract_text(p) or ""
+            laparams = LAParams()
+            laparams.line_margin = 0.3
+            laparams.char_margin = 2.0
+            laparams.word_margin = 0.1
+            laparams.boxes_flow = None
+            text = extract_text(p, laparams=laparams) or ""
         finally:
             logger.setLevel(prev)
         return text
@@ -208,3 +217,53 @@ def convert_file(fmt: str, path: str | Path, *, lang: str | None = None) -> str:
     if fmt_lc == "image":
         return image_to_text(path, lang=lang)
     raise ConversionError(f"Unsupported format: {fmt}")
+
+
+def to_markdown(path: str | Path) -> str:
+    """Convert a supported binary/rich file to Markdown using markitdown.
+
+    Args:
+        path: Path to the source file (e.g., PDF, DOCX, PPTX, etc.).
+
+    Returns:
+        Markdown text content extracted by markitdown.
+
+    Raises:
+        ConversionError: If markitdown fails to convert the file.
+    """
+    p = str(Path(path))
+    try:
+        with _suppress_fontbbox_logs():
+            md = MarkItDown()
+            result = md.convert(p)
+            return result.text_content or ""
+    except Exception as exc:  # noqa: BLE001
+        raise ConversionError(f"markitdown failed to convert: {p}") from exc
+
+
+@contextlib.contextmanager
+def _suppress_fontbbox_logs() -> contextlib.AbstractContextManager[None]:
+    logger_root = logging.getLogger()
+    logger_pdf = logging.getLogger("pdfminer")
+
+    class _FontBBoxFilter(logging.Filter):
+        def filter(self, record: logging.LogRecord) -> bool:  # noqa: D401
+            msg = record.getMessage()
+            if "FontBBox" in msg and "4 floats" in msg:
+                return False
+            if "FontBBox" in msg and "parsed" in msg:
+                return False
+            return True
+
+    flt = _FontBBoxFilter()
+    logger_root.addFilter(flt)
+    logger_pdf.addFilter(flt)
+    prev_level = logger_pdf.level
+    try:
+        if prev_level < logging.ERROR:
+            logger_pdf.setLevel(logging.ERROR)
+        yield
+    finally:
+        logger_root.removeFilter(flt)
+        logger_pdf.removeFilter(flt)
+        logger_pdf.setLevel(prev_level)

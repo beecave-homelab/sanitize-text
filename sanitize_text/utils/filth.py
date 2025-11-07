@@ -48,3 +48,25 @@ class PublicIPFilth(Filth):
     """
 
     type = "public_ip"
+
+
+class MarkdownUrlFilth(Filth):
+    """Filth for URLs that appear inside Markdown link syntax.
+
+    Stores the original *link text* so a post-processor can recreate a
+    well-formed Markdown placeholder (e.g. ``[text](URL-001)``).
+    """
+
+    type = "markdown_url"
+
+    def __init__(
+        self,
+        *args: object,
+        link_text: str = "",
+        url: str = "",
+        **kwargs: object,
+    ) -> None:
+        """Store extra metadata before delegating to base class."""
+        super().__init__(*args, **kwargs)
+        self.link_text = link_text
+        self.url = url

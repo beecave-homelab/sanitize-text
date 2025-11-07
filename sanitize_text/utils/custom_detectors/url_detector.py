@@ -1,6 +1,7 @@
 """URL detectors."""
 
 import re
+from collections.abc import Iterator
 
 from scrubadub.detectors import RegexDetector, register_detector
 from scrubadub.filth.url import UrlFilth
@@ -28,7 +29,8 @@ class BareDomainDetector(RegexDetector):
         "dev|app|io|ai|cloud|digital|tech|online|site|web|blog|shop|store|"
         "academy|agency|business|center|company|consulting|foundation|institute|"
         "international|management|marketing|solutions|technology|university|"
-        "systems|services|support|science|software|studio|training|ventures"
+        "systems|services|support|science|software|studio|training|ventures|"
+        "sharepoint|microsoft"
     )
 
     def __init__(self, **kwargs: object) -> None:
@@ -41,7 +43,7 @@ class BareDomainDetector(RegexDetector):
         # Simple but effective URL pattern
         url_pattern = (
             # Start with word boundary and make sure we're not in an email address
-            r"(?<![@])\b"
+            r"(?<![@\(\[])\b"
             r"(?:"
             # Protocol URLs
             r"(?:https?://(?:www\.)?|ftp://)"
@@ -65,3 +67,91 @@ class BareDomainDetector(RegexDetector):
 
         # Compile the pattern
         self.regex = re.compile(url_pattern, re.IGNORECASE)
+
+    def iter_filth(
+        self,
+        text: str,
+        document_name: str | None = None,
+    ) -> Iterator[UrlFilth]:  # noqa: D401
+        """Yield URL filth and filter split sharepoint.com fragments.
+
+        Heuristic: if the matched host ends with 'point.com' and the preceding
+        non-separator characters end with 'share', skip the match. This avoids
+        false positives like '... share' + 'epoint.com' from PDF line/word splits.
+        """
+        for m in self.regex.finditer(text):
+            url = m.group(0)
+            # Trim common trailing punctuation/junk that may cling to URLs
+            url = re.sub(r"[\]\)\.,;:>]+$", "", url)
+            # Extract host part (before first slash) to examine domain fragment
+            host = url.split("/", 1)[0].lower()
+            # Heuristic: Skip mixed-case bare domains without protocol or www
+            if not (url.lower().startswith(("http://", "https://", "ftp://", "www."))) and any(
+                c.isupper() for c in url
+            ):
+                continue
+            # Skip sharepoint fragments: '...share' + 'epoint.com' or
+            # 'hare' + 'point.com' (check both sides with recomposition checks)
+            if host.endswith("point.com"):
+                start, end = m.start(), m.end()
+                window = 20
+                lookback = text[max(0, start - window) : start]
+                lookahead = text[end : min(len(text), end + window)]
+                prev = re.sub(r"[^a-z0-9]+", "", lookback.lower())
+                next_ = re.sub(r"[^a-z0-9]+", "", lookahead.lower())
+                if prev.endswith("share") or next_.startswith("share"):
+                    continue
+                # Recompose candidate full domain to catch wider splits
+                target = "sharepoint.com"
+                # Use up to 6 chars from prev/next to complete 'share'
+                if (
+                    (prev[-6:] + host).startswith(target)
+                    or (host + next_[:6]).startswith(target)
+                ):
+                    continue
+                # Wider window: look for 'sharepointcom' across boundaries
+                combined = (
+                    prev[-30:]
+                    + re.sub(r"[^a-z0-9]+", "", host)
+                    + next_[:30]
+                )
+                if "sharepointcom" in combined:
+                    continue
+                # If the host itself is a known fragment, scan a much larger window
+                if host in {"epoint.com", "harepoint.com", "point.com"}:
+                    span_start = max(0, start - 1500)
+                    span_end = min(len(text), end + 1500)
+                    span = re.sub(
+                        r"[^a-z0-9]+",
+                        "",
+                        text[span_start:span_end].lower(),
+                    )
+                    if "sharepointcom" in span or "sharepoint" in span:
+                        continue
+                    # Document-level heuristic: if the whole document references
+                    # sharepoint, treat these exact fragments as false positives.
+                    doc_squeezed = re.sub(r"[^a-z0-9]+", "", text.lower())
+                    if "sharepoint" in doc_squeezed:
+                        continue
+                    # Line-based fallback: check the current line (sanitized)
+                    line_start = text.rfind("\n", 0, start) + 1
+                    if line_start < 0:
+                        line_start = 0
+                    line_end = text.find("\n", end)
+                    if line_end == -1:
+                        line_end = len(text)
+                    line = re.sub(
+                        r"[^a-z0-9]+",
+                        "",
+                        text[line_start:line_end].lower(),
+                    )
+                    if "sharepointcom" in line or "sharepoint" in line:
+                        continue
+
+            yield UrlFilth(
+                beg=m.start(),
+                end=m.end(),
+                text=url,
+                detector_name=self.name,
+                document_name=document_name,
+            )

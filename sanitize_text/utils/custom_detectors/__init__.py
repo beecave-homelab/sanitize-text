@@ -14,6 +14,7 @@ from .english_detectors import (
 )
 from .ip_detectors import PrivateIPDetector, PublicIPDetector
 from .markdown_url_detector import MarkdownUrlDetector
+from .sharepoint_url_detector import SharePointUrlDetector
 from .url_detector import BareDomainDetector
 
 __all__ = [
@@ -23,6 +24,7 @@ __all__ = [
     "PrivateIPDetector",
     "PublicIPDetector",
     "BareDomainDetector",
+    "SharePointUrlDetector",
     "MarkdownUrlDetector",
     "DutchLocationDetector",
     "DutchOrganizationDetector",
