@@ -63,10 +63,7 @@ def _require(tool: str) -> None:
         ConversionError: If the tool cannot be located.
     """
     if shutil.which(tool) is None:
-        msg = (
-            f"'{tool}' is required but was not found on PATH. "
-            "Please install it first."
-        )
+        msg = f"'{tool}' is required but was not found on PATH. Please install it first."
         raise ConversionError(msg)
 
 
@@ -140,10 +137,7 @@ def docx_to_text(path: str | Path) -> str:
             return _run_command(["docx2txt", p, "-"])
         if shutil.which("pandoc") is not None:
             return _run_command(["pandoc", p, "-t", "plain"])
-        msg = (
-            "No available method for DOC/DOCX conversion "
-            "(python-docx, docx2txt, or pandoc)."
-        )
+        msg = "No available method for DOC/DOCX conversion (python-docx, docx2txt, or pandoc)."
         raise ConversionError(msg)
 
 

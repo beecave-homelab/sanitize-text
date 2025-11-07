@@ -3,6 +3,7 @@
 Robustly detects SharePoint links and trims noisy trailing punctuation
 commonly produced by exports (e.g., "),[[", ")]", ").", ",").
 """
+
 from __future__ import annotations
 
 import re
@@ -23,6 +24,10 @@ class SharePointUrlDetector(RegexDetector):
     filth_cls = UrlFilth
 
     def __init__(self, **kwargs: object) -> None:
+        """Initialize the SharePoint URL detector.
+
+        Sets up the regex pattern for detecting SharePoint URLs.
+        """
         super().__init__(**kwargs)
         # Match protocol URLs to *.sharepoint.com with generous path
         # Permit a single newline inside the path to accommodate wrapped exports
@@ -36,6 +41,18 @@ class SharePointUrlDetector(RegexDetector):
         text: str,
         document_name: str | None = None,
     ) -> Iterator[UrlFilth]:
+        """Iterate over SharePoint URL filth in the given text.
+
+        Cleans and trims detected URLs by removing whitespace and trailing
+        punctuation.
+
+        Args:
+            text: The text to scan for SharePoint URLs.
+            document_name: Optional name of the document for the filth.
+
+        Yields:
+            UrlFilth instances for each detected SharePoint URL.
+        """
         for m in self.regex.finditer(text):
             url = m.group(0)
             # Remove any whitespace that got inserted in very long URLs

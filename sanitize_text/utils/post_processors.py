@@ -49,9 +49,7 @@ class HashedPIIReplacer(PostProcessor):
                 # Also catch obvious SharePoint fragments that start with the domain
                 is_urlish = is_urlish or ("sharepoint.com/" in text.lower())
                 placeholder_type = (
-                    "URL"
-                    if filth.type in {"markdown_url"} or is_urlish
-                    else filth.type.upper()
+                    "URL" if filth.type in {"markdown_url"} or is_urlish else filth.type.upper()
                 )
                 placeholder = f"{placeholder_type}-{hash_val:03d}"
                 self.seen_values[key] = placeholder

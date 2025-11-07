@@ -95,6 +95,9 @@ def _collapse_run(match: re.Match[str]) -> str:
     """Collapse a long alphanumeric run keeping the boundaries.
 
     Example: ABCDEFGH...WXYZ (keep 16 head, 8 tail).
+
+    Returns:
+        The collapsed string if longer than 80 characters, else the original.
     """
     s = match.group(1)
     if len(s) <= 80:
@@ -114,7 +117,11 @@ def collapse_long_gibberish_in_brackets(text: str) -> str:
 
     This improves readability for exported artifacts that embed extremely long
     tokens or encoded segments in link text or parenthetical statements.
+
+    Returns:
+        The input text with long gibberish runs inside brackets collapsed.
     """
+
     def repl_bracket(m: re.Match[str]) -> str:
         inner = m.group(0)
         return _collapse_inside_block(inner)

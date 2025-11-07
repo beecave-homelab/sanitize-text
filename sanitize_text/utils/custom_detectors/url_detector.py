@@ -104,17 +104,10 @@ class BareDomainDetector(RegexDetector):
                 # Recompose candidate full domain to catch wider splits
                 target = "sharepoint.com"
                 # Use up to 6 chars from prev/next to complete 'share'
-                if (
-                    (prev[-6:] + host).startswith(target)
-                    or (host + next_[:6]).startswith(target)
-                ):
+                if (prev[-6:] + host).startswith(target) or (host + next_[:6]).startswith(target):
                     continue
                 # Wider window: look for 'sharepointcom' across boundaries
-                combined = (
-                    prev[-30:]
-                    + re.sub(r"[^a-z0-9]+", "", host)
-                    + next_[:30]
-                )
+                combined = prev[-30:] + re.sub(r"[^a-z0-9]+", "", host) + next_[:30]
                 if "sharepointcom" in combined:
                     continue
                 # If the host itself is a known fragment, scan a much larger window

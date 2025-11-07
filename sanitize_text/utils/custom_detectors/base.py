@@ -68,6 +68,7 @@ class JSONEntityDetector(Detector):
 
     def iter_filth(self, text: str, document_name: str | None = None) -> Iterator[object]:
         """Yield filth matches for any known entity occurrences in the text."""
+
         # Helpers for a normalization-aware fallback for multi-word entities
         def _strip_zw(s: str) -> str:
             return re.sub(r"[\u200b\u200c\u200d\u2060\u00AD]", "", s)
@@ -95,6 +96,7 @@ class JSONEntityDetector(Detector):
                 def _fuzzy_token(tok: str) -> str:
                     parts = [re.escape(ch) + zw for ch in tok]
                     return "".join(parts)
+
                 for t in tokens:
                     if not t:
                         continue
