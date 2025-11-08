@@ -68,11 +68,20 @@ class MarkdownUrlDetector(RegexDetector):
         document_name: str | None = None,
     ) -> Iterator[MarkdownUrlFilth]:
         """Yield ``UrlFilth`` for each URL found in Markdown links."""
+        import click
+
+        verbose = getattr(self, '_verbose', False)
+        if verbose:
+            click.echo(f"  [{self.name}] Scanning for Markdown URLs...")
+
+        match_count = 0
         for match in self.regex.finditer(text):
             open_br = match.group("open")
             close_br = match.group("close")
             # Enforce matching bracket lengths; skip odd pairs defensively
-            if (open_br == "[[" and close_br != "]]" ) or (open_br == "[" and close_br != "]"):
+            if (open_br == "[[" and close_br != "]]") or (
+                open_br == "[" and close_br != "]"
+            ):
                 continue
             bracket_pairs = 2 if open_br == "[[" else 1
             link_text = match.group("text")
@@ -83,8 +92,14 @@ class MarkdownUrlDetector(RegexDetector):
             # Remove surrounding angle brackets often added by normalizers
             if url.startswith("<") and url.endswith(">"):
                 url = url[1:-1]
-            # Trim trailing punctuation/junk that can leak from Word/Markdown exports
+            # Trim trailing punctuation/junk
             url = re.sub(r"[\]\)\.,;:>'\"]+$", "", url)
+
+            match_count += 1
+            if verbose:
+                # Truncate long URLs for display
+                display_url = url[:60] + "..." if len(url) > 60 else url
+                click.echo(f"    ✓ Found: '[{link_text}]({display_url})' ({self.name})")
 
             yield MarkdownUrlFilth(
                 beg=match.start(),
@@ -96,3 +111,6 @@ class MarkdownUrlDetector(RegexDetector):
                 detector_name="markdown_url",
                 document_name=document_name,
             )
+
+        if verbose:
+            click.echo(f"  [{self.name}] Total matches: {match_count}")

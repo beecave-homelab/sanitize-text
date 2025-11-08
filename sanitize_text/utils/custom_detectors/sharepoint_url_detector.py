@@ -53,12 +53,26 @@ class SharePointUrlDetector(RegexDetector):
         Yields:
             UrlFilth instances for each detected SharePoint URL.
         """
+        import click
+
+        verbose = getattr(self, '_verbose', False)
+        if verbose:
+            click.echo(f"  [{self.name}] Scanning for SharePoint URLs...")
+
+        match_count = 0
         for m in self.regex.finditer(text):
             url = m.group(0)
             # Remove any whitespace that got inserted in very long URLs
             url = re.sub(r"\s+", "", url)
             # Trim trailing punctuation/junk that may cling to URLs, incl quotes
             url = re.sub(r"[\]\)\.,;:>'\"]+$", "", url)
+
+            match_count += 1
+            if verbose:
+                # Truncate long URLs for display
+                display_url = url[:60] + "..." if len(url) > 60 else url
+                click.echo(f"    ✓ Found: '{display_url}' ({self.name})")
+
             yield UrlFilth(
                 beg=m.start(),
                 end=m.end(),
@@ -66,3 +80,6 @@ class SharePointUrlDetector(RegexDetector):
                 detector_name=self.name,
                 document_name=document_name,
             )
+
+        if verbose:
+            click.echo(f"  [{self.name}] Total matches: {match_count}")

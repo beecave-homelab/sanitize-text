@@ -187,6 +187,9 @@ class JSONEntityDetector(Detector):
             if not matched_any and is_multi:
                 norm_text = _normalize_for_entity(text)
                 norm_entity = _normalize_for_entity(match)
+                # Reject very short normalized entities (likely fragments)
+                if len(norm_entity) < 5:
+                    continue
                 pos = 0
                 while True:
                     idx = norm_text.find(norm_entity, pos)
@@ -259,6 +262,27 @@ class JSONEntityDetector(Detector):
                     if start is not None and end is not None and start < end:
                         original_slice = text[start:end]
                         if any(char.isalpha() for char in original_slice):
+                            # Skip if match contains newlines (don't match across lines)
+                            if '\n' in original_slice or '\r' in original_slice:
+                                pos = idx + 1
+                                continue
+
+                            # Require word boundaries: check chars before/after match
+                            letters_pattern = r'[0-9A-Za-zÀ-ÖØ-öø-ÿ]'
+                            if start > 0 and re.match(letters_pattern, text[start - 1]):
+                                # Match starts inside a word - reject
+                                pos = idx + 1
+                                continue
+                            if end < len(text) and re.match(letters_pattern, text[end]):
+                                # Match ends inside a word - reject
+                                pos = idx + 1
+                                continue
+
+                            # Skip if matched text is in common words stoplist
+                            if original_slice.strip().lower() in self.COMMON_WORDS:
+                                pos = idx + 1
+                                continue
+
                             # Skip URLs/Markdown link contexts
                             ll = start
                             rr = end
@@ -349,6 +373,15 @@ class DutchEntityDetector(JSONEntityDetector):
         "zetten",  # verb
         "nuis",  # common token in context, lowercase only
         "leiden",  # verb; allow capitalized city name
+        # Common words/fragments that cause false positives
+        "loop",  # common word/UI element
+        "mijlpaal",  # milestone
+        "functioneel",  # functional (job title fragment)
+        "beheerder",  # administrator (job title)
+        "applicatiebeheerder",  # application administrator
+        "medewerker",  # employee
+        "collega",  # colleague
+        "afdeling",  # department
     }
     data_subdir = "nl_entities"
 
