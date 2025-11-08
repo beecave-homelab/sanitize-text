@@ -3504,6 +3504,10 @@
         "filth_type": "organization"
     },
     {
+        "match": "Attent",
+        "filth_type": "organization"
+    },
+    {
         "match": "Attent Zorg",
         "filth_type": "organization"
     },
@@ -26017,6 +26021,10 @@
     },
     {
         "match": "MicroPort Scientific Coöperatief U.A.",
+        "filth_type": "organization"
+    },
+    {
+        "match": "Microsoft",
         "filth_type": "organization"
     },
     {
