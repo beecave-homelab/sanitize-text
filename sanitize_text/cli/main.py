@@ -82,6 +82,7 @@ def _run_scrub(
         locale,
         selected_detectors,
         custom_text=custom,
+        verbose=verbose,
     )
     scrubbed_text = "\n\n".join(scrubbed_texts)
     scrubbed_text = maybe_cleanup(scrubbed_text, cleanup)
@@ -264,9 +265,11 @@ def main(
         click.echo(f"Error: {exc}", err=True)
         sys.exit(1)
 
-    # Set up spinner
-    spinner = Halo(text="Scrubbing PII", spinner="dots")
-    spinner.start()
+    # Set up spinner (only if not verbose)
+    spinner = None
+    if not verbose:
+        spinner = Halo(text="Scrubbing PII", spinner="dots")
+        spinner.start()
 
     try:
         # Process text with selected detectors
@@ -279,11 +282,13 @@ def main(
             verbose=verbose,
         )
     except Exception as e:
-        spinner.fail("Scrubbing failed")
+        if spinner:
+            spinner.fail("Scrubbing failed")
         click.echo(f"Error: {str(e)}", err=True)
         sys.exit(1)
     else:
-        spinner.succeed("Scrubbing completed")
+        if spinner:
+            spinner.succeed("Scrubbing completed")
 
     # Handle output
     if text and output is None and output_format is None:
@@ -388,8 +393,10 @@ def scrub_cmd(
         click.echo(f"Error: {exc}", err=True)
         sys.exit(1)
 
-    spinner = Halo(text="Scrubbing PII", spinner="dots")
-    spinner.start()
+    spinner = None
+    if not verbose:
+        spinner = Halo(text="Scrubbing PII", spinner="dots")
+        spinner.start()
     try:
         scrubbed_text = _run_scrub(
             input_text=input_text,
@@ -400,11 +407,13 @@ def scrub_cmd(
             verbose=verbose,
         )
     except Exception as e:  # pragma: no cover
-        spinner.fail("Scrubbing failed")
+        if spinner:
+            spinner.fail("Scrubbing failed")
         click.echo(f"Error: {str(e)}", err=True)
         sys.exit(1)
     else:
-        spinner.succeed("Scrubbing completed")
+        if spinner:
+            spinner.succeed("Scrubbing completed")
 
     if text and output is None and output_format is None:
         click.echo(scrubbed_text)

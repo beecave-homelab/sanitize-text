@@ -115,6 +115,12 @@ class JSONEntityDetector(Detector):
         self, text: str, document_name: str | None = None
     ) -> Iterator[object]:
         """Yield filth matches for any known entity occurrences in the text."""
+        # Check if verbose mode is enabled via scrubber
+        verbose = getattr(self, '_verbose', False)
+
+        if verbose:
+            pattern_count = len(self._compiled_patterns)
+            click.echo(f"  [{self.name}] Checking {pattern_count} patterns...")
 
         # Helpers for a normalization-aware fallback for multi-word entities
         def _strip_zw(s: str) -> str:
@@ -129,6 +135,7 @@ class JSONEntityDetector(Detector):
             s = _collapse_ws(s)
             return s.lower()
 
+        match_count = 0
         for match, compiled, is_multi in self._compiled_patterns:
             matched_any = False
             for found_match in compiled.finditer(text):
@@ -165,6 +172,9 @@ class JSONEntityDetector(Detector):
                 if not any(char.isalpha() for char in matched_text):
                     continue
                 matched_any = True
+                match_count += 1
+                if verbose:
+                    click.echo(f"    ✓ Found: '{matched_text}' ({self.name})")
                 yield self.filth_cls(
                     beg=found_match.start(),
                     end=found_match.end(),
@@ -274,6 +284,12 @@ class JSONEntityDetector(Detector):
                             ):
                                 pos = idx + 1
                                 continue
+                            match_count += 1
+                            if verbose:
+                                click.echo(
+                                    f"    ✓ Found (fallback): '{original_slice}' "
+                                    f"({self.name})"
+                                )
                             yield self.filth_cls(
                                 beg=start,
                                 end=end,
@@ -283,6 +299,9 @@ class JSONEntityDetector(Detector):
                             )
                             matched_any = True
                     pos = idx + 1
+
+        if verbose:
+            click.echo(f"  [{self.name}] Total matches: {match_count}")
 
 
 class DutchEntityDetector(JSONEntityDetector):

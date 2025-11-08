@@ -1,7 +1,9 @@
 """IP address detectors."""
 
 import re
+from collections.abc import Iterator
 
+import click
 from scrubadub.detectors import RegexDetector, register_detector
 
 from sanitize_text.utils.filth import PrivateIPFilth, PublicIPFilth
@@ -25,6 +27,30 @@ class PrivateIPDetector(RegexDetector):
         r"\b(?:192\.168\.\d{1,3}\.\d{1,3}|10\.0\.\d{1,3}\.\d{1,3}|172\.\d{1,3}\.\d{1,3}\.\d{1,3})\b"
     )
 
+    def iter_filth(
+        self, text: str, document_name: str | None = None
+    ) -> Iterator[PrivateIPFilth]:
+        """Yield private IP filth with optional verbose logging."""
+        verbose = getattr(self, '_verbose', False)
+        if verbose:
+            click.echo(f"  [{self.name}] Scanning for private IPs...")
+
+        match_count = 0
+        for match in self.regex.finditer(text):
+            match_count += 1
+            if verbose:
+                click.echo(f"    ✓ Found: '{match.group()}' ({self.name})")
+            yield self.filth_cls(
+                beg=match.start(),
+                end=match.end(),
+                text=match.group(),
+                detector_name=self.name,
+                document_name=document_name,
+            )
+
+        if verbose:
+            click.echo(f"  [{self.name}] Total matches: {match_count}")
+
 
 @register_detector
 class PublicIPDetector(RegexDetector):
@@ -47,3 +73,27 @@ class PublicIPDetector(RegexDetector):
         r"\d{1,3}\.\d{1,3})"
         r"(?:\d{1,3}\.){3}\d{1,3}\b"
     )
+
+    def iter_filth(
+        self, text: str, document_name: str | None = None
+    ) -> Iterator[PublicIPFilth]:
+        """Yield public IP filth with optional verbose logging."""
+        verbose = getattr(self, '_verbose', False)
+        if verbose:
+            click.echo(f"  [{self.name}] Scanning for public IPs...")
+
+        match_count = 0
+        for match in self.regex.finditer(text):
+            match_count += 1
+            if verbose:
+                click.echo(f"    ✓ Found: '{match.group()}' ({self.name})")
+            yield self.filth_cls(
+                beg=match.start(),
+                end=match.end(),
+                text=match.group(),
+                detector_name=self.name,
+                document_name=document_name,
+            )
+
+        if verbose:
+            click.echo(f"  [{self.name}] Total matches: {match_count}")

@@ -3,6 +3,7 @@
 import re
 from collections.abc import Iterator
 
+import click
 from scrubadub.detectors import RegexDetector, register_detector
 from scrubadub.filth.url import UrlFilth
 
@@ -79,6 +80,11 @@ class BareDomainDetector(RegexDetector):
         non-separator characters end with 'share', skip the match. This avoids
         false positives like '... share' + 'epoint.com' from PDF line/word splits.
         """
+        verbose = getattr(self, '_verbose', False)
+        if verbose:
+            click.echo(f"  [{self.name}] Scanning for URLs...")
+
+        match_count = 0
         for m in self.regex.finditer(text):
             url = m.group(0)
             # Trim common trailing punctuation/junk that may cling to URLs
@@ -86,9 +92,11 @@ class BareDomainDetector(RegexDetector):
             # Extract host part (before first slash) to examine domain fragment
             host = url.split("/", 1)[0].lower()
             # Heuristic: Skip mixed-case bare domains without protocol or www
-            if not (url.lower().startswith(("http://", "https://", "ftp://", "www."))) and any(
-                c.isupper() for c in url
-            ):
+            url_lower = url.lower()
+            has_protocol = url_lower.startswith(
+                ("http://", "https://", "ftp://", "www.")
+            )
+            if not has_protocol and any(c.isupper() for c in url):
                 continue
             # Skip sharepoint fragments: '...share' + 'epoint.com' or
             # 'hare' + 'point.com' (check both sides with recomposition checks)
@@ -104,7 +112,9 @@ class BareDomainDetector(RegexDetector):
                 # Recompose candidate full domain to catch wider splits
                 target = "sharepoint.com"
                 # Use up to 6 chars from prev/next to complete 'share'
-                if (prev[-6:] + host).startswith(target) or (host + next_[:6]).startswith(target):
+                combined_prev = (prev[-6:] + host).startswith(target)
+                combined_next = (host + next_[:6]).startswith(target)
+                if combined_prev or combined_next:
                     continue
                 # Wider window: look for 'sharepointcom' across boundaries
                 combined = prev[-30:] + re.sub(r"[^a-z0-9]+", "", host) + next_[:30]
@@ -141,6 +151,9 @@ class BareDomainDetector(RegexDetector):
                     if "sharepointcom" in line or "sharepoint" in line:
                         continue
 
+            match_count += 1
+            if verbose:
+                click.echo(f"    ✓ Found: '{url}' ({self.name})")
             yield UrlFilth(
                 beg=m.start(),
                 end=m.end(),
@@ -148,3 +161,6 @@ class BareDomainDetector(RegexDetector):
                 detector_name=self.name,
                 document_name=document_name,
             )
+
+        if verbose:
+            click.echo(f"  [{self.name}] Total matches: {match_count}")

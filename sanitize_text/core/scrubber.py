@@ -75,6 +75,7 @@ def setup_scrubber(
     locale: str,
     selected_detectors: list[str] | None = None,
     custom_text: str | None = None,
+    verbose: bool = False,
 ) -> scrubadub.Scrubber:
     """Set up a scrubber with appropriate detectors and post-processors.
 
@@ -82,6 +83,7 @@ def setup_scrubber(
         locale: Locale code for text processing (e.g., 'nl_NL', 'en_US')
         selected_detectors: Optional list of detector names to use
         custom_text: Optional custom text to detect and replace
+        verbose: Enable verbose logging of detector activity
 
     Returns:
         Configured scrubber instance ready for text processing
@@ -197,6 +199,11 @@ def setup_scrubber(
 
     scrubber.detectors = {detector.name: detector for detector in detector_list}
 
+    # Store verbose flag on scrubber and propagate to all detectors
+    scrubber._verbose = verbose  # type: ignore[attr-defined]
+    for detector in detector_list:
+        detector._verbose = verbose  # type: ignore[attr-defined]
+
     return scrubber
 
 
@@ -205,6 +212,7 @@ def scrub_text(
     locale: str | None = None,
     selected_detectors: list[str] | None = None,
     custom_text: str | None = None,
+    verbose: bool = False,
 ) -> list[str]:
     """Scrub PII from the given text using specified locale and detectors.
 
@@ -217,6 +225,7 @@ def scrub_text(
         locale: Optional locale code (e.g., 'nl_NL', 'en_US')
         selected_detectors: Optional list of detector names to use
         custom_text: Optional custom text to detect and replace
+        verbose: Enable verbose logging of detector activity
 
     Returns:
         List of scrubbed texts, one for each processed locale
@@ -224,13 +233,29 @@ def scrub_text(
     Raises:
         Exception: If all processing attempts fail
     """
+    import click
+
     scrubbed_texts: list[str] = []
     locales_to_process = ["en_US", "nl_NL"] if locale is None else [locale]
     for current_locale in locales_to_process:
         try:
-            scrubber = setup_scrubber(current_locale, selected_detectors, custom_text)
+            if verbose:
+                click.echo(f"\n[Processing locale: {current_locale}]")
+            scrubber = setup_scrubber(
+                current_locale, selected_detectors, custom_text, verbose
+            )
+
+            if verbose:
+                # Log active detectors
+                detector_names = list(scrubber.detectors.keys())
+                click.echo(f"[Active detectors: {', '.join(detector_names)}]")
+                click.echo(f"[Scanning text ({len(text)} characters)...]\n")
+
             scrubbed_text = scrubber.clean(text)
             scrubbed_texts.append(f"Results for {current_locale}:\n{scrubbed_text}")
+
+            if verbose:
+                click.echo(f"\n[Completed processing for {current_locale}]")
         except Exception as exc:
             print(f"Warning: Processing failed for locale {current_locale}: {exc}")
             continue
