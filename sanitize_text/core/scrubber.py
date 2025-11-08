@@ -107,7 +107,12 @@ def setup_scrubber(
         PublicIPDetector,
         SharePointUrlDetector,
     )
+    from sanitize_text.utils.custom_detectors.base import DutchEntityDetector
     from sanitize_text.utils.post_processors import HashedPIIReplacer
+
+    # Reset entity deduplication cache for new scrubber instance
+    if locale == "nl_NL":
+        DutchEntityDetector._dutch_loaded_entities.clear()
 
     try:  # pragma: no cover - optional dependency
         from scrubadub_spacy.detectors import (  # type: ignore
@@ -139,7 +144,9 @@ def setup_scrubber(
         # Do not enable spaCy entities by default to reduce false positives.
         # Users can explicitly opt-in via --detectors spacy_entities
         if "spacy_entities" in normalized_selection:
-            normalized_selection = [d for d in normalized_selection if d != "spacy_entities"]
+            normalized_selection = [
+                d for d in normalized_selection if d != "spacy_entities"
+            ]
 
     if custom_text:
         detector_list.append(CustomWordDetector(custom_text=custom_text))
