@@ -23,10 +23,17 @@ class HashedPIIReplacer(PostProcessor):
 
     name = "hashed_pii_replacer"
 
-    def __init__(self) -> None:
-        """Initialize internal state for deterministic replacements."""
-        self.seen_values = {}
+    def __init__(self, *, algorithm: str = "md5", modulus: int = 10000) -> None:
+        """Initialize internal state for deterministic replacements.
+
+        Args:
+            algorithm: Hash algorithm to use ("md5" or "sha256").
+            modulus: Bucket size for short IDs (increase to reduce collisions).
+        """
+        self.seen_values: dict[str, str] = {}
         self.counter = 1
+        self.algorithm = algorithm
+        self.modulus = max(1, int(modulus))
 
     def process_filth(self, filth_list: list[object]) -> list[object]:
         """Process a list of filth and replace with hashed identifiers.
@@ -41,24 +48,37 @@ class HashedPIIReplacer(PostProcessor):
             key = f"{filth.type}:{filth.text}"
             if key not in self.seen_values:
                 # Create a hash of the text for consistent replacement
-                hash_obj = hashlib.md5(key.encode())  # noqa: S303 - md5 acceptable here
-                hash_val = int(hash_obj.hexdigest(), 16) % 1000  # stable short id
+                if self.algorithm == "sha256":
+                    hash_obj = hashlib.sha256(key.encode())
+                else:
+                    hash_obj = hashlib.md5(key.encode())  # noqa: S303 - md5 acceptable here
+                # stable shortid
+                hash_val = int(hash_obj.hexdigest(), 16) % self.modulus
                 # Use a consistent placeholder prefix: treat URL-like text as URL
                 text = str(getattr(filth, "text", ""))
-                is_urlish = text.lower().startswith(("http://", "https://", "ftp://", "www."))
+                is_urlish = text.lower().startswith(
+                    ("http://",
+                    "https://",
+                    "ftp://",
+                    "www.")
+                )
                 # Also catch obvious SharePoint fragments that start with the domain
                 is_urlish = is_urlish or ("sharepoint.com/" in text.lower())
                 placeholder_type = (
-                    "URL" if filth.type in {"markdown_url"} or is_urlish else filth.type.upper()
+                    "URL" if filth.type in {"markdown_url"}
+                    or is_urlish else filth.type.upper()
                 )
-                placeholder = f"{placeholder_type}-{hash_val:03d}"
+                width = max(3, len(str(self.modulus - 1)))
+                placeholder = f"{placeholder_type}-{hash_val:0{width}d}"
                 self.seen_values[key] = placeholder
 
             placeholder = self.seen_values[key]
 
             if isinstance(filth, MarkdownUrlFilth):
-                # Preserve Markdown structure
-                filth.replacement_string = f"[{filth.link_text}]({placeholder})"
+                # Preserve Markdown structure, including single vs double brackets
+                brackets = "[" * getattr(filth, "bracket_pairs", 1)
+                closing = "]" * getattr(filth, "bracket_pairs", 1)
+                filth.replacement_string = f"{brackets}{filth.link_text}{closing}({placeholder})"
             else:
                 filth.replacement_string = placeholder
 

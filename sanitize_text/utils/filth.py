@@ -64,9 +64,11 @@ class MarkdownUrlFilth(Filth):
         *args: object,
         link_text: str = "",
         url: str = "",
+        bracket_pairs: int = 1,
         **kwargs: object,
     ) -> None:
         """Store extra metadata before delegating to base class."""
         super().__init__(*args, **kwargs)
         self.link_text = link_text
         self.url = url
+        self.bracket_pairs = max(1, int(bracket_pairs))

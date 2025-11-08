@@ -30,6 +30,9 @@ class JSONEntityDetector(Detector):
         super().__init__(**kwargs)
         self.entities: list[str] = []
         self._load_json_entities()
+        # Precompile regex patterns for entities to avoid per-call compilation cost
+        self._compiled_patterns: list[tuple[str, re.Pattern[str], bool]] = []
+        self._prepare_patterns()
 
     def _load_json_entities(self) -> None:
         """Populate ``self.entities`` with matches from the JSON resource.
@@ -38,14 +41,18 @@ class JSONEntityDetector(Detector):
             ValueError: If ``data_subdir`` is not specified on the subclass.
         """
         if not self.data_subdir:
-            raise ValueError("data_subdir must be defined for JSONEntityDetector subclasses")
+            raise ValueError(
+                "data_subdir must be defined for JSONEntityDetector subclasses"
+            )
 
         try:
             data_dir = Path(__file__).parent.parent.parent / "data" / self.data_subdir
             filepath = data_dir / self.json_file
 
             if not filepath.exists():
-                click.echo(f"Warning: Could not find entity file {self.json_file}", err=True)
+                click.echo(
+                    f"Warning: Could not find entity file {self.json_file}", err=True
+                )
                 return
 
             with open(filepath, encoding="utf-8") as file_handle:
@@ -66,7 +73,47 @@ class JSONEntityDetector(Detector):
                 err=True,
             )
 
-    def iter_filth(self, text: str, document_name: str | None = None) -> Iterator[object]:
+    def _prepare_patterns(self) -> None:
+        """Precompile regex patterns for all entities.
+
+        For multi-word entities, build a whitespace- and zero-width-tolerant
+        pattern. For single-token entities, use a simple word-boundary-aware
+        pattern. Store the compiled pattern along with the original entity and
+        a flag indicating multi-word handling for downstream fallbacks.
+        """
+        # Unicode-safe boundaries: avoid matching inside alnum+accented sequences
+        letters = r"0-9A-Za-zÀ-ÖØ-öø-ÿ"
+        for match in self.entities:
+            if " " in match:
+                tokens = re.split(r"\s+", match.strip())
+                alt_tokens: list[str] = []
+                zw = r"(?:\u200b|\u200c|\u200d|\u2060|\u00AD)?"
+
+                def _fuzzy_token(tok: str) -> str:
+                    parts = [re.escape(ch) + zw for ch in tok]
+                    return "".join(parts)
+
+                for t in tokens:
+                    if not t:
+                        continue
+                    if t.lower() == "en":
+                        alt_tokens.append(r"(?:" + _fuzzy_token("en") + r"|&|&amp;)")
+                    else:
+                        alt_tokens.append(_fuzzy_token(t))
+                ws = r"(?:\s|\u00A0|\u2007|\u202F)+"
+                pattern_text = ws.join(alt_tokens)
+            else:
+                pattern_text = re.escape(match)
+            pattern = rf"(?<![{letters}])" + pattern_text + rf"(?![{letters}])"
+            self._compiled_patterns.append((
+                match,
+                re.compile(pattern, re.IGNORECASE),
+                " " in match,
+            ))
+
+    def iter_filth(
+        self, text: str, document_name: str | None = None
+    ) -> Iterator[object]:
         """Yield filth matches for any known entity occurrences in the text."""
 
         # Helpers for a normalization-aware fallback for multi-word entities
@@ -82,47 +129,38 @@ class JSONEntityDetector(Detector):
             s = _collapse_ws(s)
             return s.lower()
 
-        for match in self.entities:
-            # Build a whitespace-tolerant pattern so entities match even when
-            # PDFs introduce multiple/Unicode spaces between tokens.
-            if " " in match:
-                tokens = re.split(r"\s+", match.strip())
-                # Map tokens, allowing 'en' to match '&' and '&amp;' variants
-                # and tolerating optional zero-width/soft-hyphen characters
-                # between letters inside each token
-                alt_tokens: list[str] = []
-                zw = r"(?:\u200b|\u200c|\u200d|\u2060|\u00AD)?"
-
-                def _fuzzy_token(tok: str) -> str:
-                    parts = [re.escape(ch) + zw for ch in tok]
-                    return "".join(parts)
-
-                for t in tokens:
-                    if not t:
-                        continue
-                    if t.lower() == "en":
-                        alt_tokens.append(r"(?:" + _fuzzy_token("en") + r"|&|&amp;)")
-                    else:
-                        alt_tokens.append(_fuzzy_token(t))
-                # Allow standard whitespace plus common Unicode spaces seen in PDFs
-                ws = r"(?:\s|\u00A0|\u2007|\u202F)+"
-                pattern_text = ws.join(alt_tokens)
-            else:
-                pattern_text = re.escape(match)
-            # Unicode-safe boundaries: avoid matching inside alnum+accented sequences
-            letters = r"0-9A-Za-zÀ-ÖØ-öø-ÿ"
-            pattern = rf"(?<![{letters}])" + pattern_text + rf"(?![{letters}])"
-
+        for match, compiled, is_multi in self._compiled_patterns:
             matched_any = False
-            for found_match in re.finditer(pattern, text, re.IGNORECASE):
+            for found_match in compiled.finditer(text):
                 matched_text = found_match.group()
+                # Heuristic: skip matches that sit inside a URL-like token or Markdown link
+                # Determine token boundaries around the match (till whitespace or brackets)
+                l = found_match.start()
+                r = found_match.end()
+                while l > 0 and not text[l - 1].isspace() and text[l - 1] not in "[]()<>":
+                    l -= 1
+                tlen = len(text)
+                while r < tlen and not text[r].isspace() and text[r] not in "[]()<>":
+                    r += 1
+                token = text[l:r].lower()
+                if (
+                    "://" in token
+                    or token.startswith("www.")
+                    or re.search(r"\.[a-z]{2,15}(?:/|\b)", token)
+                ):
+                    continue
                 # Heuristic: for very short tokens (<=3), require capitalization
-                # in the source to avoid matching common words (e.g., Dutch 'hem', 'een').
+                # in the source to avoid matching common words
+                # (e.g., Dutch 'hem', 'een').
                 if len(match) <= 3 and matched_text.islower():
                     continue
                 # Only suppress stopwords when they appear lowercase in text, so
                 # proper nouns (capitalized) remain detectable.
                 if matched_text.islower() and matched_text in self.COMMON_WORDS:
+                    continue
+                # For organization/location, require at least one uppercase letter
+                # in the matched text to avoid lowercase common-word matches
+                if getattr(self, "name", "") in {"organization", "location"} and matched_text.islower():
                     continue
                 if not any(char.isalpha() for char in matched_text):
                     continue
@@ -136,7 +174,7 @@ class JSONEntityDetector(Detector):
                 )
 
             # Normalization-aware fallback for multi-word entities that did not match
-            if not matched_any and " " in match:
+            if not matched_any and is_multi:
                 norm_text = _normalize_for_entity(text)
                 norm_entity = _normalize_for_entity(match)
                 pos = 0
@@ -211,6 +249,31 @@ class JSONEntityDetector(Detector):
                     if start is not None and end is not None and start < end:
                         original_slice = text[start:end]
                         if any(char.isalpha() for char in original_slice):
+                            # Skip URLs/Markdown link contexts
+                            ll = start
+                            rr = end
+                            while ll > 0 and not text[ll - 1].isspace() and text[ll - 1] not in "[]()<>":
+                                ll -= 1
+                            tlen2 = len(text)
+                            while rr < tlen2 and not text[rr].isspace() and text[rr] not in "[]()<>":
+                                rr += 1
+                            tok2 = text[ll:rr].lower()
+                            if (
+                                "://" in tok2
+                                or tok2.startswith("www.")
+                                or re.search(r"\.[a-z]{2,15}(?:/|\b)", tok2)
+                            ):
+                                pos = idx + 1
+                                continue
+                            # For organization/location, also require at least one
+                            # uppercase character in the original slice to reduce
+                            # false positives from fragments and common words.
+                            if (
+                                getattr(self, "name", "") in {"organization", "location"}
+                                and original_slice.islower()
+                            ):
+                                pos = idx + 1
+                                continue
                             yield self.filth_cls(
                                 beg=start,
                                 end=end,

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import abc
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Protocol
 
 
 class OutputWriter(Protocol):
@@ -36,8 +36,14 @@ class TxtWriter(_BaseWriter):
         output: The output file path
     """
 
-    def write(self, text: str, output: str | Path, **_: Any) -> None:  # noqa: D401
-        """Write *text* to a UTF-8 file."""
+    def write(self, text: str, output: str | Path, **kwargs: object) -> None:  # noqa: D401
+        """Write *text* to a UTF-8 file.
+
+        Args:
+            text: The text to write.
+            output: The output file path.
+            **kwargs: Additional writer-specific options (unused).
+        """
         path = self._prepare_path(output)
         path.write_text(text, encoding="utf-8")
 
@@ -45,12 +51,13 @@ class TxtWriter(_BaseWriter):
 class DocxWriter(_BaseWriter):
     """Write a simple DOCX with one paragraph per line."""
 
-    def write(self, text: str, output: str | Path, **_: Any) -> None:  # noqa: D401
+    def write(self, text: str, output: str | Path, **kwargs: object) -> None:  # noqa: D401
         """Write *text* to a DOCX file.
 
         Args:
             text: The text to write
             output: The output file path
+            **kwargs: Additional writer-specific options (unused).
 
         Raises:
             RuntimeError: If python-docx is not installed
@@ -120,7 +127,7 @@ class PdfWriter(_BaseWriter):
         except Exception as exc:  # pragma: no cover
             raise RuntimeError("reportlab >=4.4.4 is required for PDF output") from exc
 
-        from sanitize_text.cli.main import _normalize_text_for_pdf  # local import
+        from sanitize_text.utils.pdf import normalize_text_for_pdf  # local import
 
         output_path = self._prepare_path(output)
 
@@ -151,14 +158,16 @@ class PdfWriter(_BaseWriter):
             leading=int(font_size * 1.2),
         )
 
-        normalized = _normalize_text_for_pdf(text, pdf_mode)
+        normalized = normalize_text_for_pdf(text, pdf_mode)
         story: list[str] = []
         if pdf_mode == "pre":
-            safe = normalized.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            safe = normalized.replace("&", "&amp;")
+            safe = safe.replace("<", "&lt;").replace(">", "&gt;")
             story.append(Preformatted(safe, style))
         else:
             for p in [p for p in normalized.split("\n\n") if p.strip()]:
-                safe = p.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                safe = p.replace("&", "&amp;")
+                safe = safe.replace("<", "&lt;").replace(">", "&gt;")
                 story.append(Paragraph(safe, style))
                 story.append(Spacer(1, 0.4 * cm))
         if not story:

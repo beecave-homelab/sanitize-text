@@ -51,10 +51,13 @@ class MarkdownUrlDetector(RegexDetector):
         #   is only to capture the complete contents between the parentheses so the
         #   detector can replace it as a whole.
         self.regex = re.compile(
-            r"\[([^\]]*)\]"  # group(1): link text (can be empty)
+            # group 'open': one or two opening brackets; 'text': link text; 'close': matching closers
+            r"(?P<open>\[\[|\[)"
+            r"(?P<text>[^\]]*)"
+            r"(?P<close>\]\]|\])"
             r"\("  # opening parenthesis
-            # group(2): URL – tolerate internal parens; allow newlines (DOTALL)
-            r"([^)]+?|(?:[^)]*\([^)]*\)[^)]*))"
+            # group 'url': tolerate internal parens; allow newlines (DOTALL)
+            r"(?P<url>[^)]+?|(?:[^)]*\([^)]*\)[^)]*))"
             r"\)",  # closing parenthesis
             re.IGNORECASE | re.DOTALL,
         )
@@ -66,8 +69,14 @@ class MarkdownUrlDetector(RegexDetector):
     ) -> Iterator[MarkdownUrlFilth]:
         """Yield ``UrlFilth`` for each URL found in Markdown links."""
         for match in self.regex.finditer(text):
-            link_text = match.group(1)
-            url_raw = match.group(2)
+            open_br = match.group("open")
+            close_br = match.group("close")
+            # Enforce matching bracket lengths; skip odd pairs defensively
+            if (open_br == "[[" and close_br != "]]" ) or (open_br == "[" and close_br != "]"):
+                continue
+            bracket_pairs = 2 if open_br == "[[" else 1
+            link_text = match.group("text")
+            url_raw = match.group("url")
             # Normalize whitespace and common export artifacts
             url = re.sub(r"\s+", "", url_raw)
             url = url.strip()
@@ -83,6 +92,7 @@ class MarkdownUrlDetector(RegexDetector):
                 text=match.group(0),
                 link_text=link_text,
                 url=url,
+                bracket_pairs=bracket_pairs,
                 detector_name="markdown_url",
                 document_name=document_name,
             )
