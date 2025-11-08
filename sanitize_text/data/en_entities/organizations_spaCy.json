@@ -1,0 +1,202 @@
+[
+  {
+    "text": "Google",
+    "entities": [
+      {
+        "start": 0,
+        "end": 6,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Microsoft",
+    "entities": [
+      {
+        "start": 0,
+        "end": 9,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Amazon",
+    "entities": [
+      {
+        "start": 0,
+        "end": 6,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Apple",
+    "entities": [
+      {
+        "start": 0,
+        "end": 5,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Facebook",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Netflix",
+    "entities": [
+      {
+        "start": 0,
+        "end": 7,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Tesla",
+    "entities": [
+      {
+        "start": 0,
+        "end": 5,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "SpaceX",
+    "entities": [
+      {
+        "start": 0,
+        "end": 6,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "IBM",
+    "entities": [
+      {
+        "start": 0,
+        "end": 3,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Intel",
+    "entities": [
+      {
+        "start": 0,
+        "end": 5,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Oracle",
+    "entities": [
+      {
+        "start": 0,
+        "end": 6,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Salesforce",
+    "entities": [
+      {
+        "start": 0,
+        "end": 10,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Adobe",
+    "entities": [
+      {
+        "start": 0,
+        "end": 5,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Uber",
+    "entities": [
+      {
+        "start": 0,
+        "end": 4,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Airbnb",
+    "entities": [
+      {
+        "start": 0,
+        "end": 6,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Visa",
+    "entities": [
+      {
+        "start": 0,
+        "end": 4,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Mastercard",
+    "entities": [
+      {
+        "start": 0,
+        "end": 10,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Coca-Cola",
+    "entities": [
+      {
+        "start": 0,
+        "end": 9,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "Pepsi",
+    "entities": [
+      {
+        "start": 0,
+        "end": 5,
+        "label": "ORG"
+      }
+    ]
+  },
+  {
+    "text": "General Electric",
+    "entities": [
+      {
+        "start": 0,
+        "end": 16,
+        "label": "ORG"
+      }
+    ]
+  }
+]
