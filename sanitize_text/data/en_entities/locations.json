@@ -1,22 +1,82 @@
 [
-  {"match": "New York"},
-  {"match": "Los Angeles"},
-  {"match": "Chicago"},
-  {"match": "Houston"},
-  {"match": "Phoenix"},
-  {"match": "Philadelphia"},
-  {"match": "San Antonio"},
-  {"match": "San Diego"},
-  {"match": "Dallas"},
-  {"match": "San Jose"},
-  {"match": "Seattle"},
-  {"match": "Boston"},
-  {"match": "Miami"},
-  {"match": "Denver"},
-  {"match": "Atlanta"},
-  {"match": "Washington"},
-  {"match": "San Francisco"},
-  {"match": "Portland"},
-  {"match": "Austin"},
-  {"match": "Orlando"}
+  {
+    "match": "New York",
+    "filth_type": "location"
+  },
+  {
+    "match": "Los Angeles",
+    "filth_type": "location"
+  },
+  {
+    "match": "Chicago",
+    "filth_type": "location"
+  },
+  {
+    "match": "Houston",
+    "filth_type": "location"
+  },
+  {
+    "match": "Phoenix",
+    "filth_type": "location"
+  },
+  {
+    "match": "Philadelphia",
+    "filth_type": "location"
+  },
+  {
+    "match": "San Antonio",
+    "filth_type": "location"
+  },
+  {
+    "match": "San Diego",
+    "filth_type": "location"
+  },
+  {
+    "match": "Dallas",
+    "filth_type": "location"
+  },
+  {
+    "match": "San Jose",
+    "filth_type": "location"
+  },
+  {
+    "match": "Seattle",
+    "filth_type": "location"
+  },
+  {
+    "match": "Boston",
+    "filth_type": "location"
+  },
+  {
+    "match": "Miami",
+    "filth_type": "location"
+  },
+  {
+    "match": "Denver",
+    "filth_type": "location"
+  },
+  {
+    "match": "Atlanta",
+    "filth_type": "location"
+  },
+  {
+    "match": "Washington",
+    "filth_type": "location"
+  },
+  {
+    "match": "San Francisco",
+    "filth_type": "location"
+  },
+  {
+    "match": "Portland",
+    "filth_type": "location"
+  },
+  {
+    "match": "Austin",
+    "filth_type": "location"
+  },
+  {
+    "match": "Orlando",
+    "filth_type": "location"
+  }
 ]
