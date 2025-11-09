@@ -1,4 +1,4 @@
-#!venv/bin/python3
+#!/usr/bin/env python3
 
 """Command-line interface for text sanitization.
 
@@ -31,7 +31,11 @@ from sanitize_text.cli.io import (
     read_input_source,
     write_output,
 )
-from sanitize_text.core.scrubber import get_available_detectors, scrub_text
+from sanitize_text.core.scrubber import (
+    get_available_detectors,
+    get_generic_detector_descriptions,
+    scrub_text,
+)
 
 # Define custom context settings
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
@@ -39,25 +43,19 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 def _print_detectors() -> None:
     """Print available detectors grouped by generic and locale-specific."""
-    detectors_by_locale = get_available_detectors()
-    generic_detectors = {
-        "email": "Detect email addresses",
-        "phone": "Detect phone numbers",
-        "url": "Detect URLs",
-        "private_ip": "Detect private IP addresses",
-        "public_ip": "Detect public IP addresses",
-    }
+    generic_detectors = get_generic_detector_descriptions()
+    locale_detectors = get_available_detectors()
 
     click.echo("Available detectors:\n")
     click.echo("Generic detectors (available for all locales):")
-    for detector, description in generic_detectors.items():
+    for detector, description in sorted(generic_detectors.items()):
         click.echo(f"  - {detector:<15} {description}")
     click.echo()
 
     click.echo("Locale-specific detectors:")
-    for loc, detector_dict in detectors_by_locale.items():
+    for loc, detector_dict in sorted(locale_detectors.items()):
         click.echo(f"\n{loc}:")
-        for detector, description in detector_dict.items():
+        for detector, description in sorted(detector_dict.items()):
             click.echo(f"  - {detector:<15} {description}")
     click.echo()
 

@@ -269,33 +269,42 @@ def _iter_enabled_specs(
     return [spec for spec in specs if spec.is_enabled(context)]
 
 
-def get_available_detectors(locale: str | None = None) -> dict[str, str]:
-    """Get available detector names and descriptions for the given locale.
+def get_generic_detector_descriptions(locale: str | None = None) -> dict[str, str]:
+    """Return descriptions for generic detectors, optionally for a locale.
 
-    Args:
-        locale: Optional locale code (e.g., 'nl_NL', 'en_US')
-
-    Returns:
-        Dictionary mapping detector names to their descriptions
+    The optional ``locale`` parameter is used to evaluate whether detectors are
+    enabled for that locale. When omitted, a default English locale is used.
     """
+
+    context = DetectorContext(locale=locale or "en_US")
+    return {
+        spec.name: spec.description
+        for spec in _iter_enabled_specs(GENERIC_DETECTORS, context)
+    }
+
+
+def get_locale_detector_descriptions(locale: str) -> dict[str, str]:
+    """Return descriptions for detectors specific to ``locale``."""
+
+    context = DetectorContext(locale=locale)
+    return {
+        spec.name: spec.description
+        for spec in _iter_enabled_specs(LOCALE_DETECTORS.get(locale, []), context)
+    }
+
+
+def get_available_detectors(locale: str | None = None) -> dict[str, str] | dict[str, dict[str, str]]:
+    """Get available detector names and descriptions for the given locale."""
+
     if locale:
-        context = DetectorContext(locale=locale)
-        generic = {
-            spec.name: spec.description
-            for spec in _iter_enabled_specs(GENERIC_DETECTORS, context)
-        }
-        locale_specific = {
-            spec.name: spec.description
-            for spec in _iter_enabled_specs(LOCALE_DETECTORS.get(locale, []), context)
-        }
-        return {**generic, **locale_specific}
+        generic = get_generic_detector_descriptions(locale)
+        locale_specific = get_locale_detector_descriptions(locale)
+        combined: dict[str, str] = {**generic, **locale_specific}
+        return combined
 
     return {
-        loc: {
-            spec.name: spec.description
-            for spec in _iter_enabled_specs(specs, DetectorContext(locale=loc))
-        }
-        for loc, specs in LOCALE_DETECTORS.items()
+        loc: get_locale_detector_descriptions(loc)
+        for loc in LOCALE_DETECTORS
     }
 
 
