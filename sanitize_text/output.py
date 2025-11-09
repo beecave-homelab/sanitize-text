@@ -1,4 +1,4 @@
-"""Output writers implementing the Strategy pattern.
+"""Output writers for different artifact formats.
 
 Each writer converts scrubbed text into a concrete artifact (txt, docx, pdf).
 This extracts side-effectful I/O from the CLI so core logic remains clean.
@@ -12,36 +12,44 @@ from typing import Protocol
 
 
 class OutputWriter(Protocol):
-    """Common interface for all writers."""
+    """Protocol for objects that persist scrubbed text."""
 
-    def write(self, text: str, output: str | Path, **_: object) -> None:
-        """Write *text* to a UTF-8 file."""
-        """Write *text* to *output* path."""
+    def write(self, text: str, output: str | Path, **kwargs: object) -> None:
+        """Persist ``text`` to ``output``.
+
+        Args:
+            text: Scrubbed text to persist.
+            output: Destination path for the artifact.
+            **kwargs: Writer-specific options (format dependent).
+        """
 
 
 class _BaseWriter(abc.ABC):
-    """Abstract helper base with path handling."""
+    """Abstract base class providing filesystem helpers."""
 
     def _prepare_path(self, output: str | Path) -> Path:
+        """Ensure parent directories exist and return a ``Path`` instance.
+
+        Args:
+            output: Destination path provided by the caller.
+
+        Returns:
+            Path: Normalized path pointing to the output file.
+        """
         path = Path(output)
         path.parent.mkdir(parents=True, exist_ok=True)
         return path
 
 
 class TxtWriter(_BaseWriter):
-    """Write plain UTF-8 text files.
+    """Writer implementation for UTF-8 text files."""
 
-    Args:
-        text: The text to write
-        output: The output file path
-    """
-
-    def write(self, text: str, output: str | Path, **kwargs: object) -> None:  # noqa: D401
-        """Write *text* to a UTF-8 file.
+    def write(self, text: str, output: str | Path, **kwargs: object) -> None:
+        """Persist ``text`` to ``output`` using UTF-8 encoding.
 
         Args:
-            text: The text to write.
-            output: The output file path.
+            text: Text to write.
+            output: Path that will receive the text file.
             **kwargs: Additional writer-specific options (unused).
         """
         path = self._prepare_path(output)
@@ -49,18 +57,18 @@ class TxtWriter(_BaseWriter):
 
 
 class DocxWriter(_BaseWriter):
-    """Write a simple DOCX with one paragraph per line."""
+    """Writer implementation for DOCX artifacts."""
 
-    def write(self, text: str, output: str | Path, **kwargs: object) -> None:  # noqa: D401
-        """Write *text* to a DOCX file.
+    def write(self, text: str, output: str | Path, **kwargs: object) -> None:
+        """Persist ``text`` to ``output`` as a DOCX document.
 
         Args:
-            text: The text to write
-            output: The output file path
+            text: Text to write.
+            output: Path that will receive the DOCX document.
             **kwargs: Additional writer-specific options (unused).
 
         Raises:
-            RuntimeError: If python-docx is not installed
+            RuntimeError: If ``python-docx`` is not available.
         """
         try:
             import docx  # type: ignore
@@ -75,40 +83,33 @@ class DocxWriter(_BaseWriter):
 
 
 class PdfWriter(_BaseWriter):
-    """Write a simple PDF using reportlab.
+    """Writer implementation for PDF artifacts using ReportLab."""
 
-    Args:
-        text: The text to write
-        output: The output file path
-        pdf_mode: The PDF mode (pre/para)
-        pdf_font: The PDF font
-        font_size: The font size
-
-    Raises:
-        RuntimeError: If reportlab >=4.4.4 is not installed
-    """
-
-    def write(
-        self,
-        text: str,
-        output: str | Path,
-        *,
-        pdf_mode: str = "pre",
-        pdf_font: str | None = None,
-        font_size: int = 11,
-    ) -> None:
-        """Write *text* to a PDF via ReportLab (supports pre/para modes).
+    def write(self, text: str, output: str | Path, **kwargs: object) -> None:
+        """Persist ``text`` to ``output`` as a PDF document.
 
         Args:
-            text: The text to write
-            output: The output file path
-            pdf_mode: The PDF mode (pre/para)
-            pdf_font: The PDF font
-            font_size: The font size
+            text: Text to write.
+            output: Path that will receive the PDF document.
+            **kwargs: Writer options such as ``pdf_mode``, ``pdf_font`` and
+                ``font_size``.
 
         Raises:
-            RuntimeError: If reportlab >=4.4.4 is not installed
+            RuntimeError: If the ReportLab dependency is missing.
         """
+
+        pdf_mode = str(kwargs.get("pdf_mode", "pre"))
+        pdf_font_value = kwargs.get("pdf_font")
+        pdf_font = str(pdf_font_value) if pdf_font_value is not None else None
+        font_size_value = kwargs.get("font_size", 11)
+        if isinstance(font_size_value, int):
+            font_size = font_size_value
+        else:
+            try:
+                font_size = int(font_size_value)
+            except (TypeError, ValueError):  # pragma: no cover - defensive fallback
+                font_size = 11
+
         try:
             from reportlab.lib.pagesizes import A4  # type: ignore
             from reportlab.lib.styles import (  # type: ignore
@@ -176,7 +177,6 @@ class PdfWriter(_BaseWriter):
             story.append(Paragraph("", style))
         doc.build(story)
 
-
 _WRITERS: dict[str, OutputWriter] = {
     "txt": TxtWriter(),
     "docx": DocxWriter(),
@@ -185,16 +185,16 @@ _WRITERS: dict[str, OutputWriter] = {
 
 
 def get_writer(fmt: str) -> OutputWriter:
-    """Return an `OutputWriter` for *fmt*.
+    """Return a writer for the requested format.
 
     Args:
-        fmt: Desired format string (txt, docx, pdf).
+        fmt: Desired format string (``"txt"``, ``"docx"``, or ``"pdf"``).
 
     Returns:
-        An `OutputWriter` instance.
+        OutputWriter: Writer implementation associated with ``fmt``.
 
     Raises:
-        ValueError: If *fmt* is unsupported.
+        ValueError: If ``fmt`` is unsupported.
     """
     key = fmt.lower()
     if key not in _WRITERS:

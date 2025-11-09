@@ -1,4 +1,4 @@
-#!venv/bin/python3
+#!/usr/bin/env python3
 
 """Command-line interface for text sanitization.
 
@@ -31,33 +31,35 @@ from sanitize_text.cli.io import (
     read_input_source,
     write_output,
 )
-from sanitize_text.core.scrubber import get_available_detectors, scrub_text
+from sanitize_text.core.scrubber import (
+    get_available_detectors,
+    get_generic_detector_descriptions,
+    scrub_text,
+)
 
 # Define custom context settings
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
 def _print_detectors() -> None:
-    """Print available detectors grouped by generic and locale-specific."""
-    detectors_by_locale = get_available_detectors()
-    generic_detectors = {
-        "email": "Detect email addresses",
-        "phone": "Detect phone numbers",
-        "url": "Detect URLs",
-        "private_ip": "Detect private IP addresses",
-        "public_ip": "Detect public IP addresses",
-    }
+    """Print available detector descriptions to stdout.
+
+    Outputs both the generic detector catalogue and per-locale detectors for
+    human reference.
+    """
+    generic_detectors = get_generic_detector_descriptions()
+    locale_detectors = get_available_detectors()
 
     click.echo("Available detectors:\n")
     click.echo("Generic detectors (available for all locales):")
-    for detector, description in generic_detectors.items():
+    for detector, description in sorted(generic_detectors.items()):
         click.echo(f"  - {detector:<15} {description}")
     click.echo()
 
     click.echo("Locale-specific detectors:")
-    for loc, detector_dict in detectors_by_locale.items():
+    for loc, detector_dict in sorted(locale_detectors.items()):
         click.echo(f"\n{loc}:")
-        for detector, description in detector_dict.items():
+        for detector, description in sorted(detector_dict.items()):
             click.echo(f"  - {detector:<15} {description}")
     click.echo()
 
@@ -71,24 +73,61 @@ def _run_scrub(
     cleanup: bool,
     verbose: bool,
 ) -> str:
-    """Run scrubbing and return the scrubbed text, optionally verbose-printing.
+    """Return scrubbed text for the requested configuration.
+
+    Args:
+        input_text: Raw text supplied by the user.
+        locale: Optional locale identifier restricting processing.
+        detectors: Whitespace-separated detector names from the CLI.
+        custom: Optional custom detector text configured by the user.
+        cleanup: Whether to normalize the final text with cleanup helpers.
+        verbose: Whether to emit detector progress information.
 
     Returns:
-        The final scrubbed text (possibly cleaned) joined across locales.
+        str: Final scrubbed text (including optional cleanup processing).
     """
     selected_detectors = detectors.split() if detectors else None
-    scrubbed_texts = scrub_text(
+    outcome = scrub_text(
         input_text,
         locale,
         selected_detectors,
         custom_text=custom,
         verbose=verbose,
     )
-    scrubbed_text = "\n\n".join(scrubbed_texts)
+    locales_to_process = [locale] if locale else ["en_US", "nl_NL"]
+
+    formatted_sections = [
+        f"Results for {loc}:\n{outcome.texts[loc]}"
+        for loc in locales_to_process
+        if loc in outcome.texts
+    ]
+    scrubbed_text = "\n\n".join(formatted_sections)
     scrubbed_text = maybe_cleanup(scrubbed_text, cleanup)
+
+    failed_locales = [loc for loc in locales_to_process if loc not in outcome.texts]
+    failure_messages = {failed: outcome.errors.get(failed, "Unknown error") for failed in failed_locales}
+    if not verbose:
+        for failed, message in failure_messages.items():
+            click.echo(f"Warning: Processing failed for locale {failed}: {message}", err=True)
 
     if verbose:
         from sanitize_text.core.scrubber import collect_filth
+
+        for loc in locales_to_process:
+            detectors_for_locale = outcome.detectors.get(loc)
+            if loc in outcome.texts:
+                click.echo(f"\n[Processing locale: {loc}]")
+                if detectors_for_locale:
+                    click.echo(f"[Active detectors: {', '.join(detectors_for_locale)}]")
+                click.echo(f"[Scanning text ({len(input_text)} characters)...]")
+                click.echo(f"[Completed processing for {loc}]")
+            else:
+                message = failure_messages.get(loc, "Unknown error")
+                click.echo(f"\n[Processing locale: {loc}]")
+                click.echo(
+                    f"[Failed processing locale {loc}: {message}]",
+                    err=True,
+                )
 
         filth_map = collect_filth(
             input_text,

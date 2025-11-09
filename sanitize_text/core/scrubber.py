@@ -1,67 +1,371 @@
-"""Core functionality for text scrubbing.
+"""Text scrubbing orchestration helpers.
 
-This module provides the main text scrubbing functionality, including setup of
-detectors and text processing with multiple locales.
+This module builds `scrubadub` pipelines using the registered detector
+catalogue and exposes helpers that return structured results for callers. The
+implementation is intentionally data driven so new detectors can be added
+without editing the control flow.
 """
 
 from __future__ import annotations
 
 import importlib.util as importlib_util
-from typing import TYPE_CHECKING, Any
+import logging
+from collections.abc import Callable, Iterable
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - for type hints only
     import scrubadub
 
 
-def get_available_detectors(locale: str | None = None) -> dict[str, str]:
-    """Get available detector names and descriptions for the given locale.
+logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class DetectorContext:
+    """Context passed to detector factories.
+
+    Attributes:
+        locale: Locale identifier used to select locale-specific detectors.
+    """
+
+    locale: str
+
+
+@dataclass(frozen=True)
+class DetectorSpec:
+    """Descriptor for a detector entry in the catalogue.
+
+    Attributes:
+        name: Canonical detector name.
+        description: Human-readable summary of the detector.
+        factory: Callable that builds the detector when requested.
+        enabled: Optional predicate deciding whether the detector can run in a
+            given context.
+        enabled_by_default: Whether the detector participates when callers do
+            not explicitly request a subset.
+    """
+
+    name: str
+    description: str
+    factory: Callable[[DetectorContext], scrubadub.detectors.Detector]
+    enabled: Callable[[DetectorContext], bool] | None = None
+    enabled_by_default: bool = True
+
+    def is_enabled(self, context: DetectorContext) -> bool:
+        """Return whether the detector is enabled in ``context``.
+
+        Args:
+            context: Context describing the current locale.
+
+        Returns:
+            bool: ``True`` when the detector should be available.
+        """
+
+        if self.enabled is None:
+            return True
+        return self.enabled(context)
+
+
+@dataclass(frozen=True)
+class ScrubOutcome:
+    """Structured scrubbing result returned to callers.
+
+    Attributes:
+        texts: Scrubbed text keyed by locale.
+        detectors: Detector names executed for each locale.
+        errors: Error messages keyed by locale for failed runs.
+    """
+
+    texts: dict[str, str]
+    detectors: dict[str, list[str]]
+    errors: dict[str, str]
+
+
+def _spacy_is_available() -> bool:
+    """Return ``True`` when ``scrubadub-spacy`` is importable."""
+
+    try:
+        return importlib_util.find_spec("scrubadub_spacy.detectors") is not None
+    except ModuleNotFoundError:
+        return False
+
+
+def _build_markdown_detector(_: DetectorContext) -> scrubadub.detectors.Detector:
+    from sanitize_text.utils.custom_detectors import MarkdownUrlDetector
+
+    return MarkdownUrlDetector()
+
+
+def _build_sharepoint_detector(_: DetectorContext) -> scrubadub.detectors.Detector:
+    from sanitize_text.utils.custom_detectors import SharePointUrlDetector
+
+    return SharePointUrlDetector()
+
+
+def _build_url_detector(_: DetectorContext) -> scrubadub.detectors.Detector:
+    from sanitize_text.utils.custom_detectors import BareDomainDetector
+
+    return BareDomainDetector()
+
+
+def _build_email_detector(context: DetectorContext) -> scrubadub.detectors.Detector:
+    from scrubadub.detectors.email import EmailDetector
+
+    return EmailDetector(locale=context.locale)
+
+
+def _build_phone_detector(_: DetectorContext) -> scrubadub.detectors.Detector:
+    from scrubadub.detectors.phone import PhoneDetector
+
+    return PhoneDetector()
+
+
+def _build_private_ip_detector(_: DetectorContext) -> scrubadub.detectors.Detector:
+    from sanitize_text.utils.custom_detectors import PrivateIPDetector
+
+    return PrivateIPDetector()
+
+
+def _build_public_ip_detector(_: DetectorContext) -> scrubadub.detectors.Detector:
+    from sanitize_text.utils.custom_detectors import PublicIPDetector
+
+    return PublicIPDetector()
+
+
+def _build_dutch_location(_: DetectorContext) -> scrubadub.detectors.Detector:
+    from sanitize_text.utils.custom_detectors import DutchLocationDetector
+
+    return DutchLocationDetector()
+
+
+def _build_dutch_org(_: DetectorContext) -> scrubadub.detectors.Detector:
+    from sanitize_text.utils.custom_detectors import DutchOrganizationDetector
+
+    return DutchOrganizationDetector()
+
+
+def _build_dutch_name(_: DetectorContext) -> scrubadub.detectors.Detector:
+    from sanitize_text.utils.custom_detectors import DutchNameDetector
+
+    return DutchNameDetector()
+
+
+def _build_english_location(_: DetectorContext) -> scrubadub.detectors.Detector:
+    from sanitize_text.utils.custom_detectors import EnglishLocationDetector
+
+    return EnglishLocationDetector()
+
+
+def _build_english_org(_: DetectorContext) -> scrubadub.detectors.Detector:
+    from sanitize_text.utils.custom_detectors import EnglishOrganizationDetector
+
+    return EnglishOrganizationDetector()
+
+
+def _build_english_name(_: DetectorContext) -> scrubadub.detectors.Detector:
+    from sanitize_text.utils.custom_detectors import EnglishNameDetector
+
+    return EnglishNameDetector()
+
+
+def _build_date_of_birth(_: DetectorContext) -> scrubadub.detectors.Detector:
+    import scrubadub
+
+    return scrubadub.detectors.DateOfBirthDetector()
+
+
+_SPACY_MODELS = {
+    "nl_NL": "nl_core_news_sm",
+    "en_US": "en_core_web_sm",
+}
+
+
+def _build_spacy_detector(context: DetectorContext) -> scrubadub.detectors.Detector:
+    from scrubadub_spacy.detectors import SpacyEntityDetector
+
+    model = _SPACY_MODELS[context.locale]
+    name = f"spacy_{context.locale.split('_')[0]}"
+    return SpacyEntityDetector(model=model, name=name)
+
+
+def _spacy_enabled(context: DetectorContext) -> bool:
+    return context.locale in _SPACY_MODELS and _spacy_is_available()
+
+
+GENERIC_DETECTORS: list[DetectorSpec] = [
+    DetectorSpec(
+        name="markdown_url",
+        description="Detect URLs within Markdown links [text](url)",
+        factory=_build_markdown_detector,
+    ),
+    DetectorSpec(
+        name="sharepoint_url",
+        description="Detect SharePoint URLs (runs before generic URL)",
+        factory=_build_sharepoint_detector,
+    ),
+    DetectorSpec(
+        name="url",
+        description="Detect URLs (bare domains, www prefixes,\nhttp(s), complex paths, query parameters)",
+        factory=_build_url_detector,
+    ),
+    DetectorSpec(
+        name="email",
+        description="Detect email addresses (e.g., user@example.com)",
+        factory=_build_email_detector,
+    ),
+    DetectorSpec(
+        name="phone",
+        description="Detect phone numbers",
+        factory=_build_phone_detector,
+    ),
+    DetectorSpec(
+        name="private_ip",
+        description="Detect private IP addresses (192.168.x.x, 10.0.x.x, 172.16-31.x.x)",
+        factory=_build_private_ip_detector,
+    ),
+    DetectorSpec(
+        name="public_ip",
+        description="Detect public IP addresses (any non-private IP)",
+        factory=_build_public_ip_detector,
+    ),
+]
+
+
+LOCALE_DETECTORS: dict[str, list[DetectorSpec]] = {
+    "nl_NL": [
+        DetectorSpec(
+            name="location",
+            description="Detect Dutch locations (cities)",
+            factory=_build_dutch_location,
+        ),
+        DetectorSpec(
+            name="organization",
+            description="Detect Dutch organization names",
+            factory=_build_dutch_org,
+        ),
+        DetectorSpec(
+            name="name",
+            description="Detect Dutch person names",
+            factory=_build_dutch_name,
+        ),
+        DetectorSpec(
+            name="spacy_entities",
+            description="Detect named entities using spaCy (requires sanitize-text[spacy])",
+            factory=_build_spacy_detector,
+            enabled=_spacy_enabled,
+            enabled_by_default=False,
+        ),
+    ],
+    "en_US": [
+        DetectorSpec(
+            name="name",
+            description="Detect person names (English)",
+            factory=_build_english_name,
+        ),
+        DetectorSpec(
+            name="organization",
+            description="Detect organization names (English)",
+            factory=_build_english_org,
+        ),
+        DetectorSpec(
+            name="location",
+            description="Detect locations (English)",
+            factory=_build_english_location,
+        ),
+        DetectorSpec(
+            name="date_of_birth",
+            description="Detect dates of birth",
+            factory=_build_date_of_birth,
+        ),
+        DetectorSpec(
+            name="spacy_entities",
+            description="Detect named entities using spaCy (requires sanitize-text[spacy])",
+            factory=_build_spacy_detector,
+            enabled=_spacy_enabled,
+            enabled_by_default=False,
+        ),
+    ],
+}
+
+
+def _iter_enabled_specs(
+    specs: Iterable[DetectorSpec],
+    context: DetectorContext,
+) -> list[DetectorSpec]:
+    """Return detector specs enabled for ``context``.
 
     Args:
-        locale: Optional locale code (e.g., 'nl_NL', 'en_US')
+        specs: Candidate detector specifications.
+        context: Locale context used to evaluate optional predicates.
 
     Returns:
-        Dictionary mapping detector names to their descriptions
+        list[DetectorSpec]: Enabled specifications preserving input order.
     """
-    generic_detectors = {
-        "email": "Detect email addresses (e.g., user@example.com)",
-        "phone": "Detect phone numbers",
-        "url": (
-            "Detect URLs (bare domains, www prefixes,\nhttp(s), complex paths, query parameters)"  # noqa: E501
-        ),
-        "sharepoint_url": "Detect SharePoint URLs (runs before generic URL)",
-        "markdown_url": "Detect URLs within Markdown links [text](url)",
-        "private_ip": ("Detect private IP addresses (192.168.x.x, 10.0.x.x, 172.16-31.x.x)"),  # noqa: E501
-        "public_ip": "Detect public IP addresses (any non-private IP)",
+
+    return [spec for spec in specs if spec.is_enabled(context)]
+
+
+def get_generic_detector_descriptions(locale: str | None = None) -> dict[str, str]:
+    """Return descriptions for generic detectors.
+
+    Args:
+        locale: Optional locale identifier used to check conditional
+            availability. Defaults to ``"en_US"`` when omitted.
+
+    Returns:
+        dict[str, str]: Mapping of detector names to descriptions.
+    """
+
+    context = DetectorContext(locale=locale or "en_US")
+    return {
+        spec.name: spec.description
+        for spec in _iter_enabled_specs(GENERIC_DETECTORS, context)
     }
 
-    locale_detectors: dict[str, dict[str, str]] = {
-        "nl_NL": {
-            "location": "Detect Dutch locations (cities)",
-            "organization": "Detect Dutch organization names",
-            "name": "Detect Dutch person names",
-        },
-        "en_US": {
-            "name": "Detect person names (English)",
-            "organization": "Detect organization names (English)",
-            "location": "Detect locations (English)",
-            "date_of_birth": "Detect dates of birth",
-        },
+
+def get_locale_detector_descriptions(locale: str) -> dict[str, str]:
+    """Return descriptions for detectors specific to ``locale``.
+
+    Args:
+        locale: Locale identifier.
+
+    Returns:
+        dict[str, str]: Mapping of detector names to descriptions.
+    """
+
+    context = DetectorContext(locale=locale)
+    return {
+        spec.name: spec.description
+        for spec in _iter_enabled_specs(LOCALE_DETECTORS.get(locale, []), context)
     }
 
-    # Detect availability of spaCy-based detector without importing heavy modules
-    try:
-        spacy_available = importlib_util.find_spec("scrubadub_spacy.detectors") is not None
-    except ModuleNotFoundError:
-        spacy_available = False
 
-    if spacy_available:
-        description = "Detect named entities using spaCy (requires sanitize-text[spacy])"
-        locale_detectors["nl_NL"]["spacy_entities"] = description
-        locale_detectors["en_US"]["spacy_entities"] = description
+def get_available_detectors(
+    locale: str | None = None,
+) -> dict[str, str] | dict[str, dict[str, str]]:
+    """Return detector descriptions for ``locale`` or all locales.
+
+    Args:
+        locale: Optional locale identifier. When provided the result contains a
+            single mapping for the requested locale; otherwise all locales are
+            returned.
+
+    Returns:
+        dict[str, str] | dict[str, dict[str, str]]: Detector descriptions for
+        either a single locale or every registered locale.
+    """
 
     if locale:
-        return {**generic_detectors, **locale_detectors.get(locale, {})}
-    return locale_detectors
+        generic = get_generic_detector_descriptions(locale)
+        locale_specific = get_locale_detector_descriptions(locale)
+        combined: dict[str, str] = {**generic, **locale_specific}
+        return combined
+
+    return {
+        loc: get_locale_detector_descriptions(loc)
+        for loc in LOCALE_DETECTORS
+    }
 
 
 def setup_scrubber(
@@ -70,36 +374,23 @@ def setup_scrubber(
     custom_text: str | None = None,
     verbose: bool = False,
 ) -> scrubadub.Scrubber:
-    """Set up a scrubber with appropriate detectors and post-processors.
+    """Return a configured scrubber for ``locale``.
 
     Args:
-        locale: Locale code for text processing (e.g., 'nl_NL', 'en_US')
-        selected_detectors: Optional list of detector names to use
-        custom_text: Optional custom text to detect and replace
-        verbose: Enable verbose logging of detector activity
+        locale: Locale code (for example ``"nl_NL"`` or ``"en_US"``).
+        selected_detectors: Optional detector names to execute. When ``None``
+            the default enabled detectors are used.
+        custom_text: Optional custom text to treat as PII.
+        verbose: Whether the detectors should expose verbose behaviour.
 
     Returns:
-        Configured scrubber instance ready for text processing
+        scrubadub.Scrubber: Scrubber instance ready to process text for the
+        requested locale.
     """
     # Lazy imports to avoid heavy imports during CLI startup (e.g., --list-detectors)
     import scrubadub
-    from scrubadub.detectors.email import EmailDetector
-    from scrubadub.detectors.phone import PhoneDetector
 
-    from sanitize_text.utils.custom_detectors import (
-        BareDomainDetector,
-        CustomWordDetector,
-        DutchLocationDetector,
-        DutchNameDetector,
-        DutchOrganizationDetector,
-        EnglishLocationDetector,
-        EnglishNameDetector,
-        EnglishOrganizationDetector,
-        MarkdownUrlDetector,
-        PrivateIPDetector,
-        PublicIPDetector,
-        SharePointUrlDetector,
-    )
+    from sanitize_text.utils.custom_detectors import CustomWordDetector
     from sanitize_text.utils.custom_detectors.base import DutchEntityDetector
     from sanitize_text.utils.post_processors import HashedPIIReplacer
 
@@ -107,84 +398,40 @@ def setup_scrubber(
     if locale == "nl_NL":
         DutchEntityDetector._dutch_loaded_entities.clear()
 
-    try:  # pragma: no cover - optional dependency
-        from scrubadub_spacy.detectors import (  # type: ignore
-            SpacyEntityDetector as _SpacyEntityDetector,
-        )
-
-        spacy_entity_detector_cls = _SpacyEntityDetector
-    except Exception:  # noqa: BLE001 - we only care about availability
-        spacy_entity_detector_cls = None  # type: ignore[assignment]
-
     detector_list: list[scrubadub.detectors.Detector] = []
-    available_order = list(get_available_detectors(locale).keys())
+    context = DetectorContext(locale=locale)
+    generic_specs = _iter_enabled_specs(GENERIC_DETECTORS, context)
+    locale_specs = _iter_enabled_specs(LOCALE_DETECTORS.get(locale, []), context)
+    ordered_specs = (*generic_specs, *locale_specs)
+    available_order = [spec.name for spec in ordered_specs]
     available_detectors = set(available_order)
 
     normalized_selection: list[str] | None = None
-    if selected_detectors:
+    if selected_detectors is not None:
         normalized_selection = [detector.lower() for detector in selected_detectors]
         invalid_detectors = [d for d in normalized_selection if d not in available_detectors]
         if invalid_detectors:
-            print(
-                f"Warning: Invalid detector(s) for locale {locale}:{', '.join(invalid_detectors)}"
+            logger.warning(
+                "Invalid detector(s) for locale %s: %s",
+                locale,
+                ", ".join(sorted(set(invalid_detectors))),
             )
+        normalized_selection = [
+            detector for detector in normalized_selection if detector in available_detectors
+        ]
 
     if normalized_selection is None:
-        normalized_selection = available_order
-        # Do not enable spaCy entities by default to reduce false positives.
-        # Users can explicitly opt-in via --detectors spacy_entities
-        if "spacy_entities" in normalized_selection:
-            normalized_selection = [d for d in normalized_selection if d != "spacy_entities"]
+        normalized_selection = [spec.name for spec in ordered_specs if spec.enabled_by_default]
 
     if custom_text:
         detector_list.append(CustomWordDetector(custom_text=custom_text))
 
-    # Use an ordered list to ensure markdown URL detection happens before plain URL
-    detector_factories_ordered: list[tuple[str, Any]] = [
-        ("markdown_url", MarkdownUrlDetector),
-        ("sharepoint_url", SharePointUrlDetector),
-        ("url", BareDomainDetector),
-        ("email", lambda: EmailDetector(locale=locale)),
-        ("phone", PhoneDetector),
-        ("private_ip", PrivateIPDetector),
-        ("public_ip", PublicIPDetector),
-    ]
-
-    locale_factories: dict[str, dict[str, Any]] = {
-        "nl_NL": {
-            "location": DutchLocationDetector,
-            "organization": DutchOrganizationDetector,
-            "name": DutchNameDetector,
-        },
-        "en_US": {
-            "location": EnglishLocationDetector,
-            "organization": EnglishOrganizationDetector,
-            "name": EnglishNameDetector,
-            "date_of_birth": scrubadub.detectors.DateOfBirthDetector,
-        },
-    }
-
-    if spacy_entity_detector_cls is not None:
-        locale_factories.setdefault("nl_NL", {})["spacy_entities"] = (
-            lambda: spacy_entity_detector_cls(model="nl_core_news_sm", name="spacy_nl")
-        )
-        locale_factories.setdefault("en_US", {})["spacy_entities"] = (
-            lambda: spacy_entity_detector_cls(model="en_core_web_sm", name="spacy_en")
-        )
-
-    for detector_name, factory in detector_factories_ordered:
-        if detector_name in normalized_selection:
+    for spec in ordered_specs:
+        if spec.name in normalized_selection:
             try:
-                detector_list.append(factory())
+                detector_list.append(spec.factory(context))
             except Exception as exc:  # pragma: no cover - defensive
-                print(f"Warning: Could not add detector {detector_name}: {exc}")
-
-    for detector_name, factory in locale_factories.get(locale, {}).items():
-        if detector_name in normalized_selection:
-            try:
-                detector_list.append(factory())
-            except Exception as exc:  # pragma: no cover - defensive
-                print(f"Warning: Could not add detector {detector_name}: {exc}")
+                logger.warning("Could not add detector %s: %s", spec.name, exc)
 
     scrubber = scrubadub.Scrubber(
         locale=locale,
@@ -208,54 +455,44 @@ def scrub_text(
     selected_detectors: list[str] | None = None,
     custom_text: str | None = None,
     verbose: bool = False,
-) -> list[str]:
-    """Scrub PII from the given text using specified locale and detectors.
-
-    This is the main function for text sanitization. It processes the input text
-    using the specified locale and detectors, removing personally identifiable
-    information (PII) and replacing it with anonymized placeholders.
+) -> ScrubOutcome:
+    """Return scrubbed text for each processed locale.
 
     Args:
-        text: The text to scrub
-        locale: Optional locale code (e.g., 'nl_NL', 'en_US')
-        selected_detectors: Optional list of detector names to use
-        custom_text: Optional custom text to detect and replace
-        verbose: Enable verbose logging of detector activity
+        text: Raw text to scrub.
+        locale: Optional locale identifier. When omitted, both Dutch and
+            English locales are processed.
+        selected_detectors: Optional list of detector names. When ``None`` the
+            default detectors for each locale are used.
+        custom_text: Optional custom text treated as PII.
+        verbose: Whether detector implementations should run in verbose mode.
 
     Returns:
-        List of scrubbed texts, one for each processed locale
+        ScrubOutcome: Structured result containing scrubbed text, detector
+        metadata, and locale-specific errors.
 
     Raises:
-        Exception: If all processing attempts fail
+        Exception: If every locale fails to process.
     """
-    import click
-
-    scrubbed_texts: list[str] = []
+    scrubbed_texts: dict[str, str] = {}
+    detectors_by_locale: dict[str, list[str]] = {}
+    errors: dict[str, str] = {}
     locales_to_process = ["en_US", "nl_NL"] if locale is None else [locale]
     for current_locale in locales_to_process:
         try:
-            if verbose:
-                click.echo(f"\n[Processing locale: {current_locale}]")
             scrubber = setup_scrubber(current_locale, selected_detectors, custom_text, verbose)
 
-            if verbose:
-                # Log active detectors
-                detector_names = list(scrubber.detectors.keys())
-                click.echo(f"[Active detectors: {', '.join(detector_names)}]")
-                click.echo(f"[Scanning text ({len(text)} characters)...]\n")
-
             scrubbed_text = scrubber.clean(text)
-            scrubbed_texts.append(f"Results for {current_locale}:\n{scrubbed_text}")
-
-            if verbose:
-                click.echo(f"\n[Completed processing for {current_locale}]")
+            scrubbed_texts[current_locale] = scrubbed_text
+            detectors_by_locale[current_locale] = list(scrubber.detectors.keys())
         except Exception as exc:
-            print(f"Warning: Processing failed for locale {current_locale}: {exc}")
+            logger.warning("Processing failed for locale %s: %s", current_locale, exc)
+            errors[current_locale] = str(exc)
             continue
 
     if not scrubbed_texts:
         raise Exception("All processing attempts failed")
-    return scrubbed_texts
+    return ScrubOutcome(texts=scrubbed_texts, detectors=detectors_by_locale, errors=errors)
 
 
 def collect_filth(

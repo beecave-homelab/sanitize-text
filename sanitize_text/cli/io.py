@@ -22,19 +22,20 @@ def read_input_source(
     append: bool,
     output_path: str | None,
 ) -> str:
-    """Return input text selected from CLI sources.
+    """Return input text resolved from CLI sources.
 
     Args:
-        text: Inline text from --text/-t.
-        input_path: Path to an input file.
-        append: Whether to re-use output file as input.
-        output_path: Output path used when append is true.
+        text: Inline text provided via ``--text``/``-t``.
+        input_path: Path to a file provided via ``--input``/``-i``.
+        append: Whether to treat the output file as input when ``True``.
+        output_path: Path used when ``append`` is set.
 
     Returns:
-        The resolved input text.
+        str: Materialized input text.
 
     Raises:
-        ValueError: If append is requested without output, or input is missing.
+        ValueError: If append is requested without an output path or if no
+        usable input source is provided.
     """
     if append and not output_path:
         raise ValueError("--append requires --output to be specified")
@@ -71,10 +72,14 @@ def read_input_source(
 
 
 def infer_output_format(output: str | None, explicit_format: str | None) -> str:
-    """Infer output format from explicit flag or output file extension.
+    """Return the output format resolved from CLI arguments.
+
+    Args:
+        output: Destination path chosen by the user.
+        explicit_format: Explicit ``--output-format`` flag.
 
     Returns:
-        The resolved output format string ("txt", "docx", or "pdf").
+        str: Resolved output format (``"txt"``, ``"docx"``, or ``"pdf"``).
     """
     if explicit_format:
         return explicit_format
@@ -89,10 +94,14 @@ def infer_output_format(output: str | None, explicit_format: str | None) -> str:
 
 
 def maybe_cleanup(text: str, enabled: bool) -> str:
-    """Optionally apply cleanup to the final output text.
+    """Return text after optional cleanup.
+
+    Args:
+        text: Text to post-process.
+        enabled: When ``True`` the cleanup pipeline is executed.
 
     Returns:
-        The cleaned (or original) output text depending on ``enabled``.
+        str: Cleaned text (or the original text when cleanup is disabled).
     """
     return cleanup_output(text) if enabled else text
 
@@ -106,10 +115,18 @@ def write_output(
     pdf_font: str | None,
     font_size: int,
 ) -> str:
-    """Write output using the selected writer and return the output path.
+    """Write scrubbed text and return the path used.
+
+    Args:
+        text: Scrubbed text to persist.
+        output: Optional output path supplied by the user.
+        fmt: Output format resolved from CLI flags.
+        pdf_mode: Layout mode for PDF output.
+        pdf_font: Optional font path for PDF output.
+        font_size: Font size used for PDF output.
 
     Returns:
-        The final output path used for writing the artifact.
+        str: Final path containing the written artifact.
     """
     if output is None:
         output_dir = Path.cwd() / "output"
@@ -117,11 +134,12 @@ def write_output(
         output = str(output_dir / "scrubbed.txt")
 
     writer = get_writer(fmt)
-    writer.write(
-        text,
-        output,
-        pdf_mode=pdf_mode,
-        pdf_font=pdf_font,
-        font_size=font_size,
-    )
+    write_kwargs: dict[str, object] = {}
+    if fmt == "pdf":
+        write_kwargs = {
+            "pdf_mode": pdf_mode,
+            "pdf_font": pdf_font,
+            "font_size": font_size,
+        }
+    writer.write(text, output, **write_kwargs)
     return output
