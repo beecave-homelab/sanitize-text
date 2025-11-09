@@ -51,7 +51,8 @@ class MarkdownUrlDetector(RegexDetector):
         #   is only to capture the complete contents between the parentheses so the
         #   detector can replace it as a whole.
         self.regex = re.compile(
-            # group 'open': one or two opening brackets; 'text': link text; 'close': matching closers
+            # group 'open': one or two opening brackets;
+            # 'text': link text; 'close': matching closers
             r"(?P<open>\[\[|\[)"
             r"(?P<text>[^\]]*)"
             r"(?P<close>\]\]|\])"
@@ -70,7 +71,7 @@ class MarkdownUrlDetector(RegexDetector):
         """Yield ``UrlFilth`` for each URL found in Markdown links."""
         import click
 
-        verbose = getattr(self, '_verbose', False)
+        verbose = getattr(self, "_verbose", False)
         if verbose:
             click.echo(f"  [{self.name}] Scanning for Markdown URLs...")
 
@@ -79,9 +80,7 @@ class MarkdownUrlDetector(RegexDetector):
             open_br = match.group("open")
             close_br = match.group("close")
             # Enforce matching bracket lengths; skip odd pairs defensively
-            if (open_br == "[[" and close_br != "]]") or (
-                open_br == "[" and close_br != "]"
-            ):
+            if (open_br == "[[" and close_br != "]]") or (open_br == "[" and close_br != "]"):
                 continue
             bracket_pairs = 2 if open_br == "[[" else 1
             link_text = match.group("text")

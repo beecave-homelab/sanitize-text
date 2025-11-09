@@ -51,7 +51,10 @@ class JSONEntityDetector(Detector):
             filepath = data_dir / self.json_file
 
             if not filepath.exists():
-                click.echo(f"Warning: Could not find entity file {self.json_file}", err=True)
+                click.echo(
+                    f"Warning: Could not find entity file {self.json_file}",
+                    err=True,
+                )
                 return
 
             with open(filepath, encoding="utf-8") as file_handle:
@@ -97,7 +100,11 @@ class JSONEntityDetector(Detector):
         # Build the automaton (this creates the failure links)
         self._automaton.make_automaton()
 
-    def iter_filth(self, text: str, document_name: str | None = None) -> Iterator[object]:
+    def iter_filth(
+        self,
+        text: str,
+        document_name: str | None = None,
+    ) -> Iterator[object]:
         """Yield filth matches for any known entity occurrences in the text.
 
         Uses Aho-Corasick automaton for O(n) multi-pattern matching, then
@@ -431,7 +438,10 @@ class DutchEntityDetector(JSONEntityDetector):
         if removed > 0:
             import click
 
-            click.echo(f"  [{self.name}] Filtered {removed} duplicate entities", err=True)
+            click.echo(
+                f"  [{self.name}] Filtered {removed} duplicate entities",
+                err=True,
+            )
 
     COMMON_WORDS = {
         "een",

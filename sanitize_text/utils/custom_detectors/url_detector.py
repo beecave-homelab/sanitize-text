@@ -80,7 +80,7 @@ class BareDomainDetector(RegexDetector):
         non-separator characters end with 'share', skip the match. This avoids
         false positives like '... share' + 'epoint.com' from PDF line/word splits.
         """
-        verbose = getattr(self, '_verbose', False)
+        verbose = getattr(self, "_verbose", False)
         if verbose:
             click.echo(f"  [{self.name}] Scanning for URLs...")
 
@@ -93,9 +93,7 @@ class BareDomainDetector(RegexDetector):
             host = url.split("/", 1)[0].lower()
             # Heuristic: Skip mixed-case bare domains without protocol or www
             url_lower = url.lower()
-            has_protocol = url_lower.startswith(
-                ("http://", "https://", "ftp://", "www.")
-            )
+            has_protocol = url_lower.startswith(("http://", "https://", "ftp://", "www."))
             if not has_protocol and any(c.isupper() for c in url):
                 continue
             # Skip sharepoint fragments: '...share' + 'epoint.com' or

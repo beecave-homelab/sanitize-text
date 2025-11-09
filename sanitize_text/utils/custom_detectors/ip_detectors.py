@@ -27,11 +27,9 @@ class PrivateIPDetector(RegexDetector):
         r"\b(?:192\.168\.\d{1,3}\.\d{1,3}|10\.0\.\d{1,3}\.\d{1,3}|172\.\d{1,3}\.\d{1,3}\.\d{1,3})\b"
     )
 
-    def iter_filth(
-        self, text: str, document_name: str | None = None
-    ) -> Iterator[PrivateIPFilth]:
+    def iter_filth(self, text: str, document_name: str | None = None) -> Iterator[PrivateIPFilth]:
         """Yield private IP filth with optional verbose logging."""
-        verbose = getattr(self, '_verbose', False)
+        verbose = getattr(self, "_verbose", False)
         if verbose:
             click.echo(f"  [{self.name}] Scanning for private IPs...")
 
@@ -74,11 +72,9 @@ class PublicIPDetector(RegexDetector):
         r"(?:\d{1,3}\.){3}\d{1,3}\b"
     )
 
-    def iter_filth(
-        self, text: str, document_name: str | None = None
-    ) -> Iterator[PublicIPFilth]:
+    def iter_filth(self, text: str, document_name: str | None = None) -> Iterator[PublicIPFilth]:
         """Yield public IP filth with optional verbose logging."""
-        verbose = getattr(self, '_verbose', False)
+        verbose = getattr(self, "_verbose", False)
         if verbose:
             click.echo(f"  [{self.name}] Scanning for public IPs...")
 

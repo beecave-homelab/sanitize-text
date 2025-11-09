@@ -56,17 +56,11 @@ class HashedPIIReplacer(PostProcessor):
                 hash_val = int(hash_obj.hexdigest(), 16) % self.modulus
                 # Use a consistent placeholder prefix: treat URL-like text as URL
                 text = str(getattr(filth, "text", ""))
-                is_urlish = text.lower().startswith(
-                    ("http://",
-                    "https://",
-                    "ftp://",
-                    "www.")
-                )
+                is_urlish = text.lower().startswith(("http://", "https://", "ftp://", "www."))
                 # Also catch obvious SharePoint fragments that start with the domain
                 is_urlish = is_urlish or ("sharepoint.com/" in text.lower())
                 placeholder_type = (
-                    "URL" if filth.type in {"markdown_url"}
-                    or is_urlish else filth.type.upper()
+                    "URL" if filth.type in {"markdown_url"} or is_urlish else filth.type.upper()
                 )
                 width = max(3, len(str(self.modulus - 1)))
                 placeholder = f"{placeholder_type}-{hash_val:0{width}d}"

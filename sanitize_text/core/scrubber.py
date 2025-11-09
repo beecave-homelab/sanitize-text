@@ -26,14 +26,11 @@ def get_available_detectors(locale: str | None = None) -> dict[str, str]:
         "email": "Detect email addresses (e.g., user@example.com)",
         "phone": "Detect phone numbers",
         "url": (
-            "Detect URLs (bare domains, www prefixes,\n"
-            "http(s), complex paths, query parameters)"
+            "Detect URLs (bare domains, www prefixes,\nhttp(s), complex paths, query parameters)"  # noqa: E501
         ),
         "sharepoint_url": "Detect SharePoint URLs (runs before generic URL)",
         "markdown_url": "Detect URLs within Markdown links [text](url)",
-        "private_ip": (
-            "Detect private IP addresses (192.168.x.x, 10.0.x.x, 172.16-31.x.x)"
-        ),
+        "private_ip": ("Detect private IP addresses (192.168.x.x, 10.0.x.x, 172.16-31.x.x)"),  # noqa: E501
         "public_ip": "Detect public IP addresses (any non-private IP)",
     }
 
@@ -53,16 +50,12 @@ def get_available_detectors(locale: str | None = None) -> dict[str, str]:
 
     # Detect availability of spaCy-based detector without importing heavy modules
     try:
-        spacy_available = importlib_util.find_spec(
-            "scrubadub_spacy.detectors"
-        ) is not None
+        spacy_available = importlib_util.find_spec("scrubadub_spacy.detectors") is not None
     except ModuleNotFoundError:
         spacy_available = False
 
     if spacy_available:
-        description = (
-            "Detect named entities using spaCy (requires sanitize-text[spacy])"
-        )
+        description = "Detect named entities using spaCy (requires sanitize-text[spacy])"
         locale_detectors["nl_NL"]["spacy_entities"] = description
         locale_detectors["en_US"]["spacy_entities"] = description
 
@@ -130,13 +123,10 @@ def setup_scrubber(
     normalized_selection: list[str] | None = None
     if selected_detectors:
         normalized_selection = [detector.lower() for detector in selected_detectors]
-        invalid_detectors = [
-            d for d in normalized_selection if d not in available_detectors
-        ]
+        invalid_detectors = [d for d in normalized_selection if d not in available_detectors]
         if invalid_detectors:
             print(
-                f"Warning: Invalid detector(s) for locale {locale}:"
-                f"{', '.join(invalid_detectors)}"
+                f"Warning: Invalid detector(s) for locale {locale}:{', '.join(invalid_detectors)}"
             )
 
     if normalized_selection is None:
@@ -144,9 +134,7 @@ def setup_scrubber(
         # Do not enable spaCy entities by default to reduce false positives.
         # Users can explicitly opt-in via --detectors spacy_entities
         if "spacy_entities" in normalized_selection:
-            normalized_selection = [
-                d for d in normalized_selection if d != "spacy_entities"
-            ]
+            normalized_selection = [d for d in normalized_selection if d != "spacy_entities"]
 
     if custom_text:
         detector_list.append(CustomWordDetector(custom_text=custom_text))
@@ -248,9 +236,7 @@ def scrub_text(
         try:
             if verbose:
                 click.echo(f"\n[Processing locale: {current_locale}]")
-            scrubber = setup_scrubber(
-                current_locale, selected_detectors, custom_text, verbose
-            )
+            scrubber = setup_scrubber(current_locale, selected_detectors, custom_text, verbose)
 
             if verbose:
                 # Log active detectors

@@ -55,7 +55,7 @@ class SharePointUrlDetector(RegexDetector):
         """
         import click
 
-        verbose = getattr(self, '_verbose', False)
+        verbose = getattr(self, "_verbose", False)
         if verbose:
             click.echo(f"  [{self.name}] Scanning for SharePoint URLs...")
 
