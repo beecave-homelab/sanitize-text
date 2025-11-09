@@ -31,6 +31,8 @@
 !sanitize_text/**
 !tests/
 !tests/**
+!scripts/
+!scripts/**
 
 # Explicitly ignore these
 .DS_Store
