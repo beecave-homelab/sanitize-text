@@ -29,6 +29,8 @@
 !sanitize_webui/**
 !sanitize_text/
 !sanitize_text/**
+!tests/
+!tests/**
 
 # Explicitly ignore these
 .DS_Store
@@ -37,7 +39,6 @@ __pycache__/
 .env
 venv/
 output/
-tests/
 .git/
 *.egg-info/
 build/
