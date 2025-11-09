@@ -1,8 +1,9 @@
 Flask
 pytest
 python-dotenv
-Click
+click
 halo
 scrubadub
-scrubadub_spacy
-spacy
+pdfminer.six
+python-docx
+striprtf

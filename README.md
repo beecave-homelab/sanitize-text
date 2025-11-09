@@ -20,6 +20,7 @@ A powerful tool for detecting and sanitizing personally identifiable information
   - [Supported Locales](#supported-locales)
   - [Available Detectors](#available-detectors)
   - [CLI Tool](#cli-tool)
+  - [Handling binary/rich formats](#handling-binaryrich-formats)
   - [Web Interface](#web-interface)
   - [Entity Management](#entity-management)
 - [License](#license)
@@ -34,7 +35,8 @@ A powerful tool for detecting and sanitizing personally identifiable information
   - Python 3.11 required
   - Can be installed via Homebrew on MacOS: `brew install python@3.11`
 - **Storage**:
-  - Approximately 1GB of free storage required for language models and dependencies
+  - Base installation stays under 100 MB and runs entirely on CPU
+  - Optional extras (spaCy models, NLTK corpora) require additional space
 
 ## Installation
 
@@ -59,6 +61,16 @@ A powerful tool for detecting and sanitizing personally identifiable information
    pip install -r requirements.txt
    ```
 
+4. (Optional) Install language extras when you need them:
+
+   ```bash
+   # Enable spaCy-powered entity detection
+   pip install .[spacy]
+
+   # Enable NLTK-powered detectors
+   pip install .[nltk]
+   ```
+
 ## Usage
 
 ### Supported Locales
@@ -72,10 +84,9 @@ The package supports two locales for PII detection and sanitization:
   - Dutch phone number formats
 
 - **English (en_US)**:
-  - Detection of English names and locations
-  - US-format dates and social security numbers
-  - US address formats
-  - US-specific organizational suffixes (Inc., LLC, etc.)
+  - Detection of English names, organizations, and locations using curated lists
+  - US-format date of birth detection
+  - Optional spaCy models for statistical NER when installed
 
 ### Available Detectors
 
@@ -89,24 +100,21 @@ The package includes both locale-specific and general-purpose detectors:
 - **Markdown URL**: Specifically identifies URLs within Markdown link syntax
 - **Private IP**: Detects private IP addresses (e.g., 192.168.x.x, 10.x.x.x)
 - **Public IP**: Identifies public-facing IP addresses
-- **Credit Card**: Recognizes common credit card number patterns
-- **Bank Account**: Detects IBAN and other bank account number formats
 
 #### Dutch (nl_NL) Specific Detectors
 
 - **Location**: Dutch cities, provinces, and addresses
 - **Organization**: Dutch company names and legal entities
 - **Name**: Dutch personal names (first names, surnames, and combinations)
+- **spaCy Entities** *(optional)*: Statistical NER when `sanitize-text[spacy]` is installed
 
 #### English (en_US) Specific Detectors
 
-- **Name**: English/American personal names
-- **Organization**: US company names and legal entities
-- **Location**: US cities, states, and addresses
+- **Name**: English personal names (dictionary based)
+- **Organization**: Common English-language organizations
+- **Location**: Major US cities and regions
 - **Date of Birth**: Various US date formats
-- **SSN**: US Social Security Numbers
-- **ZIP Code**: US ZIP code formats (5 and 9 digit)
-- **Driver License**: US driver's license numbers
+- **spaCy Entities** *(optional)*: Statistical NER when `sanitize-text[spacy]` is installed
 
 Each detector can be used individually or in combination using the `-d` flag in the CLI tool.
 
@@ -140,6 +148,29 @@ Available options:
 - `-d, --detectors`: Space-separated list of specific detectors to use
 - `-a, --append`: Append to existing output file
 - `--list-detectors`: List all available detectors
+
+### Handling binary/rich formats
+
+Binary or rich document formats (e.g., PDF, DOC/DOCX, RTF, images) are not parsed natively. Convert or extract text first, then pass the resulting text to the CLI or Python API. Examples:
+
+```bash
+# PDF → text (requires pdftotext from poppler)
+pdftotext input.pdf - | python -m sanitize_text
+
+# DOCX → text (docx2txt)
+docx2txt input.docx - | python -m sanitize_text
+
+# RTF → text (pandoc)
+pandoc input.rtf -t plain | python -m sanitize_text
+
+# Image → text via OCR (tesseract)
+tesseract image.png stdout | python -m sanitize_text
+```
+
+Notes:
+
+- These commands stream extracted UTF-8 text to stdin; all content is treated as plain text.
+- For structured files (CSV/JSON), sanitize-text processes raw text without field-aware parsing.
 
 ### Web Interface
 

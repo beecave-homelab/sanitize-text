@@ -1,1 +1,1 @@
-"""Core functionality package.""" 
+"""Core functionality package."""

@@ -1,0 +1,82 @@
+[
+  {
+    "match": "Google",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Microsoft",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Amazon",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Apple",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Facebook",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Netflix",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Tesla",
+    "filth_type": "organization"
+  },
+  {
+    "match": "SpaceX",
+    "filth_type": "organization"
+  },
+  {
+    "match": "IBM",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Intel",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Oracle",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Salesforce",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Adobe",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Uber",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Airbnb",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Visa",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Mastercard",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Coca-Cola",
+    "filth_type": "organization"
+  },
+  {
+    "match": "Pepsi",
+    "filth_type": "organization"
+  },
+  {
+    "match": "General Electric",
+    "filth_type": "organization"
+  }
+]

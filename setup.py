@@ -1,6 +1,6 @@
 """Setup configuration for the sanitize-text package."""
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 setup(
     name="sanitize-text",
@@ -8,16 +8,30 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={
-        'sanitize_text': ['data/nl_entities/*.json'],
+        "sanitize_text": [
+            "data/nl_entities/*.json",
+            "data/en_entities/*.json",
+        ],
     },
     install_requires=[
         "click>=8.0.0",
         "scrubadub>=2.0.0",
-        "scrubadub-spacy>=0.4.0",
-        "spacy>=3.0.0",
         "halo>=0.0.31",
-        "nltk>=3.6.0",
     ],
+    extras_require={
+        "spacy": [
+            "spacy>=3.0.0",
+            "scrubadub-spacy>=0.4.0",
+        ],
+        "nltk": [
+            "nltk>=3.6.0",
+        ],
+        "all": [
+            "spacy>=3.0.0",
+            "scrubadub-spacy>=0.4.0",
+            "nltk>=3.6.0",
+        ],
+    },
     entry_points={
         "console_scripts": [
             "sanitize-text=sanitize_text.cli.main:main",
@@ -37,4 +51,4 @@ setup(
         "Programming Language :: Python :: 3.11",
     ],
     python_requires=">=3.11",
-) 
+)

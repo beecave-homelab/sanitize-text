@@ -9,91 +9,212 @@ including direct input, files, or stdin.
 Examples:
     Process text directly:
         $ sanitize-text -t "John lives in Amsterdam"
-    
+
     Process a file:
         $ sanitize-text -i input.txt -o output.txt
-    
+
     Use specific detectors:
         $ sanitize-text -i input.txt -d "email url name"
-    
+
     Process Dutch text:
         $ sanitize-text -i input.txt -l nl_NL
 """
 
-import os
 import sys
-import click
-import nltk
-from typing import Optional
-from halo import Halo
-from ..core.scrubber import scrub_text, get_available_detectors
 
-# Download required NLTK data
-try:
-    nltk.download('punkt', quiet=True)
-    nltk.download('averaged_perceptron_tagger', quiet=True)
-except Exception as e:
-    click.echo(f"Warning: Could not download NLTK data: {str(e)}", err=True)
+import click
+from halo import Halo
+
+from sanitize_text.cli.io import (
+    infer_output_format,
+    maybe_cleanup,
+    read_input_source,
+    write_output,
+)
+from sanitize_text.core.scrubber import get_available_detectors, scrub_text
 
 # Define custom context settings
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
-@click.command(context_settings=CONTEXT_SETTINGS)
+
+def _print_detectors() -> None:
+    """Print available detectors grouped by generic and locale-specific."""
+    detectors_by_locale = get_available_detectors()
+    generic_detectors = {
+        "email": "Detect email addresses",
+        "phone": "Detect phone numbers",
+        "url": "Detect URLs",
+        "private_ip": "Detect private IP addresses",
+        "public_ip": "Detect public IP addresses",
+    }
+
+    click.echo("Available detectors:\n")
+    click.echo("Generic detectors (available for all locales):")
+    for detector, description in generic_detectors.items():
+        click.echo(f"  - {detector:<15} {description}")
+    click.echo()
+
+    click.echo("Locale-specific detectors:")
+    for loc, detector_dict in detectors_by_locale.items():
+        click.echo(f"\n{loc}:")
+        for detector, description in detector_dict.items():
+            click.echo(f"  - {detector:<15} {description}")
+    click.echo()
+
+
+def _run_scrub(
+    *,
+    input_text: str,
+    locale: str | None,
+    detectors: str | None,
+    custom: str | None,
+    cleanup: bool,
+    verbose: bool,
+) -> str:
+    """Run scrubbing and return the scrubbed text, optionally verbose-printing.
+
+    Returns:
+        The final scrubbed text (possibly cleaned) joined across locales.
+    """
+    selected_detectors = detectors.split() if detectors else None
+    scrubbed_texts = scrub_text(
+        input_text,
+        locale,
+        selected_detectors,
+        custom_text=custom,
+        verbose=verbose,
+    )
+    scrubbed_text = "\n\n".join(scrubbed_texts)
+    scrubbed_text = maybe_cleanup(scrubbed_text, cleanup)
+
+    if verbose:
+        from sanitize_text.core.scrubber import collect_filth
+
+        filth_map = collect_filth(
+            input_text,
+            locale,
+            selected_detectors,
+            custom_text=custom,
+        )
+        for loc, filths in filth_map.items():
+            click.echo(f"\nFound PII for {loc}:")
+            for f in filths:
+                mapping = f"  - {f.type}: '{f.text}' -> '{f.replacement_string}'"
+                click.echo(mapping)
+    return scrubbed_text
+
+
+@click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
+@click.pass_context
 @click.option(
-    "--text", "-t",
+    "--text",
+    "-t",
     type=str,
     help="Text to scrub for PII. Use this for direct text input.",
-    metavar="<text>"
+    metavar="<text>",
 )
 @click.option(
-    "--input", "-i",
+    "--input",
+    "-i",
     type=click.Path(exists=True),
     help="Path to input file containing text to scrub.",
-    metavar="<file>"
+    metavar="<file>",
 )
 @click.option(
-    "--output", "-o",
+    "--output",
+    "-o",
     type=click.Path(writable=True),
     help="Path to output file for scrubbed text. Defaults to ./output/scrubbed.txt",
-    metavar="<file>"
+    metavar="<file>",
 )
 @click.option(
-    "--append", "-a",
+    "--output-format",
+    type=click.Choice(["txt", "docx", "pdf"]),
+    help="Explicit output format. Otherwise inferred from -o extension (txt/docx/pdf).",
+)
+@click.option(
+    "--pdf-mode",
+    type=click.Choice(["pre", "para"]),
+    default="pre",
+    show_default=True,
+    help=("PDF layout: 'pre' preserves line breaks, 'para' wraps into paragraphs."),
+)
+@click.option(
+    "--pdf-font",
+    type=click.Path(exists=True, dir_okay=False),
+    help="Path to a TTF font to embed for Unicode support (PDF only).",
+)
+@click.option(
+    "--font-size",
+    type=int,
+    default=11,
+    show_default=True,
+    help="Font size for PDF output.",
+)
+@click.option(
+    "--verbose",
+    "-v",
     is_flag=True,
-    help="Use output file as input when it exists, ignoring --input."
+    help="Show mapping of found PII and their replacements.",
 )
 @click.option(
-    "--locale", "-l",
-    type=click.Choice(['nl_NL', 'en_US']),
+    "--append",
+    "-a",
+    is_flag=True,
+    help="Use output file as input when it exists, ignoring --input.",
+)
+@click.option(
+    "--locale",
+    "-l",
+    type=click.Choice(["nl_NL", "en_US"]),
     help="Locale for text processing. Processes both if not specified.",
-    metavar="<locale>"
+    metavar="<locale>",
 )
 @click.option(
-    "--detectors", "-d",
+    "--detectors",
+    "-d",
     help="Space-separated list of detectors to use (e.g., 'url name email').",
-    metavar="<detectors>"
+    metavar="<detectors>",
 )
 @click.option(
-    "--custom", "-c",
+    "--custom",
+    "-c",
     help="Custom text to detect and replace with a unique identifier.",
-    metavar="<text>"
+    metavar="<text>",
 )
 @click.option(
-    "--list-detectors", "-ld",
+    "--list-detectors",
+    "-ld",
     is_flag=True,
-    help="Show available detectors and exit."
+    help="Show available detectors and exit.",
+)
+@click.option(
+    "--cleanup/--no-cleanup",
+    default=True,
+    show_default=True,
+    help=(
+        "Apply a conservative cleanup pass to final output "
+        "(dedupe lines, remove UNKNOWN placeholders, ensure trailing newline)."
+    ),
 )
 def main(
-    text: Optional[str],
-    input: Optional[str],
-    output: Optional[str],
-    locale: Optional[str],
-    detectors: Optional[str],
-    custom: Optional[str],
+    ctx: click.Context,
+    text: str | None,
+    input: str | None,
+    output: str | None,
+    locale: str | None,
+    detectors: str | None,
+    custom: str | None,
     list_detectors: bool,
-    append: bool
+    verbose: bool,
+    append: bool,
+    output_format: str | None,
+    pdf_mode: str,
+    pdf_font: str | None,
+    font_size: int,
+    cleanup: bool,
 ) -> None:
-    """Remove personally identifiable information (PII) from text.
+    r"""Remove personally identifiable information (PII) from text.
 
     This tool processes text from various sources (direct input, file, or stdin)
     and removes PII using configurable detectors. It supports multiple locales
@@ -106,7 +227,7 @@ def main(
     2. --input: Text file
     3. --append: Existing output file
     4. stdin: Piped input
-    
+
     \b
     Detector Types:
     - Generic: email, phone, url, private_ip, public_ip
@@ -123,92 +244,196 @@ def main(
         list_detectors: Whether to list available detectors
         append: Whether to use output file as input
     """
-    # If --list-detectors is used, show available detectors and exit
-    if list_detectors:
-        detectors_by_locale = get_available_detectors()
-        generic_detectors = {
-            'email': 'Detect email addresses',
-            'phone': 'Detect phone numbers',
-            'url': 'Detect URLs',
-            'private_ip': 'Detect private IP addresses',
-            'public_ip': 'Detect public IP addresses'
-        }
-        
-        click.echo("Available detectors:\n")
-        click.echo("Generic detectors (available for all locales):")
-        for detector, description in generic_detectors.items():
-            click.echo(f"  - {detector:<15} {description}")
-        click.echo()
-        
-        click.echo("Locale-specific detectors:")
-        for loc, detector_dict in detectors_by_locale.items():
-            click.echo(f"\n{loc}:")
-            for detector, description in detector_dict.items():
-                click.echo(f"  - {detector:<15} {description}")
-        click.echo()
+    # If --list-detectors flag is used, show detectors and exit (back-compat)
+    if list_detectors and (ctx.invoked_subcommand is None):
+        _print_detectors()
         return
 
-    # Validate append mode requirements
-    if append and not output:
-        click.echo(
-            "Error: --append/-a requires --output/-o to be specified.",
-            err=True
+    # If user invoked a subcommand, do not run default flow
+    if ctx.invoked_subcommand is not None:
+        return
+
+    # Determine input text via helper
+    try:
+        input_text = read_input_source(
+            text=text,
+            input_path=input,
+            append=append,
+            output_path=output,
         )
+    except Exception as exc:
+        click.echo(f"Error: {exc}", err=True)
         sys.exit(1)
 
-    # Determine input text
-    if append and output and os.path.exists(output):
-        with open(output, "r") as output_file:
-            input_text = output_file.read()
-    elif input:
-        with open(input, "r") as input_file:
-            input_text = input_file.read()
-    elif text:
-        input_text = text
-    elif not sys.stdin.isatty():
-        input_text = sys.stdin.read()
-    else:
-        click.echo(
-            "Error: No input provided. Use --text, --input, or pipe input.",
-            err=True
-        )
-        sys.exit(1)
-
-    # Set up spinner
-    spinner = Halo(text="Scrubbing PII", spinner="dots")
-    spinner.start()
+    # Set up spinner (only if not verbose)
+    spinner = None
+    if not verbose:
+        spinner = Halo(text="Scrubbing PII", spinner="dots")
+        spinner.start()
 
     try:
         # Process text with selected detectors
-        selected_detectors = detectors.split() if detectors else None
-        scrubbed_texts = scrub_text(
-            input_text,
-            locale,
-            selected_detectors,
-            custom_text=custom
+        scrubbed_text = _run_scrub(
+            input_text=input_text,
+            locale=locale,
+            detectors=detectors,
+            custom=custom,
+            cleanup=cleanup,
+            verbose=verbose,
         )
-        scrubbed_text = "\n\n".join(scrubbed_texts)
     except Exception as e:
-        spinner.fail("Scrubbing failed")
+        if spinner:
+            spinner.fail("Scrubbing failed")
         click.echo(f"Error: {str(e)}", err=True)
         sys.exit(1)
     else:
-        spinner.succeed("Scrubbing completed")
+        if spinner:
+            spinner.succeed("Scrubbing completed")
 
     # Handle output
-    if text:
-        # Print scrubbed text to terminal when --text is used
+    if text and output is None and output_format is None:
         click.echo(scrubbed_text)
     else:
-        if output is None:
-            # Use default output directory and file
-            output_dir = os.path.join(os.getcwd(), "output")
-            os.makedirs(output_dir, exist_ok=True)
-            output = os.path.join(output_dir, "scrubbed.txt")
-        
-        with open(output, "w") as output_file:
-            output_file.write(scrubbed_text)
-        click.echo(f"Scrubbed text saved to {output}")
+        fmt = infer_output_format(output, output_format)
+        try:
+            out_path = write_output(
+                text=scrubbed_text,
+                output=output,
+                fmt=fmt,
+                pdf_mode=pdf_mode,
+                pdf_font=pdf_font,
+                font_size=font_size,
+            )
+        except Exception as exc:  # pragma: no cover
+            click.echo(f"Error writing output: {exc}", err=True)
+            sys.exit(1)
+
+        click.echo(f"Scrubbed text saved to {out_path}")
+
+
+@main.command("list-detectors")
+def list_detectors_cmd() -> None:
+    """List available detectors and exit."""
+    _print_detectors()
+
+
+@main.command("scrub")
+@click.option("--text", "-t", type=str, help="Inline text input.")
+@click.option(
+    "--input",
+    "-i",
+    type=click.Path(exists=True),
+    help="Input file path.",
+)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(writable=True),
+    help="Output file path.",
+)
+@click.option(
+    "--output-format",
+    type=click.Choice(["txt", "docx", "pdf"]),
+    help="Explicit output format.",
+)
+@click.option(
+    "--pdf-mode",
+    type=click.Choice(["pre", "para"]),
+    default="pre",
+    show_default=True,
+)
+@click.option(
+    "--pdf-font",
+    type=click.Path(exists=True, dir_okay=False),
+)
+@click.option("--font-size", type=int, default=11, show_default=True)
+@click.option("--verbose", "-v", is_flag=True, help="Show mappings for found PII.")
+@click.option("--append", "-a", is_flag=True, help="Use output file as input.")
+@click.option(
+    "--locale",
+    "-l",
+    type=click.Choice(["nl_NL", "en_US"]),
+    metavar="<locale>",
+)
+@click.option(
+    "--detectors",
+    "-d",
+    metavar="<detectors>",
+    help="Space-separated detectors.",
+)
+@click.option("--custom", "-c", metavar="<text>", help="Custom text to detect.")
+@click.option(
+    "--cleanup/--no-cleanup",
+    default=True,
+    show_default=True,
+    help="Cleanup output.",
+)
+def scrub_cmd(
+    *,
+    text: str | None,
+    input: str | None,
+    output: str | None,
+    output_format: str | None,
+    pdf_mode: str,
+    pdf_font: str | None,
+    font_size: int,
+    verbose: bool,
+    append: bool,
+    locale: str | None,
+    detectors: str | None,
+    custom: str | None,
+    cleanup: bool,
+) -> None:
+    """Scrub PII from input and write output (subcommand)."""
+    try:
+        input_text = read_input_source(
+            text=text, input_path=input, append=append, output_path=output
+        )
+    except Exception as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(1)
+
+    spinner = None
+    if not verbose:
+        spinner = Halo(text="Scrubbing PII", spinner="dots")
+        spinner.start()
+    try:
+        scrubbed_text = _run_scrub(
+            input_text=input_text,
+            locale=locale,
+            detectors=detectors,
+            custom=custom,
+            cleanup=cleanup,
+            verbose=verbose,
+        )
+    except Exception as e:  # pragma: no cover
+        if spinner:
+            spinner.fail("Scrubbing failed")
+        click.echo(f"Error: {str(e)}", err=True)
+        sys.exit(1)
+    else:
+        if spinner:
+            spinner.succeed("Scrubbing completed")
+
+    if text and output is None and output_format is None:
+        click.echo(scrubbed_text)
+        return
+
+    fmt = infer_output_format(output, output_format)
+    try:
+        out_path = write_output(
+            text=scrubbed_text,
+            output=output,
+            fmt=fmt,
+            pdf_mode=pdf_mode,
+            pdf_font=pdf_font,
+            font_size=font_size,
+        )
+    except Exception as exc:  # pragma: no cover
+        click.echo(f"Error writing output: {exc}", err=True)
+        sys.exit(1)
+    click.echo(f"Scrubbed text saved to {out_path}")
+
 
 if __name__ == "__main__":
-    main() 
+    main()

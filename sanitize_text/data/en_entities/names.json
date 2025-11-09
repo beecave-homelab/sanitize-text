@@ -1,0 +1,82 @@
+[
+  {
+    "match": "John",
+    "filth_type": "name"
+  },
+  {
+    "match": "Jane",
+    "filth_type": "name"
+  },
+  {
+    "match": "Michael",
+    "filth_type": "name"
+  },
+  {
+    "match": "Sarah",
+    "filth_type": "name"
+  },
+  {
+    "match": "David",
+    "filth_type": "name"
+  },
+  {
+    "match": "Emily",
+    "filth_type": "name"
+  },
+  {
+    "match": "Robert",
+    "filth_type": "name"
+  },
+  {
+    "match": "Jessica",
+    "filth_type": "name"
+  },
+  {
+    "match": "William",
+    "filth_type": "name"
+  },
+  {
+    "match": "Olivia",
+    "filth_type": "name"
+  },
+  {
+    "match": "James",
+    "filth_type": "name"
+  },
+  {
+    "match": "Emma",
+    "filth_type": "name"
+  },
+  {
+    "match": "Daniel",
+    "filth_type": "name"
+  },
+  {
+    "match": "Sophia",
+    "filth_type": "name"
+  },
+  {
+    "match": "Matthew",
+    "filth_type": "name"
+  },
+  {
+    "match": "Isabella",
+    "filth_type": "name"
+  },
+  {
+    "match": "Christopher",
+    "filth_type": "name"
+  },
+  {
+    "match": "Mia",
+    "filth_type": "name"
+  },
+  {
+    "match": "Andrew",
+    "filth_type": "name"
+  },
+  {
+    "match": "Charlotte",
+    "filth_type": "name"
+  }
+]

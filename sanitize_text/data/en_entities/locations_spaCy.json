@@ -1,0 +1,202 @@
+[
+  {
+    "text": "New York",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Los Angeles",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Chicago",
+    "entities": [
+      {
+        "start": 0,
+        "end": 7,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Houston",
+    "entities": [
+      {
+        "start": 0,
+        "end": 7,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Phoenix",
+    "entities": [
+      {
+        "start": 0,
+        "end": 7,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Philadelphia",
+    "entities": [
+      {
+        "start": 0,
+        "end": 12,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "San Antonio",
+    "entities": [
+      {
+        "start": 0,
+        "end": 11,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "San Diego",
+    "entities": [
+      {
+        "start": 0,
+        "end": 9,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Dallas",
+    "entities": [
+      {
+        "start": 0,
+        "end": 6,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "San Jose",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Seattle",
+    "entities": [
+      {
+        "start": 0,
+        "end": 7,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Boston",
+    "entities": [
+      {
+        "start": 0,
+        "end": 6,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Miami",
+    "entities": [
+      {
+        "start": 0,
+        "end": 5,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Denver",
+    "entities": [
+      {
+        "start": 0,
+        "end": 6,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Atlanta",
+    "entities": [
+      {
+        "start": 0,
+        "end": 7,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Washington",
+    "entities": [
+      {
+        "start": 0,
+        "end": 10,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "San Francisco",
+    "entities": [
+      {
+        "start": 0,
+        "end": 13,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Portland",
+    "entities": [
+      {
+        "start": 0,
+        "end": 8,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Austin",
+    "entities": [
+      {
+        "start": 0,
+        "end": 6,
+        "label": "LOC"
+      }
+    ]
+  },
+  {
+    "text": "Orlando",
+    "entities": [
+      {
+        "start": 0,
+        "end": 7,
+        "label": "LOC"
+      }
+    ]
+  }
+]
