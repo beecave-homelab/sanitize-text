@@ -75,40 +75,23 @@ class DocxWriter(_BaseWriter):
 
 
 class PdfWriter(_BaseWriter):
-    """Write a simple PDF using reportlab.
+    """Write a simple PDF using reportlab."""
 
-    Args:
-        text: The text to write
-        output: The output file path
-        pdf_mode: The PDF mode (pre/para)
-        pdf_font: The PDF font
-        font_size: The font size
+    def write(self, text: str, output: str | Path, **kwargs: object) -> None:  # noqa: D401
+        """Write *text* to a PDF via ReportLab (supports pre/para modes)."""
 
-    Raises:
-        RuntimeError: If reportlab >=4.4.4 is not installed
-    """
+        pdf_mode = str(kwargs.get("pdf_mode", "pre"))
+        pdf_font_value = kwargs.get("pdf_font")
+        pdf_font = str(pdf_font_value) if pdf_font_value is not None else None
+        font_size_value = kwargs.get("font_size", 11)
+        if isinstance(font_size_value, int):
+            font_size = font_size_value
+        else:
+            try:
+                font_size = int(font_size_value)
+            except (TypeError, ValueError):  # pragma: no cover - defensive fallback
+                font_size = 11
 
-    def write(
-        self,
-        text: str,
-        output: str | Path,
-        *,
-        pdf_mode: str = "pre",
-        pdf_font: str | None = None,
-        font_size: int = 11,
-    ) -> None:
-        """Write *text* to a PDF via ReportLab (supports pre/para modes).
-
-        Args:
-            text: The text to write
-            output: The output file path
-            pdf_mode: The PDF mode (pre/para)
-            pdf_font: The PDF font
-            font_size: The font size
-
-        Raises:
-            RuntimeError: If reportlab >=4.4.4 is not installed
-        """
         try:
             from reportlab.lib.pagesizes import A4  # type: ignore
             from reportlab.lib.styles import (  # type: ignore
@@ -175,7 +158,6 @@ class PdfWriter(_BaseWriter):
 
             story.append(Paragraph("", style))
         doc.build(story)
-
 
 _WRITERS: dict[str, OutputWriter] = {
     "txt": TxtWriter(),

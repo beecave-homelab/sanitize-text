@@ -117,11 +117,12 @@ def write_output(
         output = str(output_dir / "scrubbed.txt")
 
     writer = get_writer(fmt)
-    writer.write(
-        text,
-        output,
-        pdf_mode=pdf_mode,
-        pdf_font=pdf_font,
-        font_size=font_size,
-    )
+    write_kwargs: dict[str, object] = {}
+    if fmt == "pdf":
+        write_kwargs = {
+            "pdf_mode": pdf_mode,
+            "pdf_font": pdf_font,
+            "font_size": font_size,
+        }
+    writer.write(text, output, **write_kwargs)
     return output

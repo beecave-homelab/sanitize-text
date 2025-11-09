@@ -77,18 +77,47 @@ def _run_scrub(
         The final scrubbed text (possibly cleaned) joined across locales.
     """
     selected_detectors = detectors.split() if detectors else None
-    scrubbed_texts = scrub_text(
+    outcome = scrub_text(
         input_text,
         locale,
         selected_detectors,
         custom_text=custom,
         verbose=verbose,
     )
-    scrubbed_text = "\n\n".join(scrubbed_texts)
+    locales_to_process = [locale] if locale else ["en_US", "nl_NL"]
+
+    formatted_sections = [
+        f"Results for {loc}:\n{outcome.texts[loc]}"
+        for loc in locales_to_process
+        if loc in outcome.texts
+    ]
+    scrubbed_text = "\n\n".join(formatted_sections)
     scrubbed_text = maybe_cleanup(scrubbed_text, cleanup)
+
+    failed_locales = [loc for loc in locales_to_process if loc not in outcome.texts]
+    failure_messages = {failed: outcome.errors.get(failed, "Unknown error") for failed in failed_locales}
+    if not verbose:
+        for failed, message in failure_messages.items():
+            click.echo(f"Warning: Processing failed for locale {failed}: {message}", err=True)
 
     if verbose:
         from sanitize_text.core.scrubber import collect_filth
+
+        for loc in locales_to_process:
+            detectors_for_locale = outcome.detectors.get(loc)
+            if loc in outcome.texts:
+                click.echo(f"\n[Processing locale: {loc}]")
+                if detectors_for_locale:
+                    click.echo(f"[Active detectors: {', '.join(detectors_for_locale)}]")
+                click.echo(f"[Scanning text ({len(input_text)} characters)...]")
+                click.echo(f"[Completed processing for {loc}]")
+            else:
+                message = failure_messages.get(loc, "Unknown error")
+                click.echo(f"\n[Processing locale: {loc}]")
+                click.echo(
+                    f"[Failed processing locale {loc}: {message}]",
+                    err=True,
+                )
 
         filth_map = collect_filth(
             input_text,
