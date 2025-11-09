@@ -42,7 +42,11 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 
 def _print_detectors() -> None:
-    """Print available detectors grouped by generic and locale-specific."""
+    """Print available detector descriptions to stdout.
+
+    Outputs both the generic detector catalogue and per-locale detectors for
+    human reference.
+    """
     generic_detectors = get_generic_detector_descriptions()
     locale_detectors = get_available_detectors()
 
@@ -69,10 +73,18 @@ def _run_scrub(
     cleanup: bool,
     verbose: bool,
 ) -> str:
-    """Run scrubbing and return the scrubbed text, optionally verbose-printing.
+    """Return scrubbed text for the requested configuration.
+
+    Args:
+        input_text: Raw text supplied by the user.
+        locale: Optional locale identifier restricting processing.
+        detectors: Whitespace-separated detector names from the CLI.
+        custom: Optional custom detector text configured by the user.
+        cleanup: Whether to normalize the final text with cleanup helpers.
+        verbose: Whether to emit detector progress information.
 
     Returns:
-        The final scrubbed text (possibly cleaned) joined across locales.
+        str: Final scrubbed text (including optional cleanup processing).
     """
     selected_detectors = detectors.split() if detectors else None
     outcome = scrub_text(

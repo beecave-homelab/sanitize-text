@@ -1,7 +1,9 @@
-"""Core functionality for text scrubbing.
+"""Text scrubbing orchestration helpers.
 
-This module provides the main text scrubbing functionality, including setup of
-detectors and text processing with multiple locales.
+This module builds `scrubadub` pipelines using the registered detector
+catalogue and exposes helpers that return structured results for callers. The
+implementation is intentionally data driven so new detectors can be added
+without editing the control flow.
 """
 
 from __future__ import annotations
@@ -21,14 +23,28 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class DetectorContext:
-    """Context provided to detector factories."""
+    """Context passed to detector factories.
+
+    Attributes:
+        locale: Locale identifier used to select locale-specific detectors.
+    """
 
     locale: str
 
 
 @dataclass(frozen=True)
 class DetectorSpec:
-    """Detector registration metadata."""
+    """Descriptor for a detector entry in the catalogue.
+
+    Attributes:
+        name: Canonical detector name.
+        description: Human-readable summary of the detector.
+        factory: Callable that builds the detector when requested.
+        enabled: Optional predicate deciding whether the detector can run in a
+            given context.
+        enabled_by_default: Whether the detector participates when callers do
+            not explicitly request a subset.
+    """
 
     name: str
     description: str
@@ -37,7 +53,14 @@ class DetectorSpec:
     enabled_by_default: bool = True
 
     def is_enabled(self, context: DetectorContext) -> bool:
-        """Return whether the detector is enabled for the given context."""
+        """Return whether the detector is enabled in ``context``.
+
+        Args:
+            context: Context describing the current locale.
+
+        Returns:
+            bool: ``True`` when the detector should be available.
+        """
 
         if self.enabled is None:
             return True
@@ -46,7 +69,13 @@ class DetectorSpec:
 
 @dataclass(frozen=True)
 class ScrubOutcome:
-    """Structured scrubbing result returned to callers."""
+    """Structured scrubbing result returned to callers.
+
+    Attributes:
+        texts: Scrubbed text keyed by locale.
+        detectors: Detector names executed for each locale.
+        errors: Error messages keyed by locale for failed runs.
+    """
 
     texts: dict[str, str]
     detectors: dict[str, list[str]]
@@ -54,7 +83,7 @@ class ScrubOutcome:
 
 
 def _spacy_is_available() -> bool:
-    """Best-effort check for optional spaCy detectors."""
+    """Return ``True`` when ``scrubadub-spacy`` is importable."""
 
     try:
         return importlib_util.find_spec("scrubadub_spacy.detectors") is not None
@@ -264,16 +293,28 @@ def _iter_enabled_specs(
     specs: Iterable[DetectorSpec],
     context: DetectorContext,
 ) -> list[DetectorSpec]:
-    """Return specs enabled for the given context preserving order."""
+    """Return detector specs enabled for ``context``.
+
+    Args:
+        specs: Candidate detector specifications.
+        context: Locale context used to evaluate optional predicates.
+
+    Returns:
+        list[DetectorSpec]: Enabled specifications preserving input order.
+    """
 
     return [spec for spec in specs if spec.is_enabled(context)]
 
 
 def get_generic_detector_descriptions(locale: str | None = None) -> dict[str, str]:
-    """Return descriptions for generic detectors, optionally for a locale.
+    """Return descriptions for generic detectors.
 
-    The optional ``locale`` parameter is used to evaluate whether detectors are
-    enabled for that locale. When omitted, a default English locale is used.
+    Args:
+        locale: Optional locale identifier used to check conditional
+            availability. Defaults to ``"en_US"`` when omitted.
+
+    Returns:
+        dict[str, str]: Mapping of detector names to descriptions.
     """
 
     context = DetectorContext(locale=locale or "en_US")
@@ -284,7 +325,14 @@ def get_generic_detector_descriptions(locale: str | None = None) -> dict[str, st
 
 
 def get_locale_detector_descriptions(locale: str) -> dict[str, str]:
-    """Return descriptions for detectors specific to ``locale``."""
+    """Return descriptions for detectors specific to ``locale``.
+
+    Args:
+        locale: Locale identifier.
+
+    Returns:
+        dict[str, str]: Mapping of detector names to descriptions.
+    """
 
     context = DetectorContext(locale=locale)
     return {
@@ -293,8 +341,20 @@ def get_locale_detector_descriptions(locale: str) -> dict[str, str]:
     }
 
 
-def get_available_detectors(locale: str | None = None) -> dict[str, str] | dict[str, dict[str, str]]:
-    """Get available detector names and descriptions for the given locale."""
+def get_available_detectors(
+    locale: str | None = None,
+) -> dict[str, str] | dict[str, dict[str, str]]:
+    """Return detector descriptions for ``locale`` or all locales.
+
+    Args:
+        locale: Optional locale identifier. When provided the result contains a
+            single mapping for the requested locale; otherwise all locales are
+            returned.
+
+    Returns:
+        dict[str, str] | dict[str, dict[str, str]]: Detector descriptions for
+        either a single locale or every registered locale.
+    """
 
     if locale:
         generic = get_generic_detector_descriptions(locale)
@@ -314,16 +374,18 @@ def setup_scrubber(
     custom_text: str | None = None,
     verbose: bool = False,
 ) -> scrubadub.Scrubber:
-    """Set up a scrubber with appropriate detectors and post-processors.
+    """Return a configured scrubber for ``locale``.
 
     Args:
-        locale: Locale code for text processing (e.g., 'nl_NL', 'en_US')
-        selected_detectors: Optional list of detector names to use
-        custom_text: Optional custom text to detect and replace
-        verbose: Enable verbose logging of detector activity
+        locale: Locale code (for example ``"nl_NL"`` or ``"en_US"``).
+        selected_detectors: Optional detector names to execute. When ``None``
+            the default enabled detectors are used.
+        custom_text: Optional custom text to treat as PII.
+        verbose: Whether the detectors should expose verbose behaviour.
 
     Returns:
-        Configured scrubber instance ready for text processing
+        scrubadub.Scrubber: Scrubber instance ready to process text for the
+        requested locale.
     """
     # Lazy imports to avoid heavy imports during CLI startup (e.g., --list-detectors)
     import scrubadub
@@ -394,25 +456,23 @@ def scrub_text(
     custom_text: str | None = None,
     verbose: bool = False,
 ) -> ScrubOutcome:
-    """Scrub PII from the given text using specified locale and detectors.
-
-    This is the main function for text sanitization. It processes the input text
-    using the specified locale and detectors, removing personally identifiable
-    information (PII) and replacing it with anonymized placeholders.
+    """Return scrubbed text for each processed locale.
 
     Args:
-        text: The text to scrub
-        locale: Optional locale code (e.g., 'nl_NL', 'en_US')
-        selected_detectors: Optional list of detector names to use
-        custom_text: Optional custom text to detect and replace
-        verbose: Enable verbose logging of detector activity
+        text: Raw text to scrub.
+        locale: Optional locale identifier. When omitted, both Dutch and
+            English locales are processed.
+        selected_detectors: Optional list of detector names. When ``None`` the
+            default detectors for each locale are used.
+        custom_text: Optional custom text treated as PII.
+        verbose: Whether detector implementations should run in verbose mode.
 
     Returns:
-        Structured result containing scrubbed text, detector metadata, and any
-        per-locale errors that occurred during processing.
+        ScrubOutcome: Structured result containing scrubbed text, detector
+        metadata, and locale-specific errors.
 
     Raises:
-        Exception: If all processing attempts fail
+        Exception: If every locale fails to process.
     """
     scrubbed_texts: dict[str, str] = {}
     detectors_by_locale: dict[str, list[str]] = {}
