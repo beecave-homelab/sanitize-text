@@ -18,7 +18,6 @@ normalize_pdf_text = normalize.normalize_pdf_text
 
 def test_normalize_pdf_text_handles_core_transformations() -> None:
     """Normalize several PDF artefacts in a single pass."""
-
     raw = (
         "Intro line with spaces   \n"
         "https://example.\n"
@@ -44,7 +43,6 @@ def test_normalize_pdf_text_handles_core_transformations() -> None:
 
 def test_normalize_pdf_text_keeps_existing_heading() -> None:
     """Do not duplicate headings when one is already present."""
-
     raw = "# Existing heading\nContent"
 
     result = normalize_pdf_text(raw, title="Ignored")

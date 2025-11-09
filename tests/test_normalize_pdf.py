@@ -2,6 +2,7 @@
 
 These tests validate lightweight cleanup applied to text extracted from PDFs.
 """
+
 from __future__ import annotations
 
 import re

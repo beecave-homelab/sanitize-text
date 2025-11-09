@@ -58,9 +58,7 @@ def test_read_input_source_file(tmp_path: Path) -> None:
 def test_read_input_source_append_requires_output() -> None:
     """Append mode requires output path to be set."""
     with pytest.raises(ValueError):
-        cli_io.read_input_source(
-            text=None, input_path=None, append=True, output_path=None
-        )
+        cli_io.read_input_source(text=None, input_path=None, append=True, output_path=None)
 
 
 def test_read_input_source_append_reads_output(tmp_path: Path) -> None:
@@ -76,9 +74,7 @@ def test_read_input_source_append_reads_output(tmp_path: Path) -> None:
     assert got == "prev"
 
 
-def test_read_input_source_pdf(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_read_input_source_pdf(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """PDF input is pre-converted to Markdown then normalized."""
     p = tmp_path / "in.pdf"
     p.write_text("%PDF-1.4", encoding="utf-8")
@@ -95,14 +91,13 @@ def test_read_input_source_pdf(
     monkeypatch.setattr(cli_io, "preconvert", DummyPreconvert)
     monkeypatch.setattr(cli_io, "normalize_pdf_text", dummy_norm)
 
-    got = cli_io.read_input_source(
-        text=None, input_path=str(p), append=False, output_path=None
-    )
+    got = cli_io.read_input_source(text=None, input_path=str(p), append=False, output_path=None)
     assert got.startswith("# Title")
 
 
 def test_read_input_source_stdin(monkeypatch: pytest.MonkeyPatch) -> None:
     """Read from stdin when not a tty and no other inputs provided."""
+
     class FakeStdin(io.StringIO):
         def isatty(self) -> bool:  # type: ignore[override]
             return False
@@ -111,9 +106,7 @@ def test_read_input_source_stdin(monkeypatch: pytest.MonkeyPatch) -> None:
     fake = FakeStdin(data)
     monkeypatch.setattr("sys.stdin", fake)
 
-    got = cli_io.read_input_source(
-        text=None, input_path=None, append=False, output_path=None
-    )
+    got = cli_io.read_input_source(text=None, input_path=None, append=False, output_path=None)
     assert got == data
 
 
