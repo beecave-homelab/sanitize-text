@@ -21,6 +21,18 @@
                     placeholder="Enter text containing PII here..."
                     spellcheck="true"
                 ></textarea>
+
+                <div class="upload-container">
+                    <label for="upload-file">Or upload a file to scrub:</label>
+                    <input id="upload-file" type="file" accept=".txt,.pdf,.doc,.docx,.rtf,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp" />
+                </div>
+
+                <div class="button-row">
+                    <button id="process-btn" class="primary">Process Text</button>
+                    <button id="process-file-btn">Process Uploaded File</button>
+                    <button id="download-text-btn">Download From Text</button>
+                    <button id="download-file-btn">Download From File</button>
+                </div>
             </div>
 
             <div class="controls-container">
@@ -51,7 +63,7 @@
                         <div class="detector-list">
                             {% for key, description in english_detectors.items() %}
                                 <label title="{{ description }}">
-                                    <input type="checkbox" name="detector" value="en:{{ key }}" checked>
+                                    <input type="checkbox" name="detector" value="en:{{ key }}" {% if key != 'date_of_birth' %}checked{% endif %}>
                                     {{ key.replace('_', ' ').title() }}
                                 </label>
                             {% endfor %}
@@ -74,7 +86,39 @@
                     {% endif %}
                 </div>
 
-                <button id="process-btn" class="primary">Process Text</button>
+                <div class="extra-options">
+                    <div class="field">
+                        <label for="custom-text">Custom text to detect (optional):</label>
+                        <input id="custom-text" type="text" placeholder="e.g. AcmeCorp or Employee ID 1234" />
+                    </div>
+                    <div class="field-row">
+                        <label class="toggle">
+                            <input id="cleanup" type="checkbox" checked />
+                            Cleanup output
+                        </label>
+                        <label class="toggle">
+                            <input id="verbose" type="checkbox" />
+                            Show verbose PII mappings
+                        </label>
+                    </div>
+                    <div class="field-row">
+                        <label for="output-format">Output format:</label>
+                        <select id="output-format">
+                            <option value="txt" selected>TXT</option>
+                            <option value="docx">DOCX</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+
+                        <label for="pdf-mode">PDF mode:</label>
+                        <select id="pdf-mode">
+                            <option value="pre" selected>Preformatted</option>
+                            <option value="para">Paragraph</option>
+                        </select>
+
+                        <label for="font-size">Font size:</label>
+                        <input id="font-size" type="number" min="6" max="48" value="11" />
+                    </div>
+                </div>
             </div>
 
             <div class="text-area-container">
@@ -84,6 +128,7 @@
                     readonly 
                     placeholder="Processed text will appear here..."
                 ></textarea>
+                <div id="verbose-output" style="display:none; white-space: pre-wrap; font-family: monospace; font-size: 0.9rem; margin-top: 0.5rem;"></div>
                 <button id="copy-btn" class="secondary">
                     Copy to Clipboard
                 </button>
@@ -113,15 +158,49 @@
         localeSelect.addEventListener('change', updateDetectorVisibility);
         updateDetectorVisibility();
 
+        function getSelectedDetectors() {
+            return Array.from(document.querySelectorAll('input[name="detector"]:checked'))
+                .map(cb => cb.value);
+        }
+
+        function renderResultsIntoOutput(data) {
+            const outputText = document.getElementById('output-text');
+            const verboseDiv = document.getElementById('verbose-output');
+            if (data.results) {
+                const formattedText = data.results
+                    .map(result => `[${result.locale}]\n${result.text}`)
+                    .join('\n\n');
+                outputText.value = formattedText;
+
+                const verboseOn = document.getElementById('verbose').checked;
+                if (verboseOn) {
+                    const parts = data.results.map(r => {
+                        if (!r.filth) return `[${r.locale}]\n(no filth details)`;
+                        const lines = r.filth.map(f => `- ${f.type}: '${f.text}' -> '${f.replacement}'`);
+                        return `[${r.locale}]\n` + lines.join('\n');
+                    });
+                    verboseDiv.style.display = 'block';
+                    verboseDiv.textContent = parts.join('\n\n');
+                } else {
+                    verboseDiv.style.display = 'none';
+                    verboseDiv.textContent = '';
+                }
+            } else {
+                outputText.value = 'No results returned';
+                verboseDiv.style.display = 'none';
+                verboseDiv.textContent = '';
+            }
+        }
+
         document.getElementById('process-btn').addEventListener('click', async () => {
             const inputText = document.getElementById('input-text').value;
             const locale = document.getElementById('locale').value;
             const processBtn = document.getElementById('process-btn');
             const outputText = document.getElementById('output-text');
-            
-            // Get selected detectors
-            const selectedDetectors = Array.from(document.querySelectorAll('input[name="detector"]:checked'))
-                .map(checkbox => checkbox.value);
+            const custom = document.getElementById('custom-text').value || null;
+            const cleanup = document.getElementById('cleanup').checked;
+            const verbose = document.getElementById('verbose').checked;
+            const selectedDetectors = getSelectedDetectors();
             
             try {
                 processBtn.disabled = true;
@@ -136,21 +215,16 @@
                     body: JSON.stringify({ 
                         text: inputText,
                         locale: locale || null,
-                        detectors: selectedDetectors
+                        detectors: selectedDetectors,
+                        custom,
+                        cleanup,
+                        verbose
                     }),
                 });
                 
                 const data = await response.json();
-                
                 if (response.ok) {
-                    if (data.results) {
-                        const formattedText = data.results
-                            .map(result => `[${result.locale}]\n${result.text}`)
-                            .join('\n\n');
-                        outputText.value = formattedText;
-                    } else {
-                        outputText.value = 'No results returned';
-                    }
+                    renderResultsIntoOutput(data);
                 } else {
                     alert(data.error || 'Error processing text');
                 }
@@ -159,6 +233,149 @@
             } finally {
                 processBtn.disabled = false;
                 processBtn.textContent = 'Process Text';
+            }
+        });
+
+        document.getElementById('process-file-btn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('upload-file');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please select a file to process.');
+                return;
+            }
+            const locale = document.getElementById('locale').value;
+            const custom = document.getElementById('custom-text').value || '';
+            const cleanup = document.getElementById('cleanup').checked;
+            const verbose = document.getElementById('verbose').checked;
+            const selectedDetectors = getSelectedDetectors();
+
+            const form = new FormData();
+            form.append('file', fileInput.files[0]);
+            if (locale) form.append('locale', locale);
+            if (custom) form.append('custom', custom);
+            form.append('cleanup', cleanup ? 'true' : 'false');
+            form.append('verbose', verbose ? 'true' : 'false');
+            selectedDetectors.forEach(d => form.append('detectors', d));
+
+            try {
+                const btn = document.getElementById('process-file-btn');
+                btn.disabled = true;
+                btn.textContent = 'Processing File...';
+                const resp = await fetch('/process-file', { method: 'POST', body: form });
+                const data = await resp.json();
+                if (resp.ok) {
+                    renderResultsIntoOutput(data);
+                } else {
+                    alert(data.error || 'Error processing file');
+                }
+            } catch (e) {
+                alert('Error processing file. Please try again.');
+            } finally {
+                const btn = document.getElementById('process-file-btn');
+                btn.disabled = false;
+                btn.textContent = 'Process Uploaded File';
+            }
+        });
+
+        async function triggerDownloadFromResponse(resp, fallbackName) {
+            const blob = await resp.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const cd = resp.headers.get('Content-Disposition') || '';
+            const match = /filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i.exec(cd);
+            const headerName = match ? decodeURIComponent(match[1] || match[2]) : fallbackName;
+            a.href = url;
+            a.download = headerName || fallbackName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        }
+
+        document.getElementById('download-text-btn').addEventListener('click', async () => {
+            const inputText = document.getElementById('input-text').value;
+            if (!inputText) { alert('Please enter input text first.'); return; }
+            const locale = document.getElementById('locale').value;
+            const custom = document.getElementById('custom-text').value || null;
+            const cleanup = document.getElementById('cleanup').checked;
+            const outputFormat = document.getElementById('output-format').value;
+            const pdfMode = document.getElementById('pdf-mode').value;
+            const fontSize = parseInt(document.getElementById('font-size').value || '11', 10);
+            const detectors = getSelectedDetectors();
+
+            try {
+                const btn = document.getElementById('download-text-btn');
+                btn.disabled = true;
+                btn.textContent = 'Preparing Download...';
+                const resp = await fetch('/export', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: inputText,
+                        locale: locale || null,
+                        detectors,
+                        custom,
+                        cleanup,
+                        output_format: outputFormat,
+                        pdf_mode: pdfMode,
+                        font_size: fontSize,
+                    }),
+                });
+                if (!resp.ok) {
+                    let err = 'Download failed';
+                    try { const j = await resp.json(); err = j.error || err; } catch {}
+                    alert(err); return;
+                }
+                await triggerDownloadFromResponse(resp, `scrubbed.${outputFormat}`);
+            } catch (e) {
+                alert('Failed to prepare download.');
+            } finally {
+                const btn = document.getElementById('download-text-btn');
+                btn.disabled = false;
+                btn.textContent = 'Download From Text';
+            }
+        });
+
+        document.getElementById('download-file-btn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('upload-file');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please select a file to download results for.');
+                return;
+            }
+            const locale = document.getElementById('locale').value;
+            const custom = document.getElementById('custom-text').value || '';
+            const cleanup = document.getElementById('cleanup').checked;
+            const outputFormat = document.getElementById('output-format').value;
+            const pdfMode = document.getElementById('pdf-mode').value;
+            const fontSize = document.getElementById('font-size').value || '11';
+            const detectors = getSelectedDetectors();
+
+            const form = new FormData();
+            form.append('file', fileInput.files[0]);
+            if (locale) form.append('locale', locale);
+            if (custom) form.append('custom', custom);
+            form.append('cleanup', cleanup ? 'true' : 'false');
+            form.append('output_format', outputFormat);
+            form.append('pdf_mode', pdfMode);
+            form.append('font_size', String(fontSize));
+            detectors.forEach(d => form.append('detectors', d));
+
+            try {
+                const btn = document.getElementById('download-file-btn');
+                btn.disabled = true;
+                btn.textContent = 'Preparing Download...';
+                const resp = await fetch('/download-file', { method: 'POST', body: form });
+                if (!resp.ok) {
+                    let err = 'Download failed';
+                    try { const j = await resp.json(); err = j.error || err; } catch {}
+                    alert(err); return;
+                }
+                await triggerDownloadFromResponse(resp, `scrubbed.${outputFormat}`);
+            } catch (e) {
+                alert('Failed to prepare download.');
+            } finally {
+                const btn = document.getElementById('download-file-btn');
+                btn.disabled = false;
+                btn.textContent = 'Download From File';
             }
         });
 
@@ -246,9 +463,18 @@
             margin: 0;
         }
 
+        .extra-options { display: flex; flex-direction: column; gap: 0.75rem; }
+        .field { display: flex; flex-direction: column; gap: 0.25rem; }
+        .field-row { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+        .field-row select, .field-row input[type="number"], .extra-options input[type="text"] {
+            padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem;
+        }
+        .toggle { display: inline-flex; align-items: center; gap: 0.5rem; }
+        .upload-container { display: flex; flex-direction: column; gap: 0.25rem; }
+        .button-row { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-end; }
         #process-btn {
             align-self: flex-end;
         }
     </style>
 </body>
-</html> 
+</html>

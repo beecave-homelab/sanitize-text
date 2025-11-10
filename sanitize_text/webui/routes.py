@@ -2,9 +2,20 @@
 
 from __future__ import annotations
 
-from flask import Flask, Response, jsonify, render_template, request
+import os
+import tempfile
+from pathlib import Path
 
-from sanitize_text.core.scrubber import get_available_detectors, setup_scrubber
+from flask import Flask, Response, jsonify, render_template, request, send_file
+
+from sanitize_text.core.scrubber import (
+    collect_filth,
+    get_available_detectors,
+    setup_scrubber,
+)
+from sanitize_text.output import get_writer
+from sanitize_text.utils import preconvert
+from sanitize_text.utils.cleanup import cleanup_output
 
 GENERIC_DETECTORS = {
     "email",
@@ -60,6 +71,45 @@ def _build_locale_selections(
     return {locale: sorted(detectors) for locale, detectors in locale_map.items()}
 
 
+def _format_results_text(results: list[dict[str, str]]) -> str:
+    """Return a human-readable text for multiple locales.
+
+    Args:
+        results: List of dicts with keys ``locale`` and ``text``.
+
+    Returns:
+        Combined string with sections per-locale.
+    """
+    sections: list[str] = []
+    for item in results:
+        loc = item.get("locale", "?")
+        text = item.get("text", "")
+        sections.append(f"Results for {loc}:\n{text}")
+    return "\n\n".join(sections)
+
+
+def _read_uploaded_file_to_text(upload_path: Path) -> str:
+    """Return text extracted from an uploaded file path.
+
+    Uses the same conversion rules as the CLI: PDF, DOC/DOCX, RTF, images,
+    otherwise treats it as UTF-8 text.
+    """
+    ext = upload_path.suffix.lower()
+    if ext == ".pdf":
+        raw_md = preconvert.to_markdown(str(upload_path))
+        # Normalize to plain text similar to CLI cleanup path
+        from sanitize_text.utils.normalize import normalize_pdf_text
+
+        return normalize_pdf_text(raw_md, title=None)
+    if ext in {".doc", ".docx"}:
+        return preconvert.docx_to_text(str(upload_path))
+    if ext == ".rtf":
+        return preconvert.rtf_to_text(str(upload_path))
+    if ext in {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp", ".webp"}:
+        return preconvert.image_to_text(str(upload_path))
+    return upload_path.read_text(encoding="utf-8", errors="replace")
+
+
 def init_routes(app: Flask) -> Flask:
     """Initialize Flask routes for the web interface.
 
@@ -95,6 +145,9 @@ def init_routes(app: Flask) -> Flask:
         input_text = data.get("text", "")
         locale = data.get("locale") or None
         selected_detectors = data.get("detectors") or []
+        custom = data.get("custom") or None
+        cleanup = bool(data.get("cleanup", True))
+        verbose = bool(data.get("verbose", False))
 
         if not input_text:
             return jsonify({"error": "No text provided"}), 400
@@ -102,15 +155,35 @@ def init_routes(app: Flask) -> Flask:
         per_locale_selection = _build_locale_selections(selected_detectors)
         locales_to_process = ["en_US", "nl_NL"] if locale is None else [locale]
 
-        results = []
+        results: list[dict[str, object]] = []
         for current_locale in locales_to_process:
             try:
                 detectors_for_locale = None
                 if per_locale_selection is not None:
                     detectors_for_locale = per_locale_selection.get(current_locale, [])
-                scrubber = setup_scrubber(current_locale, detectors_for_locale)
+                scrubber = setup_scrubber(
+                    current_locale, detectors_for_locale, custom_text=custom, verbose=verbose
+                )
                 scrubbed_text = scrubber.clean(input_text)
-                results.append({"locale": current_locale, "text": scrubbed_text})
+                if cleanup:
+                    scrubbed_text = cleanup_output(scrubbed_text)
+                payload: dict[str, object] = {"locale": current_locale, "text": scrubbed_text}
+                if verbose:
+                    filths = collect_filth(
+                        input_text,
+                        locale=current_locale,
+                        selected_detectors=detectors_for_locale,
+                        custom_text=custom,
+                    ).get(current_locale, [])
+                    payload["filth"] = [
+                        {
+                            "type": getattr(f, "type", ""),
+                            "text": getattr(f, "text", ""),
+                            "replacement": getattr(f, "replacement_string", ""),
+                        }
+                        for f in filths
+                    ]
+                results.append(payload)
             except Exception as exc:  # pragma: no cover - defensive
                 print(f"Warning: Processing failed for locale {current_locale}: {exc}")
                 continue
@@ -119,5 +192,274 @@ def init_routes(app: Flask) -> Flask:
             return jsonify({"error": "All processing attempts failed"}), 500
 
         return jsonify({"results": results})
+
+    @app.route("/process-file", methods=["POST"])
+    def process_file() -> Response:
+        """Process an uploaded file and return scrubbed text as JSON.
+
+        The request must be ``multipart/form-data`` with fields:
+        - file: the uploaded file
+        - locale: optional locale (en_US/nl_NL)
+        - detectors: optional repeated field or comma-separated values
+        - custom: optional custom text
+        - cleanup: optional boolean (default True)
+        - verbose: optional boolean (default False)
+
+        Returns:
+            Response: JSON body with results per-locale or an error message.
+        """
+        if "file" not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+
+        file = request.files["file"]
+        if file.filename == "":
+            return jsonify({"error": "Empty filename"}), 400
+
+        # Persist upload to a temporary file to reuse existing converters
+        suffix = Path(file.filename).suffix or ""
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            file.save(tmp)
+            tmp_path = Path(tmp.name)
+
+        try:
+            input_text = _read_uploaded_file_to_text(tmp_path)
+        finally:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+        # Parse options
+        locale = request.form.get("locale") or None
+        custom = request.form.get("custom") or None
+        cleanup = request.form.get("cleanup", "true").lower() in {"1", "true", "yes", "on"}
+        verbose = request.form.get("verbose", "false").lower() in {"1", "true", "yes", "on"}
+
+        # detectors may come as repeated fields or comma/space separated
+        detectors_fields: list[str] = request.form.getlist("detectors") or []
+        if not detectors_fields:
+            raw = request.form.get("detectors", "")
+            if raw:
+                detectors_fields = [t for t in raw.replace(",", " ").split() if t]
+
+        per_locale_selection = _build_locale_selections(detectors_fields or None)
+        locales_to_process = ["en_US", "nl_NL"] if locale is None else [locale]
+
+        results: list[dict[str, object]] = []
+        for current_locale in locales_to_process:
+            try:
+                detectors_for_locale = None
+                if per_locale_selection is not None:
+                    detectors_for_locale = per_locale_selection.get(current_locale, [])
+                scrubber = setup_scrubber(
+                    current_locale, detectors_for_locale, custom_text=custom, verbose=verbose
+                )
+                scrubbed_text = scrubber.clean(input_text)
+                if cleanup:
+                    scrubbed_text = cleanup_output(scrubbed_text)
+                payload: dict[str, object] = {"locale": current_locale, "text": scrubbed_text}
+                if verbose:
+                    filths = collect_filth(
+                        input_text,
+                        locale=current_locale,
+                        selected_detectors=detectors_for_locale,
+                        custom_text=custom,
+                    ).get(current_locale, [])
+                    payload["filth"] = [
+                        {
+                            "type": getattr(f, "type", ""),
+                            "text": getattr(f, "text", ""),
+                            "replacement": getattr(f, "replacement_string", ""),
+                        }
+                        for f in filths
+                    ]
+                results.append(payload)
+            except Exception as exc:  # pragma: no cover - defensive
+                print(f"Warning: Processing failed for locale {current_locale}: {exc}")
+                continue
+
+        if not results:
+            return jsonify({"error": "All processing attempts failed"}), 500
+
+        return jsonify({"results": results})
+
+    @app.route("/export", methods=["POST"])
+    def export_text() -> Response:
+        """Return a downloadable file for scrubbed text from JSON payload.
+
+        Expects JSON with keys: text, locale, detectors, custom, cleanup,
+        output_format (txt|docx|pdf), and optional pdf_mode, font_size.
+        """
+        data = request.json or {}
+        input_text = data.get("text", "")
+        if not input_text:
+            return jsonify({"error": "No text provided"}), 400
+
+        locale = data.get("locale") or None
+        selected_detectors = data.get("detectors") or []
+        custom = data.get("custom") or None
+        cleanup = bool(data.get("cleanup", True))
+        output_format = (data.get("output_format") or "txt").lower()
+        pdf_mode = data.get("pdf_mode", "pre")
+        font_size = int(data.get("font_size", 11))
+
+        # Build results text first (so multi-locale matches CLI semantics)
+        per_locale_selection = _build_locale_selections(selected_detectors)
+        locales_to_process = ["en_US", "nl_NL"] if locale is None else [locale]
+
+        interim_results: list[dict[str, str]] = []
+        for current_locale in locales_to_process:
+            try:
+                detectors_for_locale = None
+                if per_locale_selection is not None:
+                    detectors_for_locale = per_locale_selection.get(current_locale, [])
+                scrubber = setup_scrubber(
+                    current_locale, detectors_for_locale, custom_text=custom
+                )
+                scrubbed_text = scrubber.clean(input_text)
+                if cleanup:
+                    scrubbed_text = cleanup_output(scrubbed_text)
+                interim_results.append({"locale": current_locale, "text": scrubbed_text})
+            except Exception as exc:  # pragma: no cover - defensive
+                print(f"Warning: Processing failed for locale {current_locale}: {exc}")
+                continue
+
+        if not interim_results:
+            return jsonify({"error": "All processing attempts failed"}), 500
+
+        combined_text = _format_results_text(interim_results)
+
+        # Write to a temporary file using existing writers
+        writer = get_writer(output_format)
+        suffix = f".{output_format}"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp_path = Path(tmp.name)
+        write_kwargs: dict[str, object] = {}
+        if output_format == "pdf":
+            write_kwargs = {"pdf_mode": pdf_mode, "pdf_font": None, "font_size": font_size}
+        writer.write(combined_text, str(tmp_path), **write_kwargs)
+
+        download_name = f"scrubbed{suffix}"
+        mimetypes = {
+            "txt": "text/plain",
+            "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "pdf": "application/pdf",
+        }
+        return send_file(
+            str(tmp_path),
+            mimetype=mimetypes.get(output_format, "application/octet-stream"),
+            as_attachment=True,
+            download_name=download_name,
+        )
+
+    @app.route("/download-file", methods=["POST"])
+    def download_file() -> Response:
+        """Process an uploaded file and return a downloadable artifact.
+
+        multipart/form-data fields:
+        - file: input document
+        - pdf_font: optional TTF font file (PDF only)
+        - locale, detectors, custom, cleanup
+        - output_format (txt|docx|pdf), pdf_mode, font_size
+
+        Returns:
+            Response: File attachment in the requested format.
+        """
+        if "file" not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+
+        file = request.files["file"]
+        if file.filename == "":
+            return jsonify({"error": "Empty filename"}), 400
+
+        suffix = Path(file.filename).suffix or ""
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_in:
+            file.save(tmp_in)
+            in_path = Path(tmp_in.name)
+
+        try:
+            input_text = _read_uploaded_file_to_text(in_path)
+        finally:
+            try:
+                os.unlink(in_path)
+            except OSError:
+                pass
+
+        # Options
+        locale = request.form.get("locale") or None
+        custom = request.form.get("custom") or None
+        cleanup = request.form.get("cleanup", "true").lower() in {"1", "true", "yes", "on"}
+        output_format = (request.form.get("output_format") or "txt").lower()
+        pdf_mode = request.form.get("pdf_mode", "pre")
+        font_size_raw = request.form.get("font_size", "11")
+        try:
+            font_size = int(font_size_raw)
+        except ValueError:
+            font_size = 11
+
+        detectors_fields: list[str] = request.form.getlist("detectors") or []
+        if not detectors_fields:
+            raw = request.form.get("detectors", "")
+            if raw:
+                detectors_fields = [t for t in raw.replace(",", " ").split() if t]
+
+        per_locale_selection = _build_locale_selections(detectors_fields or None)
+        locales_to_process = ["en_US", "nl_NL"] if locale is None else [locale]
+
+        interim_results: list[dict[str, str]] = []
+        for current_locale in locales_to_process:
+            try:
+                detectors_for_locale = None
+                if per_locale_selection is not None:
+                    detectors_for_locale = per_locale_selection.get(current_locale, [])
+                scrubber = setup_scrubber(
+                    current_locale, detectors_for_locale, custom_text=custom
+                )
+                scrubbed_text = scrubber.clean(input_text)
+                if cleanup:
+                    scrubbed_text = cleanup_output(scrubbed_text)
+                interim_results.append({"locale": current_locale, "text": scrubbed_text})
+            except Exception as exc:  # pragma: no cover - defensive
+                print(f"Warning: Processing failed for locale {current_locale}: {exc}")
+                continue
+
+        if not interim_results:
+            return jsonify({"error": "All processing attempts failed"}), 500
+
+        combined_text = _format_results_text(interim_results)
+
+        # Prepare PDF font if provided
+        pdf_font_path: str | None = None
+        if output_format == "pdf" and "pdf_font" in request.files:
+            font_file = request.files["pdf_font"]
+            if font_file and font_file.filename:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".ttf") as tmp_font:
+                    font_file.save(tmp_font)
+                    pdf_font_path = tmp_font.name
+
+        writer = get_writer(output_format)
+        suffix = f".{output_format}"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_out:
+            out_path = Path(tmp_out.name)
+        write_kwargs: dict[str, object] = {}
+        if output_format == "pdf":
+            write_kwargs = {"pdf_mode": pdf_mode, "pdf_font": pdf_font_path, "font_size": font_size}
+        writer.write(combined_text, str(out_path), **write_kwargs)
+
+        download_name = f"scrubbed{suffix}"
+        mimetypes = {
+            "txt": "text/plain",
+            "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "pdf": "application/pdf",
+        }
+
+        response = send_file(
+            str(out_path),
+            mimetype=mimetypes.get(output_format, "application/octet-stream"),
+            as_attachment=True,
+            download_name=download_name,
+        )
+        # Best-effort cleanup of temp font after response is sent handled by OS
+        return response
 
     return app
