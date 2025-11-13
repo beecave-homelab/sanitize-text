@@ -77,7 +77,9 @@ def test_filth_inheritance() -> None:
         assert filth.text == "test"
 
     # Test MarkdownUrlFilth with additional parameters
-    markdown_filth = MarkdownUrlFilth(beg=5, end=15, text="link text", link_text="Link", url="http://example.com")
+    markdown_filth = MarkdownUrlFilth(
+        beg=5, end=15, text="link text", link_text="Link", url="http://example.com"
+    )
     assert markdown_filth.beg == 5
     assert markdown_filth.end == 15
     assert markdown_filth.text == "link text"

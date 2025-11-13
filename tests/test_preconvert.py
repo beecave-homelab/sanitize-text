@@ -133,6 +133,7 @@ def test_run_command_process_error(run: MagicMock) -> None:
     """_run_command raises ConversionError when subprocess fails."""
     # Mock a CalledProcessError with stderr
     from subprocess import CalledProcessError
+
     error = CalledProcessError(1, ["failing_tool"], stderr=b"error message")
     run.side_effect = error
     with pytest.raises(pc.ConversionError, match="Conversion failed for"):
@@ -165,7 +166,9 @@ def test_pdf_to_text_pdfminer_fallback(mock_import: MagicMock, which: MagicMock)
 @patch("shutil.which", return_value=None)
 @patch("builtins.open", create=True)
 @patch("builtins.__import__")
-def test_rtf_to_text_striprtf_fallback(mock_import: MagicMock, mock_open: MagicMock, which: MagicMock) -> None:
+def test_rtf_to_text_striprtf_fallback(
+    mock_import: MagicMock, mock_open: MagicMock, which: MagicMock
+) -> None:
     """rtf_to_text falls back to striprtf when available."""
     # Mock striprtf import
     mock_striprtf = MagicMock()
@@ -269,19 +272,34 @@ def test_fontbbox_filter() -> None:
 
         # Test filtering
         record1 = logging.LogRecord(
-            name="test", level=logging.WARNING, pathname="", lineno=0,
-            msg="FontBBox parsed: 4 floats", args=(), exc_info=None
+            name="test",
+            level=logging.WARNING,
+            pathname="",
+            lineno=0,
+            msg="FontBBox parsed: 4 floats",
+            args=(),
+            exc_info=None,
         )
         assert not filter_obj.filter(record1)
 
         record2 = logging.LogRecord(
-            name="test", level=logging.WARNING, pathname="", lineno=0,
-            msg="FontBBox 4 floats", args=(), exc_info=None
+            name="test",
+            level=logging.WARNING,
+            pathname="",
+            lineno=0,
+            msg="FontBBox 4 floats",
+            args=(),
+            exc_info=None,
         )
         assert not filter_obj.filter(record2)
 
         record3 = logging.LogRecord(
-            name="test", level=logging.WARNING, pathname="", lineno=0,
-            msg="Some other message", args=(), exc_info=None
+            name="test",
+            level=logging.WARNING,
+            pathname="",
+            lineno=0,
+            msg="Some other message",
+            args=(),
+            exc_info=None,
         )
         assert filter_obj.filter(record3)
