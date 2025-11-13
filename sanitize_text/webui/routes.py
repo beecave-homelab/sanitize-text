@@ -313,9 +313,7 @@ def init_routes(app: Flask) -> Flask:
                 detectors_for_locale = None
                 if per_locale_selection is not None:
                     detectors_for_locale = per_locale_selection.get(current_locale, [])
-                scrubber = setup_scrubber(
-                    current_locale, detectors_for_locale, custom_text=custom
-                )
+                scrubber = setup_scrubber(current_locale, detectors_for_locale, custom_text=custom)
                 scrubbed_text = scrubber.clean(input_text)
                 if cleanup:
                     scrubbed_text = cleanup_output(scrubbed_text)
@@ -412,9 +410,7 @@ def init_routes(app: Flask) -> Flask:
                 detectors_for_locale = None
                 if per_locale_selection is not None:
                     detectors_for_locale = per_locale_selection.get(current_locale, [])
-                scrubber = setup_scrubber(
-                    current_locale, detectors_for_locale, custom_text=custom
-                )
+                scrubber = setup_scrubber(current_locale, detectors_for_locale, custom_text=custom)
                 scrubbed_text = scrubber.clean(input_text)
                 if cleanup:
                     scrubbed_text = cleanup_output(scrubbed_text)

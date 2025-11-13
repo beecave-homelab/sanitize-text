@@ -8,44 +8,50 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Sanitize Text - WebUI</h1>
-            <p>Anonymize Personal Identifiable Information in your text</p>
+        <header class="app-header">
+            <div class="brand">
+                <h1>Sanitize Text</h1>
+                <p>Scrub PII from text and documents</p>
+            </div>
+            <div class="header-actions">
+                <button id="theme-toggle" aria-label="Toggle dark mode" class="icon-button" title="Toggle dark mode">🌙</button>
+            </div>
         </header>
         
         <main>
-            <div class="text-area-container">
-                <label for="input-text">Input Text</label>
+            <div class="card input-card">
+                <label for="input-text" class="section-title">Input</label>
                 <textarea 
                     id="input-text" 
-                    placeholder="Enter text containing PII here..."
+                    placeholder="Paste or type text to scrub…"
                     spellcheck="true"
                 ></textarea>
 
-                <div class="upload-container">
-                    <label for="upload-file">Or upload a file to scrub:</label>
-                    <input id="upload-file" type="file" accept=".txt,.pdf,.doc,.docx,.rtf,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp" />
+                <div id="dropzone" class="dropzone" aria-label="Drag & drop a file here">
+                    <div class="dz-instructions">Drop a file here or <label for="upload-file" class="link">browse</label></div>
+                    <input id="upload-file" type="file" accept=".txt,.pdf,.doc,.docx,.rtf,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp" hidden />
+                    <div id="file-pill" class="file-pill" style="display:none;"></div>
                 </div>
 
-                <div class="button-row">
-                    <button id="process-btn" class="primary">Process Text</button>
-                    <button id="process-file-btn">Process Uploaded File</button>
-                    <button id="download-text-btn">Download From Text</button>
-                    <button id="download-file-btn">Download From File</button>
+                <div class="toolbar">
+                    <div class="segmented" id="locale-tabs" role="tablist" aria-label="Language">
+                        <button class="active" data-value="" role="tab" aria-selected="true">Both</button>
+                        <button data-value="en_US" role="tab" aria-selected="false">English</button>
+                        <button data-value="nl_NL" role="tab" aria-selected="false">Dutch</button>
+                    </div>
+                    <div class="actions-bar">
+                        <button id="scrub-btn" class="primary">Scrub</button>
+                        <button id="download-btn" class="secondary">Download</button>
+                    </div>
                 </div>
             </div>
 
             <div class="controls-container">
-                <div class="locale-selector">
-                    <label for="locale">Language:</label>
-                    <select id="locale">
-                        <option value="">Both (NL + EN)</option>
-                        <option value="nl_NL">Dutch (NL)</option>
-                        <option value="en_US">English (EN)</option>
-                    </select>
-                </div>
+                <input id="locale" type="hidden" value="" />
 
-                <div class="detector-options">
+                <details class="advanced" id="advanced">
+                    <summary>Advanced settings</summary>
+                    <div class="detector-options">
                     <div class="detector-group">
                         <h3>Universal Detectors</h3>
                         <div class="detector-list">
@@ -84,9 +90,8 @@
                     {% if not spacy_available %}
                         <p class="detector-note">Install <code>sanitize-text[spacy]</code> to enable optional spaCy-powered entity detectors.</p>
                     {% endif %}
-                </div>
 
-                <div class="extra-options">
+                    <div class="extra-options">
                     <div class="field">
                         <label for="custom-text">Custom text to detect (optional):</label>
                         <input id="custom-text" type="text" placeholder="e.g. AcmeCorp or Employee ID 1234" />
@@ -118,20 +123,25 @@
                         <label for="font-size">Font size:</label>
                         <input id="font-size" type="number" min="6" max="48" value="11" />
                     </div>
-                </div>
+                    </div>
+                </details>
             </div>
 
-            <div class="text-area-container">
-                <label for="output-text">Processed Text</label>
+            <div class="card output-card">
+                <label for="output-text" class="section-title">Output</label>
                 <textarea 
                     id="output-text" 
                     readonly 
                     placeholder="Processed text will appear here..."
                 ></textarea>
-                <div id="verbose-output" style="display:none; white-space: pre-wrap; font-family: monospace; font-size: 0.9rem; margin-top: 0.5rem;"></div>
-                <button id="copy-btn" class="secondary">
-                    Copy to Clipboard
-                </button>
+                <details id="verbose-panel" class="verbose-panel" style="display:none;">
+                    <summary>PII mappings</summary>
+                    <div id="verbose-output" style="white-space: pre-wrap; font-family: monospace; font-size: 0.9rem;"></div>
+                </details>
+                <div class="output-actions">
+                    <div id="result-meta" class="result-meta"></div>
+                    <button id="copy-btn" class="secondary">Copy</button>
+                </div>
             </div>
         </main>
     </div>
@@ -140,6 +150,11 @@
         const localeSelect = document.getElementById('locale');
         const enDetectors = document.getElementById('en-detectors');
         const nlDetectors = document.getElementById('nl-detectors');
+        const localeTabs = document.getElementById('locale-tabs');
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('upload-file');
+        const filePill = document.getElementById('file-pill');
+        const themeToggle = document.getElementById('theme-toggle');
 
         function updateDetectorVisibility() {
             const locale = localeSelect.value;
@@ -158,6 +173,62 @@
         localeSelect.addEventListener('change', updateDetectorVisibility);
         updateDetectorVisibility();
 
+        // Segmented locale tabs
+        function setLocaleFromTabs(value) {
+            localeSelect.value = value || '';
+            if (localeTabs) {
+                Array.from(localeTabs.querySelectorAll('button')).forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.value === value);
+                    btn.setAttribute('aria-selected', String(btn.dataset.value === value));
+                });
+            }
+            updateDetectorVisibility();
+        }
+        if (localeTabs) {
+            localeTabs.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+                setLocaleFromTabs(btn.dataset.value || '');
+            });
+            setLocaleFromTabs('');
+        }
+
+        // Dark mode toggle
+        if (themeToggle) {
+            const saved = localStorage.getItem('theme') || 'light';
+            document.body.dataset.theme = saved;
+            themeToggle.textContent = saved === 'dark' ? '☀️' : '🌙';
+            themeToggle.addEventListener('click', () => {
+                const next = (document.body.dataset.theme === 'dark') ? 'light' : 'dark';
+                document.body.dataset.theme = next;
+                localStorage.setItem('theme', next);
+                themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
+            });
+        }
+
+        // Drag & drop upload
+        if (dropzone && fileInput && filePill) {
+            function setFileInfo(file) {
+                if (!file) { filePill.style.display = 'none'; filePill.textContent = ''; return; }
+                filePill.style.display = 'inline-flex';
+                filePill.textContent = file.name;
+            }
+            dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
+            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault(); dropzone.classList.remove('drag');
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    fileInput.files = e.dataTransfer.files;
+                    setFileInfo(fileInput.files[0]);
+                }
+            });
+            dropzone.addEventListener('click', (e) => {
+                const isLabel = e.target && e.target.tagName === 'LABEL';
+                if (!isLabel) fileInput.click();
+            });
+            fileInput.addEventListener('change', () => setFileInfo(fileInput.files[0]));
+        }
+
         function getSelectedDetectors() {
             return Array.from(document.querySelectorAll('input[name="detector"]:checked'))
                 .map(cb => cb.value);
@@ -166,6 +237,8 @@
         function renderResultsIntoOutput(data) {
             const outputText = document.getElementById('output-text');
             const verboseDiv = document.getElementById('verbose-output');
+            const verbosePanel = document.getElementById('verbose-panel');
+            const meta = document.getElementById('result-meta');
             if (data.results) {
                 const formattedText = data.results
                     .map(result => `[${result.locale}]\n${result.text}`)
@@ -179,23 +252,26 @@
                         const lines = r.filth.map(f => `- ${f.type}: '${f.text}' -> '${f.replacement}'`);
                         return `[${r.locale}]\n` + lines.join('\n');
                     });
-                    verboseDiv.style.display = 'block';
+                    if (verbosePanel) verbosePanel.style.display = 'block';
                     verboseDiv.textContent = parts.join('\n\n');
                 } else {
-                    verboseDiv.style.display = 'none';
+                    if (verbosePanel) verbosePanel.style.display = 'none';
                     verboseDiv.textContent = '';
                 }
+                if (meta) meta.textContent = `${data.results.length} locale(s)`;
             } else {
                 outputText.value = 'No results returned';
-                verboseDiv.style.display = 'none';
+                if (verbosePanel) verbosePanel.style.display = 'none';
                 verboseDiv.textContent = '';
+                if (meta) meta.textContent = '';
             }
         }
 
-        document.getElementById('process-btn').addEventListener('click', async () => {
+        const __procBtn = document.getElementById('process-btn');
+        if (__procBtn) __procBtn.addEventListener('click', async () => {
             const inputText = document.getElementById('input-text').value;
             const locale = document.getElementById('locale').value;
-            const processBtn = document.getElementById('process-btn');
+            const processBtn = __procBtn;
             const outputText = document.getElementById('output-text');
             const custom = document.getElementById('custom-text').value || null;
             const cleanup = document.getElementById('cleanup').checked;
@@ -236,8 +312,8 @@
             }
         });
 
-        document.getElementById('process-file-btn').addEventListener('click', async () => {
-            const fileInput = document.getElementById('upload-file');
+        const __procFileBtn = document.getElementById('process-file-btn');
+        if (__procFileBtn) __procFileBtn.addEventListener('click', async () => {
             if (!fileInput.files || fileInput.files.length === 0) {
                 alert('Please select a file to process.');
                 return;
@@ -257,7 +333,7 @@
             selectedDetectors.forEach(d => form.append('detectors', d));
 
             try {
-                const btn = document.getElementById('process-file-btn');
+                const btn = __procFileBtn;
                 btn.disabled = true;
                 btn.textContent = 'Processing File...';
                 const resp = await fetch('/process-file', { method: 'POST', body: form });
@@ -270,7 +346,7 @@
             } catch (e) {
                 alert('Error processing file. Please try again.');
             } finally {
-                const btn = document.getElementById('process-file-btn');
+                const btn = __procFileBtn;
                 btn.disabled = false;
                 btn.textContent = 'Process Uploaded File';
             }
@@ -291,7 +367,8 @@
             window.URL.revokeObjectURL(url);
         }
 
-        document.getElementById('download-text-btn').addEventListener('click', async () => {
+        const __dlTextBtn = document.getElementById('download-text-btn');
+        if (__dlTextBtn) __dlTextBtn.addEventListener('click', async () => {
             const inputText = document.getElementById('input-text').value;
             if (!inputText) { alert('Please enter input text first.'); return; }
             const locale = document.getElementById('locale').value;
@@ -303,7 +380,7 @@
             const detectors = getSelectedDetectors();
 
             try {
-                const btn = document.getElementById('download-text-btn');
+                const btn = __dlTextBtn;
                 btn.disabled = true;
                 btn.textContent = 'Preparing Download...';
                 const resp = await fetch('/export', {
@@ -329,14 +406,14 @@
             } catch (e) {
                 alert('Failed to prepare download.');
             } finally {
-                const btn = document.getElementById('download-text-btn');
+                const btn = __dlTextBtn;
                 btn.disabled = false;
                 btn.textContent = 'Download From Text';
             }
         });
 
-        document.getElementById('download-file-btn').addEventListener('click', async () => {
-            const fileInput = document.getElementById('upload-file');
+        const __dlFileBtn = document.getElementById('download-file-btn');
+        if (__dlFileBtn) __dlFileBtn.addEventListener('click', async () => {
             if (!fileInput.files || fileInput.files.length === 0) {
                 alert('Please select a file to download results for.');
                 return;
@@ -360,7 +437,7 @@
             detectors.forEach(d => form.append('detectors', d));
 
             try {
-                const btn = document.getElementById('download-file-btn');
+                const btn = __dlFileBtn;
                 btn.disabled = true;
                 btn.textContent = 'Preparing Download...';
                 const resp = await fetch('/download-file', { method: 'POST', body: form });
@@ -373,9 +450,88 @@
             } catch (e) {
                 alert('Failed to prepare download.');
             } finally {
-                const btn = document.getElementById('download-file-btn');
+                const btn = __dlFileBtn;
                 btn.disabled = false;
                 btn.textContent = 'Download From File';
+            }
+        });
+
+        // Unified new actions
+        const scrubBtn = document.getElementById('scrub-btn');
+        if (scrubBtn) scrubBtn.addEventListener('click', async () => {
+            const inputText = document.getElementById('input-text').value.trim();
+            const locale = document.getElementById('locale').value;
+            const custom = document.getElementById('custom-text').value || null;
+            const cleanup = document.getElementById('cleanup').checked;
+            const verbose = document.getElementById('verbose').checked;
+            const selectedDetectors = getSelectedDetectors();
+            const outputText = document.getElementById('output-text');
+            try {
+                scrubBtn.disabled = true;
+                scrubBtn.textContent = 'Scrubbing…';
+                outputText.value = '';
+                if (inputText) {
+                    const r = await fetch('/process', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: inputText, locale: locale || null, detectors: selectedDetectors, custom, cleanup, verbose }) });
+                    const data = await r.json();
+                    if (r.ok) renderResultsIntoOutput(data); else alert(data.error || 'Error processing text');
+                } else if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                    const form = new FormData();
+                    form.append('file', fileInput.files[0]);
+                    if (locale) form.append('locale', locale);
+                    if (custom) form.append('custom', custom);
+                    form.append('cleanup', cleanup ? 'true' : 'false');
+                    form.append('verbose', verbose ? 'true' : 'false');
+                    selectedDetectors.forEach(d => form.append('detectors', d));
+                    const r = await fetch('/process-file', { method: 'POST', body: form });
+                    const data = await r.json();
+                    if (r.ok) renderResultsIntoOutput(data); else alert(data.error || 'Error processing file');
+                } else {
+                    alert('Enter text or choose a file first.');
+                }
+            } catch (e) {
+                alert('Scrub failed. Please try again.');
+            } finally {
+                scrubBtn.disabled = false;
+                scrubBtn.textContent = 'Scrub';
+            }
+        });
+
+        const downloadBtn = document.getElementById('download-btn');
+        if (downloadBtn) downloadBtn.addEventListener('click', async () => {
+            const inputText = document.getElementById('input-text').value.trim();
+            const locale = document.getElementById('locale').value;
+            const custom = document.getElementById('custom-text').value || null;
+            const cleanup = document.getElementById('cleanup').checked;
+            const outputFormat = document.getElementById('output-format').value;
+            const pdfMode = document.getElementById('pdf-mode').value;
+            const fontSize = parseInt(document.getElementById('font-size').value || '11', 10);
+            const detectors = getSelectedDetectors();
+            try {
+                downloadBtn.disabled = true;
+                downloadBtn.textContent = 'Preparing…';
+                if (inputText) {
+                    const resp = await fetch('/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: inputText, locale: locale || null, detectors, custom, cleanup, output_format: outputFormat, pdf_mode: pdfMode, font_size: fontSize }) });
+                    if (!resp.ok) { let err = 'Download failed'; try { const j = await resp.json(); err = j.error || err; } catch {} alert(err); } else { await triggerDownloadFromResponse(resp, `scrubbed.${outputFormat}`); }
+                } else if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                    const form = new FormData();
+                    form.append('file', fileInput.files[0]);
+                    if (locale) form.append('locale', locale);
+                    if (custom) form.append('custom', custom);
+                    form.append('cleanup', cleanup ? 'true' : 'false');
+                    form.append('output_format', outputFormat);
+                    form.append('pdf_mode', pdfMode);
+                    form.append('font_size', String(fontSize));
+                    detectors.forEach(d => form.append('detectors', d));
+                    const resp = await fetch('/download-file', { method: 'POST', body: form });
+                    if (!resp.ok) { let err = 'Download failed'; try { const j = await resp.json(); err = j.error || err; } catch {} alert(err); } else { await triggerDownloadFromResponse(resp, `scrubbed.${outputFormat}`); }
+                } else {
+                    alert('Enter text or choose a file first.');
+                }
+            } catch (e) {
+                alert('Failed to prepare download.');
+            } finally {
+                downloadBtn.disabled = false;
+                downloadBtn.textContent = 'Download';
             }
         });
 

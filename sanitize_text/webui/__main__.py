@@ -1,6 +1,6 @@
 """Main entry point for the sanitize-text webui."""
 
-from .run import create_app, download_optional_models
+from sanitize_text.webui.run import create_app, download_optional_models
 
 
 def main() -> None:
