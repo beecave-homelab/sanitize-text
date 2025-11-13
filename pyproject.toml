@@ -19,7 +19,8 @@ dependencies = [
   "pymupdf-layout>=1.26.6",
   "opencv-python-headless>=4.12.0.88",
   "pyahocorasick>=2.1.0",
-  "spaCy>=3.8.8",
+  "spaCy>=3.8.9",
+  "pip>=25.3",
 ]
 
 [build-system]
