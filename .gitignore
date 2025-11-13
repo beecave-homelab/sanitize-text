@@ -45,3 +45,5 @@ output/
 *.egg-info/
 build/
 dist/
+sanitize_text/models/en_pii_ner/
+sanitize_text/models/nl_pii_ner/
