@@ -17,9 +17,7 @@ import click
 import pandas as pd
 import requests
 
-DEFAULT_URL = (
-    "https://www.hackdeoverheid.nl/wp-content/uploads/sites/10/2014/05/q05a.txt"
-)
+DEFAULT_URL = "https://www.hackdeoverheid.nl/wp-content/uploads/sites/10/2014/05/q05a.txt"
 DEFAULT_OUTPUT = Path("sanitize_text/data/nl_entities/names.json")
 
 

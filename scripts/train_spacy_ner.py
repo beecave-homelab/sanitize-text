@@ -46,6 +46,7 @@ MODELS_ROOT = PROJECT_ROOT / "sanitize_text" / "models"
 # Data loading
 # ---------------------------------------------------------------------------
 
+
 def load_spacy_json_dataset(lang_code: str) -> tuple[list[Example], list[str]]:
     """Load spaCy JSON dataset for a given language.
 
@@ -100,6 +101,7 @@ def load_spacy_json_dataset(lang_code: str) -> tuple[list[Example], list[str]]:
 # Training logic
 # ---------------------------------------------------------------------------
 
+
 def train_ner(
     lang_code: str,
     n_iter: int = 20,
@@ -151,6 +153,7 @@ def train_ner(
 # ---------------------------------------------------------------------------
 # CLI (Click)
 # ---------------------------------------------------------------------------
+
 
 @click.command()
 @click.option(
