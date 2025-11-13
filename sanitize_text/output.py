@@ -97,7 +97,6 @@ class PdfWriter(_BaseWriter):
         Raises:
             RuntimeError: If the ReportLab dependency is missing.
         """
-
         pdf_mode = str(kwargs.get("pdf_mode", "pre"))
         pdf_font_value = kwargs.get("pdf_font")
         pdf_font = str(pdf_font_value) if pdf_font_value is not None else None
@@ -176,6 +175,7 @@ class PdfWriter(_BaseWriter):
 
             story.append(Paragraph("", style))
         doc.build(story)
+
 
 _WRITERS: dict[str, OutputWriter] = {
     "txt": TxtWriter(),

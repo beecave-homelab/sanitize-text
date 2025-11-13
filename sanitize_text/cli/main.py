@@ -36,6 +36,7 @@ from sanitize_text.core.scrubber import (
     get_generic_detector_descriptions,
     scrub_text,
 )
+from sanitize_text.utils.nlp_resources import download_optional_models
 
 # Define custom context settings
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
@@ -105,7 +106,9 @@ def _run_scrub(
     scrubbed_text = maybe_cleanup(scrubbed_text, cleanup)
 
     failed_locales = [loc for loc in locales_to_process if loc not in outcome.texts]
-    failure_messages = {failed: outcome.errors.get(failed, "Unknown error") for failed in failed_locales}
+    failure_messages = {
+        failed: outcome.errors.get(failed, "Unknown error") for failed in failed_locales
+    }
     if not verbose:
         for failed, message in failure_messages.items():
             click.echo(f"Warning: Processing failed for locale {failed}: {message}", err=True)
@@ -236,6 +239,11 @@ def _run_scrub(
         "(dedupe lines, remove UNKNOWN placeholders, ensure trailing newline)."
     ),
 )
+@click.option(
+    "--download-nlp-models",
+    is_flag=True,
+    help="Download optional NLP resources (NLTK corpora and spaCy small models) before running.",
+)
 def main(
     ctx: click.Context,
     text: str | None,
@@ -252,6 +260,7 @@ def main(
     pdf_font: str | None,
     font_size: int,
     cleanup: bool,
+    download_nlp_models: bool,
 ) -> None:
     r"""Remove personally identifiable information (PII) from text.
 
@@ -291,6 +300,10 @@ def main(
     # If user invoked a subcommand, do not run default flow
     if ctx.invoked_subcommand is not None:
         return
+
+    # Optional: download NLP resources
+    if download_nlp_models:
+        download_optional_models()
 
     # Determine input text via helper
     try:
@@ -407,6 +420,11 @@ def list_detectors_cmd() -> None:
     show_default=True,
     help="Cleanup output.",
 )
+@click.option(
+    "--download-nlp-models",
+    is_flag=True,
+    help="Download optional NLP resources (NLTK corpora and spaCy small models) before running.",
+)
 def scrub_cmd(
     *,
     text: str | None,
@@ -422,8 +440,11 @@ def scrub_cmd(
     detectors: str | None,
     custom: str | None,
     cleanup: bool,
+    download_nlp_models: bool,
 ) -> None:
     """Scrub PII from input and write output (subcommand)."""
+    if download_nlp_models:
+        download_optional_models()
     try:
         input_text = read_input_source(
             text=text, input_path=input, append=append, output_path=output

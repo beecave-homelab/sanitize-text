@@ -61,7 +61,6 @@ class DetectorSpec:
         Returns:
             bool: ``True`` when the detector should be available.
         """
-
         if self.enabled is None:
             return True
         return self.enabled(context)
@@ -84,7 +83,6 @@ class ScrubOutcome:
 
 def _spacy_is_available() -> bool:
     """Return ``True`` when ``scrubadub-spacy`` is importable."""
-
     try:
         return importlib_util.find_spec("scrubadub_spacy.detectors") is not None
     except ModuleNotFoundError:
@@ -206,7 +204,7 @@ GENERIC_DETECTORS: list[DetectorSpec] = [
     ),
     DetectorSpec(
         name="url",
-        description="Detect URLs (bare domains, www prefixes,\nhttp(s), complex paths, query parameters)",
+        description="Detect URLs (domains, www prefixes, http(s), complex paths, query params)",
         factory=_build_url_detector,
     ),
     DetectorSpec(
@@ -302,7 +300,6 @@ def _iter_enabled_specs(
     Returns:
         list[DetectorSpec]: Enabled specifications preserving input order.
     """
-
     return [spec for spec in specs if spec.is_enabled(context)]
 
 
@@ -316,12 +313,8 @@ def get_generic_detector_descriptions(locale: str | None = None) -> dict[str, st
     Returns:
         dict[str, str]: Mapping of detector names to descriptions.
     """
-
     context = DetectorContext(locale=locale or "en_US")
-    return {
-        spec.name: spec.description
-        for spec in _iter_enabled_specs(GENERIC_DETECTORS, context)
-    }
+    return {spec.name: spec.description for spec in _iter_enabled_specs(GENERIC_DETECTORS, context)}
 
 
 def get_locale_detector_descriptions(locale: str) -> dict[str, str]:
@@ -333,7 +326,6 @@ def get_locale_detector_descriptions(locale: str) -> dict[str, str]:
     Returns:
         dict[str, str]: Mapping of detector names to descriptions.
     """
-
     context = DetectorContext(locale=locale)
     return {
         spec.name: spec.description
@@ -355,17 +347,13 @@ def get_available_detectors(
         dict[str, str] | dict[str, dict[str, str]]: Detector descriptions for
         either a single locale or every registered locale.
     """
-
     if locale:
         generic = get_generic_detector_descriptions(locale)
         locale_specific = get_locale_detector_descriptions(locale)
         combined: dict[str, str] = {**generic, **locale_specific}
         return combined
 
-    return {
-        loc: get_locale_detector_descriptions(loc)
-        for loc in LOCALE_DETECTORS
-    }
+    return {loc: get_locale_detector_descriptions(loc) for loc in LOCALE_DETECTORS}
 
 
 def setup_scrubber(
