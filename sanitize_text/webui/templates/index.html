@@ -3,147 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PyScrub WebUI</title>
+    <title>Sanitize Text · GUI wrapper</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="container">
+    <div class="app-shell">
         <header class="app-header">
             <div class="brand">
+                <p class="eyebrow">CLI companion workspace</p>
                 <h1>Sanitize Text</h1>
-                <p>Scrub PII from text and documents</p>
+                <p class="lede">Scrub PII from text, scans, and docs. The workspace mirrors the sanitize-text CLI so GUI-first users never miss out.</p>
             </div>
             <div class="header-actions">
-                <button id="theme-toggle" aria-label="Toggle dark mode" class="icon-button" title="Toggle dark mode">🌙</button>
+                <button
+                    id="theme-toggle"
+                    data-testid="theme-toggle"
+                    class="theme-toggle"
+                    type="button"
+                    aria-pressed="false"
+                    aria-label="Toggle dark mode"
+                >
+                    <span class="theme-toggle__icon" aria-hidden="true">🌙</span>
+                    <span class="theme-toggle__text">Dark</span>
+                </button>
             </div>
         </header>
-        
-        <main>
-            <div class="card input-card">
-                <label for="input-text" class="section-title">Input</label>
-                <textarea 
-                    id="input-text" 
-                    placeholder="Paste or type text to scrub…"
-                    spellcheck="true"
-                ></textarea>
 
-                <div id="dropzone" class="dropzone" aria-label="Drag & drop a file here">
-                    <div class="dz-instructions">Drop a file here or <label for="upload-file" class="link">browse</label></div>
-                    <input id="upload-file" type="file" accept=".txt,.pdf,.doc,.docx,.rtf,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp" hidden />
-                    <div id="file-pill" class="file-pill" style="display:none;"></div>
-                </div>
+        <section class="flow-grid" aria-label="Input to output flow" data-testid="flow-grid">
+            <article class="flow-card" data-testid="flow-step-card" data-step="capture">
+                <div class="flow-card__number">1</div>
+                <h2>Capture input</h2>
+                <p>Paste text, drag files, or drop screenshots. Everything routes through the same converters used by the CLI.</p>
+            </article>
+            <article class="flow-card" data-testid="flow-step-card" data-step="configure">
+                <div class="flow-card__number">2</div>
+                <h2>Configure detectors</h2>
+                <p>Pick detectors per locale, add custom phrases, and preview the matching CLI flags.</p>
+            </article>
+            <article class="flow-card" data-testid="flow-step-card" data-step="deliver">
+                <div class="flow-card__number">3</div>
+                <h2>Deliver output</h2>
+                <p>Stream sanitized text instantly, export DOCX/PDF, or copy the CLI command to automate pipelines.</p>
+            </article>
+        </section>
 
-                <div class="toolbar">
-                    <div class="segmented" id="locale-tabs" role="tablist" aria-label="Language">
-                        <button class="active" data-value="" role="tab" aria-selected="true">Both</button>
-                        <button data-value="en_US" role="tab" aria-selected="false">English</button>
-                        <button data-value="nl_NL" role="tab" aria-selected="false">Dutch</button>
-                    </div>
-                    <div class="actions-bar">
-                        <button id="scrub-btn" class="primary">Scrub</button>
-                        <button id="download-btn" class="secondary">Download</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="controls-container">
-                <input id="locale" type="hidden" value="" />
-
-                <details class="advanced" id="advanced">
-                    <summary>Advanced settings</summary>
-                    <div class="detector-options">
-                    <div class="detector-group">
-                        <h3>Universal Detectors</h3>
-                        <div class="detector-list">
-                            {% for key, description in generic_detectors.items() %}
-                                <label title="{{ description }}">
-                                    <input type="checkbox" name="detector" value="{{ key }}" checked>
-                                    {{ key.replace('_', ' ').title() }}
-                                </label>
-                            {% endfor %}
+        <section class="workspace-grid" data-testid="workspace-grid">
+            <div class="input-stack">
+                <section class="card input-card" aria-labelledby="input-card-title">
+                    <div class="card-header">
+                        <div>
+                            <p class="eyebrow">Step 1 · Input</p>
+                            <h2 id="input-card-title">Provide content</h2>
+                        </div>
+                        <div class="pill-group" id="locale-tabs" role="tablist" aria-label="Language">
+                            <button class="pill active" data-value="" role="tab" aria-selected="true" type="button">Both</button>
+                            <button class="pill" data-value="en_US" role="tab" aria-selected="false" type="button">English</button>
+                            <button class="pill" data-value="nl_NL" role="tab" aria-selected="false" type="button">Dutch</button>
                         </div>
                     </div>
 
-                    <div class="detector-group" id="en-detectors">
-                        <h3>English Detectors</h3>
-                        <div class="detector-list">
-                            {% for key, description in english_detectors.items() %}
-                                <label title="{{ description }}">
-                                    <input type="checkbox" name="detector" value="en:{{ key }}" {% if key != 'date_of_birth' %}checked{% endif %}>
-                                    {{ key.replace('_', ' ').title() }}
-                                </label>
-                            {% endfor %}
+                    <label class="sr-only" for="input-text">Paste text to sanitize</label>
+                    <textarea
+                        id="input-text"
+                        placeholder="Paste or type text to scrub…"
+                        spellcheck="true"
+                    ></textarea>
+
+                    <div class="upload-panel">
+                        <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Drag and drop a file">
+                            <div class="dz-body">
+                                <strong>Drop files here</strong>
+                                <p>TXT, DOCX, PDF, images, and more — or <label for="upload-file" class="link">browse</label></p>
+                            </div>
+                            <input id="upload-file" type="file" hidden accept=".txt,.pdf,.doc,.docx,.rtf,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp">
+                        </div>
+                        <div id="file-pill" class="file-pill" aria-live="polite" hidden></div>
+                    </div>
+
+                    <div class="card-footer">
+                        <p class="hint">Need to process a file instead of text? Just drop it above; the CLI preview will switch to <code>--input</code>.</p>
+                        <div class="actions">
+                            <button id="scrub-btn" class="primary" type="button">Scrub</button>
+                            <button id="download-btn" class="ghost" type="button">Download</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card config-card" aria-labelledby="config-card-title">
+                    <div class="card-header">
+                        <div>
+                            <p class="eyebrow">Step 2 · Configure</p>
+                            <h2 id="config-card-title">Detectors & automation</h2>
                         </div>
                     </div>
 
-                    <div class="detector-group" id="nl-detectors">
-                        <h3>Dutch Detectors</h3>
-                        <div class="detector-list">
-                            {% for key, description in dutch_detectors.items() %}
-                                <label title="{{ description }}">
-                                    <input type="checkbox" name="detector" value="nl:{{ key }}" checked>
-                                    {{ key.replace('_', ' ').title() }}
+                    <input id="locale" type="hidden" value="" />
+
+                    <details class="advanced" id="advanced" open>
+                        <summary>Advanced detector controls</summary>
+                        <p class="hint">Enable or disable detectors per locale. Generic detectors apply everywhere.</p>
+                        <div class="detector-options">
+                            <div class="detector-group">
+                                <h3>Universal detectors</h3>
+                                <div class="detector-list">
+                                    {% for key, description in generic_detectors.items() %}
+                                        <label title="{{ description }}">
+                                            <input type="checkbox" name="detector" value="{{ key }}" checked>
+                                            {{ key.replace('_', ' ').title() }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="detector-group" id="en-detectors">
+                                <h3>English</h3>
+                                <div class="detector-list">
+                                    {% for key, description in english_detectors.items() %}
+                                        <label title="{{ description }}">
+                                            <input type="checkbox" name="detector" value="en:{{ key }}" {% if key != 'date_of_birth' %}checked{% endif %}>
+                                            {{ key.replace('_', ' ').title() }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="detector-group" id="nl-detectors">
+                                <h3>Dutch</h3>
+                                <div class="detector-list">
+                                    {% for key, description in dutch_detectors.items() %}
+                                        <label title="{{ description }}">
+                                            <input type="checkbox" name="detector" value="nl:{{ key }}" checked>
+                                            {{ key.replace('_', ' ').title() }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% if not spacy_available %}
+                            <p class="detector-note">Install <code>sanitize-text[spacy]</code> to unlock spaCy-powered entity detectors.</p>
+                        {% endif %}
+
+                        <div class="options-grid">
+                            <label class="field" for="custom-text">
+                                <span>Custom text to detect (optional)</span>
+                                <input id="custom-text" type="text" placeholder="e.g. AcmeCorp or Employee ID 1234" />
+                            </label>
+                            <div class="toggle-row">
+                                <label class="toggle">
+                                    <input id="cleanup" type="checkbox" checked />
+                                    <span>Cleanup output</span>
                                 </label>
-                            {% endfor %}
+                                <label class="toggle">
+                                    <input id="verbose" type="checkbox" />
+                                    <span>Show verbose PII mappings</span>
+                                </label>
+                            </div>
+                            <div class="export-row">
+                                <label class="field">
+                                    <span>Output format</span>
+                                    <select id="output-format">
+                                        <option value="txt" selected>TXT</option>
+                                        <option value="docx">DOCX</option>
+                                        <option value="pdf">PDF</option>
+                                    </select>
+                                </label>
+                                <label class="field">
+                                    <span>PDF mode</span>
+                                    <select id="pdf-mode">
+                                        <option value="pre" selected>Preformatted</option>
+                                        <option value="para">Paragraph</option>
+                                    </select>
+                                </label>
+                                <label class="field">
+                                    <span>Font size</span>
+                                    <input id="font-size" type="number" min="6" max="48" value="11" />
+                                </label>
+                            </div>
+                        </div>
+                    </details>
+                </section>
+            </div>
+
+            <div class="output-stack">
+                <section class="card output-card" aria-labelledby="output-card-title">
+                    <div class="card-header">
+                        <div>
+                            <p class="eyebrow">Step 3 · Output</p>
+                            <h2 id="output-card-title">Review results</h2>
                         </div>
                     </div>
-                    {% if not spacy_available %}
-                        <p class="detector-note">Install <code>sanitize-text[spacy]</code> to enable optional spaCy-powered entity detectors.</p>
-                    {% endif %}
+                    <label class="sr-only" for="output-text">Scrubbed text output</label>
+                    <textarea
+                        id="output-text"
+                        readonly
+                        placeholder="Processed text will appear here..."
+                    ></textarea>
+                    <details id="verbose-panel" class="verbose-panel" hidden>
+                        <summary>PII mappings</summary>
+                        <div id="verbose-output"></div>
+                    </details>
+                    <div class="output-actions">
+                        <div id="result-meta" class="result-meta"></div>
+                        <button id="copy-btn" class="ghost" type="button">Copy</button>
+                    </div>
+                </section>
 
-                    <div class="extra-options">
-                    <div class="field">
-                        <label for="custom-text">Custom text to detect (optional):</label>
-                        <input id="custom-text" type="text" placeholder="e.g. AcmeCorp or Employee ID 1234" />
+                <section class="card cli-card" data-testid="cli-preview-panel" aria-labelledby="cli-card-title">
+                    <div class="card-header">
+                        <div>
+                            <p class="eyebrow">CLI mirror</p>
+                            <h2 id="cli-card-title">Command preview</h2>
+                        </div>
+                        <button id="cli-copy-btn" class="ghost" type="button">Copy command</button>
                     </div>
-                    <div class="field-row">
-                        <label class="toggle">
-                            <input id="cleanup" type="checkbox" checked />
-                            Cleanup output
-                        </label>
-                        <label class="toggle">
-                            <input id="verbose" type="checkbox" />
-                            Show verbose PII mappings
-                        </label>
-                    </div>
-                    <div class="field-row">
-                        <label for="output-format">Output format:</label>
-                        <select id="output-format">
-                            <option value="txt" selected>TXT</option>
-                            <option value="docx">DOCX</option>
-                            <option value="pdf">PDF</option>
-                        </select>
-
-                        <label for="pdf-mode">PDF mode:</label>
-                        <select id="pdf-mode">
-                            <option value="pre" selected>Preformatted</option>
-                            <option value="para">Paragraph</option>
-                        </select>
-
-                        <label for="font-size">Font size:</label>
-                        <input id="font-size" type="number" min="6" max="48" value="11" />
-                    </div>
-                    </div>
-                </details>
+                    <p class="hint">Keep parity with automation by copying the ready-to-run <code>sanitize-text</code> command.</p>
+                    <pre id="cli-preview-text" class="cli-preview__code">sanitize-text --help</pre>
+                </section>
             </div>
-
-            <div class="card output-card">
-                <label for="output-text" class="section-title">Output</label>
-                <textarea 
-                    id="output-text" 
-                    readonly 
-                    placeholder="Processed text will appear here..."
-                ></textarea>
-                <details id="verbose-panel" class="verbose-panel" style="display:none;">
-                    <summary>PII mappings</summary>
-                    <div id="verbose-output" style="white-space: pre-wrap; font-family: monospace; font-size: 0.9rem;"></div>
-                </details>
-                <div class="output-actions">
-                    <div id="result-meta" class="result-meta"></div>
-                    <button id="copy-btn" class="secondary">Copy</button>
-                </div>
-            </div>
-        </main>
+        </section>
     </div>
 
     <script>
@@ -155,6 +232,8 @@
         const fileInput = document.getElementById('upload-file');
         const filePill = document.getElementById('file-pill');
         const themeToggle = document.getElementById('theme-toggle');
+        const cliPreviewText = document.getElementById('cli-preview-text');
+        const cliCopyBtn = document.getElementById('cli-copy-btn');
 
         function updateDetectorVisibility() {
             const locale = localeSelect.value;
@@ -170,10 +249,12 @@
             }
         }
 
-        localeSelect.addEventListener('change', updateDetectorVisibility);
+        localeSelect.addEventListener('change', () => {
+            updateDetectorVisibility();
+            updateCliPreview();
+        });
         updateDetectorVisibility();
 
-        // Segmented locale tabs
         function setLocaleFromTabs(value) {
             localeSelect.value = value || '';
             if (localeTabs) {
@@ -183,6 +264,7 @@
                 });
             }
             updateDetectorVisibility();
+            updateCliPreview();
         }
         if (localeTabs) {
             localeTabs.addEventListener('click', (e) => {
@@ -195,28 +277,47 @@
 
         // Dark mode toggle
         if (themeToggle) {
-            const saved = localStorage.getItem('theme') || 'light';
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const saved = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
             document.body.dataset.theme = saved;
-            themeToggle.textContent = saved === 'dark' ? '☀️' : '🌙';
+            themeToggle.setAttribute('aria-pressed', String(saved === 'dark'));
+            themeToggle.querySelector('.theme-toggle__icon').textContent = saved === 'dark' ? '☀️' : '🌙';
+            themeToggle.querySelector('.theme-toggle__text').textContent = saved === 'dark' ? 'Light' : 'Dark';
             themeToggle.addEventListener('click', () => {
                 const next = (document.body.dataset.theme === 'dark') ? 'light' : 'dark';
                 document.body.dataset.theme = next;
                 localStorage.setItem('theme', next);
-                themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
+                themeToggle.setAttribute('aria-pressed', String(next === 'dark'));
+                themeToggle.querySelector('.theme-toggle__icon').textContent = next === 'dark' ? '☀️' : '🌙';
+                themeToggle.querySelector('.theme-toggle__text').textContent = next === 'dark' ? 'Light' : 'Dark';
             });
         }
 
         // Drag & drop upload
-        if (dropzone && fileInput && filePill) {
-            function setFileInfo(file) {
-                if (!file) { filePill.style.display = 'none'; filePill.textContent = ''; return; }
-                filePill.style.display = 'inline-flex';
-                filePill.textContent = file.name;
+        function setFileInfo(file) {
+            if (!file) {
+                filePill.hidden = true;
+                filePill.textContent = '';
+                return;
             }
-            dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
-            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+            filePill.hidden = false;
+            filePill.textContent = file.name;
+            updateCliPreview();
+        }
+        if (dropzone && fileInput && filePill) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    dropzone.classList.add('drag');
+                });
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    dropzone.classList.remove('drag');
+                });
+            });
             dropzone.addEventListener('drop', (e) => {
-                e.preventDefault(); dropzone.classList.remove('drag');
                 if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
                     fileInput.files = e.dataTransfer.files;
                     setFileInfo(fileInput.files[0]);
@@ -226,6 +327,12 @@
                 const isLabel = e.target && e.target.tagName === 'LABEL';
                 if (!isLabel) fileInput.click();
             });
+            dropzone.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    fileInput.click();
+                }
+            });
             fileInput.addEventListener('change', () => setFileInfo(fileInput.files[0]));
         }
 
@@ -233,6 +340,70 @@
             return Array.from(document.querySelectorAll('input[name="detector"]:checked'))
                 .map(cb => cb.value);
         }
+
+        function quoteArg(arg) {
+            if (!arg) return '';
+            const safe = typeof arg === 'string' ? arg : String(arg);
+            return /[^A-Za-z0-9._\-\/]/.test(safe) ? `"${safe.replace(/"/g, '\\"')}"` : safe;
+        }
+
+        function updateCliPreview() {
+            if (!cliPreviewText) return;
+            const args = ['sanitize-text'];
+            const locale = localeSelect.value;
+            if (locale) {
+                args.push('--locale', locale);
+            }
+            const detectors = getSelectedDetectors();
+            if (detectors.length > 0) {
+                args.push('--detectors', detectors.join(' '));
+            }
+            const custom = document.getElementById('custom-text').value.trim();
+            if (custom) {
+                args.push('--custom', custom);
+            }
+            const cleanup = document.getElementById('cleanup').checked;
+            if (!cleanup) {
+                args.push('--no-cleanup');
+            }
+            const verbose = document.getElementById('verbose').checked;
+            if (verbose) {
+                args.push('--verbose');
+            }
+            const outputFormat = document.getElementById('output-format').value;
+            if (outputFormat && outputFormat !== 'txt') {
+                args.push('--output-format', outputFormat);
+            }
+            const pdfMode = document.getElementById('pdf-mode').value;
+            if (outputFormat === 'pdf' && pdfMode !== 'pre') {
+                args.push('--pdf-mode', pdfMode);
+            }
+            const fontSize = document.getElementById('font-size').value || '11';
+            if (outputFormat === 'pdf' && fontSize !== '11') {
+                args.push('--font-size', fontSize);
+            }
+            const fileName = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0].name : null;
+            const inputText = document.getElementById('input-text').value.trim();
+            if (fileName) {
+                args.push('--input', fileName);
+            } else if (inputText) {
+                args.push('--text', '<pasted text>');
+            } else {
+                args.push('--text', '<add text or choose a file>');
+            }
+            cliPreviewText.textContent = args.map(quoteArg).join(' ');
+        }
+
+        const detectorInputs = document.querySelectorAll('input[name="detector"]');
+        detectorInputs.forEach((checkbox) => checkbox.addEventListener('change', updateCliPreview));
+        ['custom-text', 'cleanup', 'verbose', 'output-format', 'pdf-mode', 'font-size', 'input-text'].forEach(id => {
+            const node = document.getElementById(id);
+            if (node) {
+                const event = node.tagName === 'SELECT' || node.type === 'checkbox' ? 'change' : 'input';
+                node.addEventListener(event, updateCliPreview);
+            }
+        });
+        updateCliPreview();
 
         function renderResultsIntoOutput(data) {
             const outputText = document.getElementById('output-text');
@@ -246,217 +417,29 @@
                 outputText.value = formattedText;
 
                 const verboseOn = document.getElementById('verbose').checked;
-                if (verboseOn) {
+                if (verboseOn && verboseDiv && verbosePanel) {
                     const parts = data.results.map(r => {
                         if (!r.filth) return `[${r.locale}]\n(no filth details)`;
                         const lines = r.filth.map(f => `- ${f.type}: '${f.text}' -> '${f.replacement}'`);
                         return `[${r.locale}]\n` + lines.join('\n');
                     });
-                    if (verbosePanel) verbosePanel.style.display = 'block';
+                    verbosePanel.hidden = false;
                     verboseDiv.textContent = parts.join('\n\n');
-                } else {
-                    if (verbosePanel) verbosePanel.style.display = 'none';
+                } else if (verboseDiv && verbosePanel) {
+                    verbosePanel.hidden = true;
                     verboseDiv.textContent = '';
                 }
                 if (meta) meta.textContent = `${data.results.length} locale(s)`;
             } else {
                 outputText.value = 'No results returned';
-                if (verbosePanel) verbosePanel.style.display = 'none';
-                verboseDiv.textContent = '';
+                if (verbosePanel && verboseDiv) {
+                    verbosePanel.hidden = true;
+                    verboseDiv.textContent = '';
+                }
                 if (meta) meta.textContent = '';
             }
         }
 
-        const __procBtn = document.getElementById('process-btn');
-        if (__procBtn) __procBtn.addEventListener('click', async () => {
-            const inputText = document.getElementById('input-text').value;
-            const locale = document.getElementById('locale').value;
-            const processBtn = __procBtn;
-            const outputText = document.getElementById('output-text');
-            const custom = document.getElementById('custom-text').value || null;
-            const cleanup = document.getElementById('cleanup').checked;
-            const verbose = document.getElementById('verbose').checked;
-            const selectedDetectors = getSelectedDetectors();
-            
-            try {
-                processBtn.disabled = true;
-                processBtn.textContent = 'Processing...';
-                outputText.value = '';
-                
-                const response = await fetch('/process', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        text: inputText,
-                        locale: locale || null,
-                        detectors: selectedDetectors,
-                        custom,
-                        cleanup,
-                        verbose
-                    }),
-                });
-                
-                const data = await response.json();
-                if (response.ok) {
-                    renderResultsIntoOutput(data);
-                } else {
-                    alert(data.error || 'Error processing text');
-                }
-            } catch (error) {
-                alert('Error processing text. Please try again.');
-            } finally {
-                processBtn.disabled = false;
-                processBtn.textContent = 'Process Text';
-            }
-        });
-
-        const __procFileBtn = document.getElementById('process-file-btn');
-        if (__procFileBtn) __procFileBtn.addEventListener('click', async () => {
-            if (!fileInput.files || fileInput.files.length === 0) {
-                alert('Please select a file to process.');
-                return;
-            }
-            const locale = document.getElementById('locale').value;
-            const custom = document.getElementById('custom-text').value || '';
-            const cleanup = document.getElementById('cleanup').checked;
-            const verbose = document.getElementById('verbose').checked;
-            const selectedDetectors = getSelectedDetectors();
-
-            const form = new FormData();
-            form.append('file', fileInput.files[0]);
-            if (locale) form.append('locale', locale);
-            if (custom) form.append('custom', custom);
-            form.append('cleanup', cleanup ? 'true' : 'false');
-            form.append('verbose', verbose ? 'true' : 'false');
-            selectedDetectors.forEach(d => form.append('detectors', d));
-
-            try {
-                const btn = __procFileBtn;
-                btn.disabled = true;
-                btn.textContent = 'Processing File...';
-                const resp = await fetch('/process-file', { method: 'POST', body: form });
-                const data = await resp.json();
-                if (resp.ok) {
-                    renderResultsIntoOutput(data);
-                } else {
-                    alert(data.error || 'Error processing file');
-                }
-            } catch (e) {
-                alert('Error processing file. Please try again.');
-            } finally {
-                const btn = __procFileBtn;
-                btn.disabled = false;
-                btn.textContent = 'Process Uploaded File';
-            }
-        });
-
-        async function triggerDownloadFromResponse(resp, fallbackName) {
-            const blob = await resp.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            const cd = resp.headers.get('Content-Disposition') || '';
-            const match = /filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i.exec(cd);
-            const headerName = match ? decodeURIComponent(match[1] || match[2]) : fallbackName;
-            a.href = url;
-            a.download = headerName || fallbackName;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-        }
-
-        const __dlTextBtn = document.getElementById('download-text-btn');
-        if (__dlTextBtn) __dlTextBtn.addEventListener('click', async () => {
-            const inputText = document.getElementById('input-text').value;
-            if (!inputText) { alert('Please enter input text first.'); return; }
-            const locale = document.getElementById('locale').value;
-            const custom = document.getElementById('custom-text').value || null;
-            const cleanup = document.getElementById('cleanup').checked;
-            const outputFormat = document.getElementById('output-format').value;
-            const pdfMode = document.getElementById('pdf-mode').value;
-            const fontSize = parseInt(document.getElementById('font-size').value || '11', 10);
-            const detectors = getSelectedDetectors();
-
-            try {
-                const btn = __dlTextBtn;
-                btn.disabled = true;
-                btn.textContent = 'Preparing Download...';
-                const resp = await fetch('/export', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        text: inputText,
-                        locale: locale || null,
-                        detectors,
-                        custom,
-                        cleanup,
-                        output_format: outputFormat,
-                        pdf_mode: pdfMode,
-                        font_size: fontSize,
-                    }),
-                });
-                if (!resp.ok) {
-                    let err = 'Download failed';
-                    try { const j = await resp.json(); err = j.error || err; } catch {}
-                    alert(err); return;
-                }
-                await triggerDownloadFromResponse(resp, `scrubbed.${outputFormat}`);
-            } catch (e) {
-                alert('Failed to prepare download.');
-            } finally {
-                const btn = __dlTextBtn;
-                btn.disabled = false;
-                btn.textContent = 'Download From Text';
-            }
-        });
-
-        const __dlFileBtn = document.getElementById('download-file-btn');
-        if (__dlFileBtn) __dlFileBtn.addEventListener('click', async () => {
-            if (!fileInput.files || fileInput.files.length === 0) {
-                alert('Please select a file to download results for.');
-                return;
-            }
-            const locale = document.getElementById('locale').value;
-            const custom = document.getElementById('custom-text').value || '';
-            const cleanup = document.getElementById('cleanup').checked;
-            const outputFormat = document.getElementById('output-format').value;
-            const pdfMode = document.getElementById('pdf-mode').value;
-            const fontSize = document.getElementById('font-size').value || '11';
-            const detectors = getSelectedDetectors();
-
-            const form = new FormData();
-            form.append('file', fileInput.files[0]);
-            if (locale) form.append('locale', locale);
-            if (custom) form.append('custom', custom);
-            form.append('cleanup', cleanup ? 'true' : 'false');
-            form.append('output_format', outputFormat);
-            form.append('pdf_mode', pdfMode);
-            form.append('font_size', String(fontSize));
-            detectors.forEach(d => form.append('detectors', d));
-
-            try {
-                const btn = __dlFileBtn;
-                btn.disabled = true;
-                btn.textContent = 'Preparing Download...';
-                const resp = await fetch('/download-file', { method: 'POST', body: form });
-                if (!resp.ok) {
-                    let err = 'Download failed';
-                    try { const j = await resp.json(); err = j.error || err; } catch {}
-                    alert(err); return;
-                }
-                await triggerDownloadFromResponse(resp, `scrubbed.${outputFormat}`);
-            } catch (e) {
-                alert('Failed to prepare download.');
-            } finally {
-                const btn = __dlFileBtn;
-                btn.disabled = false;
-                btn.textContent = 'Download From File';
-            }
-        });
-
-        // Unified new actions
         const scrubBtn = document.getElementById('scrub-btn');
         if (scrubBtn) scrubBtn.addEventListener('click', async () => {
             const inputText = document.getElementById('input-text').value.trim();
@@ -495,6 +478,21 @@
                 scrubBtn.textContent = 'Scrub';
             }
         });
+
+        async function triggerDownloadFromResponse(resp, fallbackName) {
+            const blob = await resp.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const cd = resp.headers.get('Content-Disposition') || '';
+            const match = /filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i.exec(cd);
+            const headerName = match ? decodeURIComponent(match[1] || match[2]) : fallbackName;
+            a.href = url;
+            a.download = headerName || fallbackName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        }
 
         const downloadBtn = document.getElementById('download-btn');
         if (downloadBtn) downloadBtn.addEventListener('click', async () => {
@@ -535,102 +533,27 @@
             }
         });
 
-        document.getElementById('copy-btn').addEventListener('click', () => {
-            const outputText = document.getElementById('output-text');
-            outputText.select();
-            document.execCommand('copy');
-            
-            const copyBtn = document.getElementById('copy-btn');
-            const originalText = copyBtn.textContent;
-            copyBtn.textContent = 'Copied!';
-            
-            setTimeout(() => {
-                copyBtn.textContent = originalText;
-            }, 2000);
-        });
+        const copyBtn = document.getElementById('copy-btn');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                const outputText = document.getElementById('output-text');
+                outputText.select();
+                document.execCommand('copy');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
+            });
+        }
+
+        if (cliCopyBtn && cliPreviewText) {
+            cliCopyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(cliPreviewText.textContent || '').then(() => {
+                    const original = cliCopyBtn.textContent;
+                    cliCopyBtn.textContent = 'Copied!';
+                    setTimeout(() => { cliCopyBtn.textContent = original; }, 2000);
+                }).catch(() => alert('Unable to copy command.'));
+            });
+        }
     </script>
-
-    <style>
-        .controls-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-
-        .locale-selector {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .locale-selector select {
-            padding: 0.5rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
-
-        .locale-selector label {
-            font-weight: bold;
-        }
-
-        .detector-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            padding: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #f9f9f9;
-        }
-
-        .detector-note {
-            width: 100%;
-            margin: 0;
-            font-size: 0.9rem;
-            color: #555;
-        }
-
-        .detector-group {
-            min-width: 200px;
-        }
-
-        .detector-group h3 {
-            margin: 0 0 0.5rem 0;
-            font-size: 1rem;
-            color: #333;
-        }
-
-        .detector-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-        }
-
-        .detector-list label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .detector-list input[type="checkbox"] {
-            margin: 0;
-        }
-
-        .extra-options { display: flex; flex-direction: column; gap: 0.75rem; }
-        .field { display: flex; flex-direction: column; gap: 0.25rem; }
-        .field-row { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
-        .field-row select, .field-row input[type="number"], .extra-options input[type="text"] {
-            padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem;
-        }
-        .toggle { display: inline-flex; align-items: center; gap: 0.5rem; }
-        .upload-container { display: flex; flex-direction: column; gap: 0.25rem; }
-        .button-row { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-end; }
-        #process-btn {
-            align-self: flex-end;
-        }
-    </style>
 </body>
 </html>
