@@ -75,13 +75,29 @@ textarea {
     font-size: 1rem;
     resize: vertical;
     background-color: var(--surface-color);
+    color: var(--text-color);
     transition: border-color 0.2s ease;
+}
+
+textarea::placeholder {
+    color: var(--muted-text);
+    opacity: 1;
 }
 
 textarea:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.output-card textarea {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    line-height: 1.6;
+}
+
+body[data-theme="dark"] .output-card textarea {
+    background-color: #020617;
+    color: #e5e7eb;
 }
 
 .button-container {
