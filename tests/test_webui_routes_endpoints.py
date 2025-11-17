@@ -128,3 +128,63 @@ def test_download_file_pdf_output():
     resp = client.post("/download-file", data=data, content_type="multipart/form-data")
     assert resp.status_code == 200
     assert resp.mimetype == "application/pdf"
+
+
+def test_cli_preview_builds_command_for_text():
+    """POST /cli-preview should return a CLI command preview for text input."""
+    app = _make_app_with_patches()
+    client = app.test_client()
+
+    payload = {
+        "source": "text",
+        "locale": "en_US",
+        "detectors": ["email", "en:name"],
+        "cleanup": True,
+        "verbose": False,
+        "output_format": "txt",
+    }
+    resp = client.post("/cli-preview", json=payload)
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data is not None
+    command = data.get("command", "")
+    # Basic structure and key flags should be present
+    assert "sanitize-text" in command
+    assert "-t" in command
+    assert "-l en_US" in command
+    # Locale-specific detector prefix should be normalized away
+    assert "email" in command
+    assert "name" in command
+
+
+def test_cli_preview_builds_command_for_file_pdf():
+    """POST /cli-preview should include PDF-related options for file mode."""
+    app = _make_app_with_patches()
+    client = app.test_client()
+
+    payload = {
+        "source": "file",
+        "locale": None,
+        "detectors": ["email"],
+        "cleanup": False,
+        "verbose": True,
+        "output_format": "pdf",
+        "pdf_mode": "para",
+        "font_size": 14,
+    }
+    resp = client.post("/cli-preview", json=payload)
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data is not None
+    command = data.get("command", "")
+    assert "sanitize-text" in command
+    assert "-i" in command  # file mode
+    # Multi-locale default should not require -l flag when locale is omitted
+    assert "-l" not in command
+    # PDF-specific flags
+    assert "--output-format pdf" in command
+    assert "--pdf-mode para" in command
+    assert "--font-size 14" in command
+    # Other flags derived from booleans
+    assert "--no-cleanup" in command
+    assert "-v" in command
