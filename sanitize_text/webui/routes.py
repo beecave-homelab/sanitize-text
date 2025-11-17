@@ -88,6 +88,83 @@ def _format_results_text(results: list[dict[str, str]]) -> str:
     return "\n\n".join(sections)
 
 
+def _normalize_detector_tokens(detectors: list[str] | None) -> list[str]:
+    """Return normalized detector names without locale prefixes.
+
+    The WebUI represents locale-specific detectors using a ``"<locale>:<name>"``
+    prefix (for example ``"en:name"``). The CLI, however, expects bare
+    detector names. This helper removes such prefixes and de-duplicates
+    detector tokens while preserving a stable order for display.
+
+    Args:
+        detectors: Raw detector tokens from the WebUI payload.
+
+    Returns:
+        A list of normalized detector names suitable for CLI ``--detectors``.
+    """
+    if not detectors:
+        return []
+
+    seen: set[str] = set()
+    normalized: list[str] = []
+    for token in detectors:
+        name = token.split(":", 1)[-1]
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        normalized.append(name)
+    return normalized
+
+
+def _build_cli_preview(
+    *,
+    source: str,
+    locale: str | None,
+    detectors: list[str] | None,
+    cleanup: bool,
+    verbose: bool,
+    output_format: str,
+    pdf_mode: str,
+    font_size: int,
+) -> str:
+    """Return a ``sanitize-text`` CLI command preview for the WebUI.
+
+    The preview is intentionally shell-oriented, mirroring the main CLI
+    options without echoing full user content. It is meant purely for
+    discoverability so GUI users can learn the equivalent terminal command.
+    """
+    parts: list[str] = ["sanitize-text"]
+
+    if source == "file":
+        parts.extend(["-i", "<input-file>"])
+    else:
+        # Default to inline text when source is not explicitly "file".
+        parts.extend(["-t", "<text>"])
+
+    if locale:
+        parts.extend(["-l", locale])
+
+    normalized_detectors = _normalize_detector_tokens(detectors)
+    if normalized_detectors:
+        detector_str = " ".join(sorted(normalized_detectors))
+        parts.extend(["-d", f'"{detector_str}"'])
+
+    if not cleanup:
+        parts.append("--no-cleanup")
+
+    if verbose:
+        parts.append("-v")
+
+    if output_format and output_format != "txt":
+        parts.extend(["--output-format", output_format])
+
+    if output_format == "pdf":
+        parts.extend(["--pdf-mode", pdf_mode])
+        parts.extend(["--font-size", str(font_size)])
+
+    return " ".join(parts)
+
+
 def _read_uploaded_file_to_text(upload_path: Path) -> str:
     """Return text extracted from an uploaded file path.
 
@@ -133,6 +210,40 @@ def init_routes(app: Flask) -> Flask:
             dutch_detectors=dutch_detectors,
             spacy_available=spacy_available,
         )
+
+    @app.route("/cli-preview", methods=["POST"])
+    def cli_preview() -> Response:
+        """Return a CLI command preview for the current WebUI configuration.
+
+        The JSON payload mirrors the WebUI options and is translated to a
+        human-readable ``sanitize-text`` command string that users can copy.
+        """
+        data = request.json or {}
+        source = (data.get("source") or "text").lower()
+        locale = data.get("locale") or None
+        detectors = data.get("detectors") or []
+        cleanup = bool(data.get("cleanup", True))
+        verbose = bool(data.get("verbose", False))
+        output_format = (data.get("output_format") or "txt").lower()
+        pdf_mode = (data.get("pdf_mode") or "pre").lower()
+
+        font_size_raw = data.get("font_size", 11)
+        try:
+            font_size = int(font_size_raw)
+        except (TypeError, ValueError):  # pragma: no cover - defensive
+            font_size = 11
+
+        command = _build_cli_preview(
+            source=source,
+            locale=locale,
+            detectors=detectors,
+            cleanup=cleanup,
+            verbose=verbose,
+            output_format=output_format,
+            pdf_mode=pdf_mode,
+            font_size=font_size,
+        )
+        return jsonify({"command": command})
 
     @app.route("/process", methods=["POST"])
     def process() -> Response:
