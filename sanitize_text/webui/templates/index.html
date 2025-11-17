@@ -20,6 +20,7 @@
         
         <main>
             <div class="card input-card">
+                <div class="step-label">Step 1 &middot; Input</div>
                 <label for="input-text" class="section-title">Input</label>
                 <textarea 
                     id="input-text" 
@@ -51,6 +52,7 @@
 
                 <details class="advanced" id="advanced">
                     <summary>Advanced settings</summary>
+                    <div class="step-label step-label-sub">Step 2 &middot; Configure detectors &amp; output</div>
                     <div class="detector-options">
                     <div class="detector-group">
                         <h3>Universal Detectors</h3>
@@ -128,6 +130,7 @@
             </div>
 
             <div class="card output-card">
+                <div class="step-label">Step 3 &middot; Review &amp; export</div>
                 <label for="output-text" class="section-title">Output</label>
                 <textarea 
                     id="output-text" 
@@ -140,7 +143,14 @@
                 </details>
                 <div class="output-actions">
                     <div id="result-meta" class="result-meta"></div>
-                    <button id="copy-btn" class="secondary">Copy</button>
+                    <button id="copy-btn" class="secondary" type="button">Copy</button>
+                </div>
+                <div class="cli-preview" aria-label="CLI equivalent command">
+                    <div class="cli-preview-header">
+                        <span class="cli-preview-title">CLI equivalent</span>
+                        <button id="cli-copy-btn" class="ghost-button" type="button">Copy command</button>
+                    </div>
+                    <pre id="cli-command" class="cli-command" aria-live="polite">sanitize-text -t &lt;text&gt;</pre>
                 </div>
             </div>
         </main>
@@ -155,6 +165,8 @@
         const fileInput = document.getElementById('upload-file');
         const filePill = document.getElementById('file-pill');
         const themeToggle = document.getElementById('theme-toggle');
+        const cliCommandEl = document.getElementById('cli-command');
+        const cliCopyBtn = document.getElementById('cli-copy-btn');
 
         function updateDetectorVisibility() {
             const locale = localeSelect.value;
@@ -189,13 +201,18 @@
                 const btn = e.target.closest('button');
                 if (!btn) return;
                 setLocaleFromTabs(btn.dataset.value || '');
+                void updateCliPreview();
             });
             setLocaleFromTabs('');
         }
 
         // Dark mode toggle
         if (themeToggle) {
-            const saved = localStorage.getItem('theme') || 'light';
+            let saved = localStorage.getItem('theme');
+            if (!saved) {
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                saved = prefersDark ? 'dark' : 'light';
+            }
             document.body.dataset.theme = saved;
             themeToggle.textContent = saved === 'dark' ? '☀️' : '🌙';
             themeToggle.addEventListener('click', () => {
@@ -204,6 +221,48 @@
                 localStorage.setItem('theme', next);
                 themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
             });
+        }
+
+        async function updateCliPreview() {
+            if (!cliCommandEl) {
+                return;
+            }
+
+            const inputText = document.getElementById('input-text').value.trim();
+            const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+            const source = inputText ? 'text' : (hasFile ? 'file' : 'text');
+            const locale = document.getElementById('locale').value;
+            const cleanup = document.getElementById('cleanup').checked;
+            const verbose = document.getElementById('verbose').checked;
+            const outputFormat = document.getElementById('output-format').value;
+            const pdfMode = document.getElementById('pdf-mode').value;
+            const fontSize = parseInt(document.getElementById('font-size').value || '11', 10);
+            const detectors = getSelectedDetectors();
+
+            try {
+                const resp = await fetch('/cli-preview', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        source,
+                        locale: locale || null,
+                        detectors,
+                        cleanup,
+                        verbose,
+                        output_format: outputFormat,
+                        pdf_mode: pdfMode,
+                        font_size: fontSize,
+                    }),
+                });
+                const data = await resp.json();
+                if (resp.ok && data && data.command) {
+                    cliCommandEl.textContent = data.command;
+                } else {
+                    cliCommandEl.textContent = 'sanitize-text -t <text>';
+                }
+            } catch (e) {
+                cliCommandEl.textContent = 'sanitize-text -t <text>';
+            }
         }
 
         // Drag & drop upload
@@ -226,7 +285,10 @@
                 const isLabel = e.target && e.target.tagName === 'LABEL';
                 if (!isLabel) fileInput.click();
             });
-            fileInput.addEventListener('change', () => setFileInfo(fileInput.files[0]));
+            fileInput.addEventListener('change', () => {
+                setFileInfo(fileInput.files[0]);
+                void updateCliPreview();
+            });
         }
 
         function getSelectedDetectors() {
@@ -548,6 +610,41 @@
                 copyBtn.textContent = originalText;
             }, 2000);
         });
+
+        if (cliCopyBtn && cliCommandEl) {
+            cliCopyBtn.addEventListener('click', () => {
+                const command = cliCommandEl.textContent || '';
+                if (!navigator.clipboard) {
+                    const tmp = document.createElement('textarea');
+                    tmp.value = command;
+                    document.body.appendChild(tmp);
+                    tmp.select();
+                    document.execCommand('copy');
+                    tmp.remove();
+                } else {
+                    navigator.clipboard.writeText(command).catch(() => {});
+                }
+
+                const original = cliCopyBtn.textContent;
+                cliCopyBtn.textContent = 'Copied!';
+                setTimeout(() => {
+                    cliCopyBtn.textContent = original;
+                }, 2000);
+            });
+        }
+
+        // Keep CLI preview roughly in sync with configuration changes
+        ['input-text', 'custom-text', 'cleanup', 'verbose', 'output-format', 'pdf-mode', 'font-size'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const evt = (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') ? 'input' : 'change';
+            el.addEventListener(evt, () => { void updateCliPreview(); });
+        });
+        document.querySelectorAll('input[name="detector"]').forEach((cb) => {
+            cb.addEventListener('change', () => { void updateCliPreview(); });
+        });
+
+        void updateCliPreview();
     </script>
 
     <style>
@@ -558,6 +655,19 @@
             margin: 1rem 0;
         }
 
+        .step-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted-text);
+            margin-bottom: 0.35rem;
+        }
+
+        .step-label-sub {
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
         .locale-selector {
             display: flex;
             align-items: center;
@@ -566,13 +676,59 @@
 
         .locale-selector select {
             padding: 0.5rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
             font-size: 1rem;
+            background-color: var(--surface-color);
+            color: var(--text-color);
         }
 
         .locale-selector label {
             font-weight: bold;
+        }
+
+        .cli-preview {
+            margin-top: 0.75rem;
+            padding: 0.75rem 0.85rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            background-color: var(--surface-color);
+        }
+
+        .cli-preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.35rem;
+        }
+
+        .cli-preview-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted-text);
+        }
+
+        .cli-command {
+            margin: 0;
+            padding: 0.45rem 0.6rem;
+            border-radius: 0.4rem;
+            background-color: rgba(15, 23, 42, 0.8);
+            color: #e5e7eb;
+            font-size: 0.85rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .ghost-button {
+            border-radius: 9999px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-color);
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            cursor: pointer;
         }
 
         .detector-options {
@@ -580,16 +736,16 @@
             flex-wrap: wrap;
             gap: 2rem;
             padding: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #f9f9f9;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background-color: var(--surface-color);
         }
 
         .detector-note {
             width: 100%;
             margin: 0;
             font-size: 0.9rem;
-            color: #555;
+            color: var(--muted-text);
         }
 
         .detector-group {
@@ -599,7 +755,7 @@
         .detector-group h3 {
             margin: 0 0 0.5rem 0;
             font-size: 1rem;
-            color: #333;
+            color: var(--text-color);
         }
 
         .detector-list {
@@ -623,7 +779,7 @@
         .field { display: flex; flex-direction: column; gap: 0.25rem; }
         .field-row { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
         .field-row select, .field-row input[type="number"], .extra-options input[type="text"] {
-            padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem;
+            padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.5rem; font-size: 1rem; background-color: var(--surface-color); color: var(--text-color);
         }
         .toggle { display: inline-flex; align-items: center; gap: 0.5rem; }
         .upload-container { display: flex; flex-direction: column; gap: 0.25rem; }
