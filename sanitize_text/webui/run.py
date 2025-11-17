@@ -8,8 +8,7 @@ import warnings
 from flask import Flask
 
 from sanitize_text.utils.nlp_resources import download_optional_models
-
-from . import routes
+from sanitize_text.webui import routes
 
 
 def create_app() -> Flask:
