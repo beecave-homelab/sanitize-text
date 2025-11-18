@@ -12,11 +12,14 @@
 !LICENSE
 !.dockerignore
 !docker-compose.yaml
+!docker-compose.dev.yaml
 !Dockerfile
 !setup.py
 !MANIFEST.in
 !pyproject.toml
 !AGENTS.md
+!input/.gitkeep
+!output/.gitkeep
 
 # Include all files in these directories
 !nl_entities/
