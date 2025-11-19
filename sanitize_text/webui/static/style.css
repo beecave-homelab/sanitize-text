@@ -125,7 +125,7 @@ body {
 
 .workspace-grid {
     display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
+    grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
 }
 
@@ -186,6 +186,8 @@ textarea {
     resize: vertical;
     background: var(--surface-muted);
     color: var(--text);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 textarea:focus {
@@ -410,7 +412,8 @@ button:disabled {
     font-family: "JetBrains Mono", "Fira Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.9rem;
     color: var(--text);
-    overflow-x: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 .sr-only {
