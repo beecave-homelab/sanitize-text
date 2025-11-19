@@ -34,10 +34,13 @@ from markitdown import MarkItDown
 )
 @click.option(
     "--backend",
-    type=click.Choice(["markitdown", "pymupdf4llm"], case_sensitive=False),
-    default="markitdown",
+    type=click.Choice(["markitdown", "pymupdf4llm", "all"], case_sensitive=False),
+    default="pymupdf4llm",
     show_default=True,
-    help="Backend to use for PDF to Markdown conversion."
+    help=(
+        "Backend to use for PDF to Markdown conversion. "
+        "Use 'all' to run all backends for comparison."
+    ),
 )
 def pdf2md(
     input_file: pathlib.Path,
@@ -49,9 +52,46 @@ def pdf2md(
     """Convert a PDF file to Markdown using the selected backend."""
     click.secho(f"📄 Processing: {input_file}", fg="cyan")
 
-    output_path = output or input_file.with_suffix(".md")
+    base_output = output or input_file.with_suffix(".md")
 
-    # Convert PDF to Markdown
+    # Run all backends for comparison
+    if backend.lower() == "all":
+        parent = base_output.parent
+        stem = base_output.stem
+
+        # PyMuPDF4LLM backend
+        click.secho("🔧 Backend: pymupdf4llm", fg="yellow")
+        md_text_pymupdf = pymupdf4llm.to_markdown(
+            str(input_file),
+            write_images=images,
+            dpi=dpi,
+        )
+        output_path_pymupdf = parent / f"{stem}.pymupdf4llm.md"
+        output_path_pymupdf.write_text(md_text_pymupdf, encoding="utf-8")
+        click.secho(
+            f"✅ Saved Markdown (pymupdf4llm) → {output_path_pymupdf}",
+            fg="green",
+            bold=True,
+        )
+
+        # MarkItDown backend
+        click.secho("🔧 Backend: markitdown", fg="yellow")
+        converter = MarkItDown()
+        result = converter.convert(str(input_file))
+        md_text_markitdown = result.markdown
+        output_path_markitdown = parent / f"{stem}.markitdown.md"
+        output_path_markitdown.write_text(md_text_markitdown, encoding="utf-8")
+        click.secho(
+            f"✅ Saved Markdown (markitdown) → {output_path_markitdown}",
+            fg="green",
+            bold=True,
+        )
+
+        return
+
+    # Single-backend mode
+    output_path = base_output
+
     if backend.lower() == "pymupdf4llm":
         md_text = pymupdf4llm.to_markdown(
             str(input_file),
@@ -63,7 +103,6 @@ def pdf2md(
         result = converter.convert(str(input_file))
         md_text = result.markdown
 
-    # Write output
     output_path.write_text(md_text, encoding="utf-8")
 
     click.secho(f"✅ Saved Markdown → {output_path}", fg="green", bold=True)
