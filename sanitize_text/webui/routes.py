@@ -163,6 +163,9 @@ def _build_cli_preview(
         parts.extend(["--pdf-mode", pdf_mode])
         parts.extend(["--font-size", str(font_size)])
 
+    if source == "file" and pdf_backend:
+        parts.extend(["--pdf-backend", pdf_backend])
+
     return " ".join(parts)
 
 
@@ -236,6 +239,7 @@ def init_routes(app: Flask) -> Flask:
         verbose = bool(data.get("verbose", False))
         output_format = (data.get("output_format") or "txt").lower()
         pdf_mode = (data.get("pdf_mode") or "pre").lower()
+        pdf_backend = (data.get("pdf_backend") or "pymupdf4llm").lower()
 
         font_size_raw = data.get("font_size", 11)
         try:
@@ -252,6 +256,7 @@ def init_routes(app: Flask) -> Flask:
             output_format=output_format,
             pdf_mode=pdf_mode,
             font_size=font_size,
+            pdf_backend=pdf_backend,
         )
         return jsonify({"command": command})
 
@@ -463,6 +468,7 @@ def init_routes(app: Flask) -> Flask:
         download_name = f"scrubbed{suffix}"
         mimetypes = {
             "txt": "text/plain",
+            "md": "text/markdown",
             "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "pdf": "application/pdf",
         }

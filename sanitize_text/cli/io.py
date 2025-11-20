@@ -21,6 +21,7 @@ def read_input_source(
     input_path: str | None,
     append: bool,
     output_path: str | None,
+    pdf_backend: str = "pymupdf4llm",
 ) -> str:
     """Return input text resolved from CLI sources.
 
@@ -29,6 +30,7 @@ def read_input_source(
         input_path: Path to a file provided via ``--input``/``-i``.
         append: Whether to treat the output file as input when ``True``.
         output_path: Path used when ``append`` is set.
+        pdf_backend: Backend to use for PDF pre-conversion ("pymupdf4llm" or "markitdown").
 
     Returns:
         str: Materialized input text.
@@ -46,7 +48,16 @@ def read_input_source(
     if input_path:
         ext = Path(input_path).suffix.lower()
         if ext == ".pdf":
-            raw_md = preconvert.to_markdown(input_path)
+            backend = (pdf_backend or "pymupdf4llm").lower()
+            if backend == "pymupdf4llm":
+                try:
+                    import pymupdf4llm  # type: ignore[import]
+                except Exception:  # noqa: BLE001
+                    raw_md = preconvert.to_markdown(input_path)
+                else:
+                    raw_md = pymupdf4llm.to_markdown(input_path)
+            else:
+                raw_md = preconvert.to_markdown(input_path)
             return normalize_pdf_text(raw_md, title=None)
         if ext in {".doc", ".docx"}:
             return preconvert.docx_to_text(input_path)
@@ -90,6 +101,8 @@ def infer_output_format(output: str | None, explicit_format: str | None) -> str:
         return "docx"
     if ext == ".pdf":
         return "pdf"
+    if ext in {".md", ".markdown"}:
+        return "md"
     return "txt"
 
 

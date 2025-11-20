@@ -179,6 +179,8 @@ class PdfWriter(_BaseWriter):
 
 _WRITERS: dict[str, OutputWriter] = {
     "txt": TxtWriter(),
+    "md": TxtWriter(),
+    "markdown": TxtWriter(),
     "docx": DocxWriter(),
     "pdf": PdfWriter(),
 }
@@ -188,7 +190,7 @@ def get_writer(fmt: str) -> OutputWriter:
     """Return a writer for the requested format.
 
     Args:
-        fmt: Desired format string (``"txt"``, ``"docx"``, or ``"pdf"``).
+        fmt: Desired format string (``"txt"``, ``"md"``, ``"docx"``, or ``"pdf"``).
 
     Returns:
         OutputWriter: Writer implementation associated with ``fmt``.

@@ -171,8 +171,8 @@ def _run_scrub(
 )
 @click.option(
     "--output-format",
-    type=click.Choice(["txt", "docx", "pdf"]),
-    help="Explicit output format. Otherwise inferred from -o extension (txt/docx/pdf).",
+    type=click.Choice(["txt", "md", "docx", "pdf"]),
+    help=("Explicit output format. Otherwise inferred from -o extension (txt/md/docx/pdf)."),
 )
 @click.option(
     "--pdf-mode",
@@ -192,6 +192,13 @@ def _run_scrub(
     default=11,
     show_default=True,
     help="Font size for PDF output.",
+)
+@click.option(
+    "--pdf-backend",
+    type=click.Choice(["pymupdf4llm", "markitdown"]),
+    default="pymupdf4llm",
+    show_default=True,
+    help="Backend to use for PDF input pre-conversion.",
 )
 @click.option(
     "--verbose",
@@ -259,6 +266,7 @@ def main(
     pdf_mode: str,
     pdf_font: str | None,
     font_size: int,
+    pdf_backend: str,
     cleanup: bool,
     download_nlp_models: bool,
 ) -> None:
@@ -312,6 +320,7 @@ def main(
             input_path=input,
             append=append,
             output_path=output,
+            pdf_backend=pdf_backend,
         )
     except Exception as exc:
         click.echo(f"Error: {exc}", err=True)
@@ -385,7 +394,7 @@ def list_detectors_cmd() -> None:
 )
 @click.option(
     "--output-format",
-    type=click.Choice(["txt", "docx", "pdf"]),
+    type=click.Choice(["txt", "md", "docx", "pdf"]),
     help="Explicit output format.",
 )
 @click.option(
@@ -399,6 +408,12 @@ def list_detectors_cmd() -> None:
     type=click.Path(exists=True, dir_okay=False),
 )
 @click.option("--font-size", type=int, default=11, show_default=True)
+@click.option(
+    "--pdf-backend",
+    type=click.Choice(["pymupdf4llm", "markitdown"]),
+    default="pymupdf4llm",
+    show_default=True,
+)
 @click.option("--verbose", "-v", is_flag=True, help="Show mappings for found PII.")
 @click.option("--append", "-a", is_flag=True, help="Use output file as input.")
 @click.option(
@@ -434,6 +449,7 @@ def scrub_cmd(
     pdf_mode: str,
     pdf_font: str | None,
     font_size: int,
+    pdf_backend: str,
     verbose: bool,
     append: bool,
     locale: str | None,
@@ -447,7 +463,11 @@ def scrub_cmd(
         download_optional_models()
     try:
         input_text = read_input_source(
-            text=text, input_path=input, append=append, output_path=output
+            text=text,
+            input_path=input,
+            append=append,
+            output_path=output,
+            pdf_backend=pdf_backend,
         )
     except Exception as exc:
         click.echo(f"Error: {exc}", err=True)

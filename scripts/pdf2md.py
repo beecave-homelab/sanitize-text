@@ -13,24 +13,23 @@ from markitdown import MarkItDown
 
 
 @click.command(context_settings={"help_option_names": ["-h", "--help"]})
-@click.argument(
-    "input_file", type=click.Path(exists=True, dir_okay=False, path_type=pathlib.Path)
-)
+@click.argument("input_file", type=click.Path(exists=True, dir_okay=False, path_type=pathlib.Path))
 @click.option(
-    "-o", "--output",
+    "-o",
+    "--output",
     type=click.Path(dir_okay=False, writable=True, path_type=pathlib.Path),
-    help="Output Markdown file (default: same name as input with .md extension)."
+    help="Output Markdown file (default: same name as input with .md extension).",
 )
 @click.option(
     "--images",
     is_flag=True,
-    help="Extract and reference images in the Markdown output (pymupdf4llm backend only)."
+    help="Extract and reference images in the Markdown output (pymupdf4llm backend only).",
 )
 @click.option(
     "--dpi",
     default=150,
     show_default=True,
-    help="DPI for extracted images if --images is enabled (pymupdf4llm backend only)."
+    help="DPI for extracted images if --images is enabled (pymupdf4llm backend only).",
 )
 @click.option(
     "--backend",
