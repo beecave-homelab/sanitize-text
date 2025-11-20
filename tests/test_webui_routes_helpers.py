@@ -90,3 +90,31 @@ def test_read_uploaded_file_to_text_plain_and_pdf(tmp_path, monkeypatch) -> None
     )
 
     assert mod._read_uploaded_file_to_text(pdf) == "normalized"
+
+
+def test_read_uploaded_file_to_text_pdf_backend_pymupdf4llm(tmp_path, monkeypatch) -> None:
+    """_read_uploaded_file_to_text honors the pdf_backend selector for PDFs."""
+    mod = importlib.import_module("sanitize_text.webui.routes")
+
+    pdf = tmp_path / "y.pdf"
+    pdf.write_text("ignored", encoding="utf-8")
+
+    class DummyPdfBackend:
+        @staticmethod
+        def to_markdown(path: str) -> str:  # noqa: ARG001 - parity with real API
+            return "md via pymupdf4llm"
+
+    def fake_normalize(text: str, title=None):  # noqa: ANN001, ARG001 - test shim
+        return f"normalized:{text}"
+
+    # Ensure imports inside helper resolve to our shims
+    monkeypatch.setitem(sys.modules, "pymupdf4llm", DummyPdfBackend())
+    monkeypatch.setattr(
+        sys.modules["sanitize_text.utils.normalize"],
+        "normalize_pdf_text",
+        fake_normalize,
+        raising=False,
+    )
+
+    out = mod._read_uploaded_file_to_text(pdf, pdf_backend="pymupdf4llm")
+    assert out == "normalized:md via pymupdf4llm"
