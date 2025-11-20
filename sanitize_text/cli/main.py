@@ -270,7 +270,7 @@ def main(
     cleanup: bool,
     download_nlp_models: bool,
 ) -> None:
-    r"""Remove personally identifiable information (PII) from text.
+    """Remove personally identifiable information (PII) from text.
 
     This tool processes text from various sources (direct input, file, or stdin)
     and removes PII using configurable detectors. It supports multiple locales
@@ -278,28 +278,28 @@ def main(
     names, organizations, and locations.
 
     \b
-    Input Sources (in order of precedence):
-    1. --text: Direct text input
-    2. --input: Text file
-    3. --append: Existing output file
-    4. stdin: Piped input
+    Input sources (in order of precedence):
+    1. ``--text``: Direct text input.
+    2. ``--input``: Text file.
+    3. ``--append``: Existing output file.
+    4. stdin: Piped input.
 
     \b
-    Detector Types:
-    - Generic: email, phone, url, private_ip, public_ip
-    - Dutch (nl_NL): location, organization, name
-    - English (en_US): location, organization, name, date_of_birth
+    Detector types:
+    - Generic: ``email``, ``phone``, ``url``, ``private_ip``, ``public_ip``.
+    - Dutch (``nl_NL``): ``location``, ``organization``, ``name``.
+    - English (``en_US``): ``location``, ``organization``, ``name``, ``date_of_birth``.
 
     \f
     Args:
-        text: Direct text input to process
-        input: Path to input file
-        output: Path to output file
-        locale: Locale code for processing
-        detectors: Space-separated list of detectors
-        list_detectors: Whether to list available detectors
-        append: Whether to use output file as input
-    """
+        text: Direct text input to process.
+        input: Path to input file.
+        output: Path to output file.
+        locale: Locale code for processing.
+        detectors: Space-separated list of detectors.
+        list_detectors: Whether to list available detectors.
+        append: Whether to use output file as input.
+    """  # noqa: D301  # non-raw docstring required for Click \b/\f
     # If --list-detectors flag is used, show detectors and exit (back-compat)
     if list_detectors and (ctx.invoked_subcommand is None):
         _print_detectors()
