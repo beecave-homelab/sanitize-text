@@ -356,6 +356,60 @@ def test_main_passes_cli_options_to_run_scrub(monkeypatch) -> None:
     assert seen["verbose"] is True
 
 
+def test_main_passes_pdf_backend_to_read_input_source(monkeypatch, tmp_path) -> None:
+    """--pdf-backend should propagate to read_input_source (default and explicit)."""
+    mod = importlib.import_module("sanitize_text.cli.main")
+
+    class DummyHalo:
+        def __init__(self, *a: Any, **k: Any) -> None:  # noqa: D401
+            pass
+
+        def start(self) -> None:  # noqa: D401
+            return None
+
+        def succeed(self, *_: Any, **__: Any) -> None:  # noqa: D401
+            return None
+
+    monkeypatch.setattr(mod, "Halo", DummyHalo)
+
+    seen: dict[str, Any] = {}
+
+    def fake_read_input_source(**k: Any) -> str:  # noqa: ANN401 - test shim
+        seen.update(k)
+        return "PDF TEXT"
+
+    monkeypatch.setattr(mod, "read_input_source", fake_read_input_source)
+    monkeypatch.setattr(mod, "_run_scrub", lambda **k: "SCRUB")
+    monkeypatch.setattr(mod, "write_output", lambda **k: str(tmp_path / "out.txt"))
+
+    runner = CliRunner()
+
+    # Use a real temporary PDF path so Click's Path(exists=True) validation passes.
+    pdf_path = tmp_path / "in.pdf"
+    pdf_path.write_text("dummy", encoding="utf-8")
+
+    # Default backend
+    result = runner.invoke(mod.main, ["-i", str(pdf_path), "-o", str(tmp_path / "a.txt")])
+    assert result.exit_code == 0
+    assert seen["pdf_backend"] == "pymupdf4llm"
+
+    # Explicit backend
+    seen.clear()
+    result = runner.invoke(
+        mod.main,
+        [
+            "-i",
+            str(pdf_path),
+            "-o",
+            str(tmp_path / "b.txt"),
+            "--pdf-backend",
+            "markitdown",
+        ],
+    )
+    assert result.exit_code == 0
+    assert seen["pdf_backend"] == "markitdown"
+
+
 def test_scrub_subcommand_downloads_models(monkeypatch) -> None:
     """Scrub subcommand should honor --download-nlp-models flag."""
     mod = importlib.import_module("sanitize_text.cli.main")

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import sys
 from pathlib import Path
 
 import pytest
@@ -21,6 +22,8 @@ def test_infer_output_format_from_ext(tmp_path: Path) -> None:
     assert cli_io.infer_output_format(str(out), None) == "docx"
     out = tmp_path / "file.pdf"
     assert cli_io.infer_output_format(str(out), None) == "pdf"
+    out = tmp_path / "file.md"
+    assert cli_io.infer_output_format(str(out), None) == "md"
     out = tmp_path / "file.txt"
     assert cli_io.infer_output_format(str(out), None) == "txt"
 
@@ -79,7 +82,7 @@ def test_read_input_source_pdf(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) 
     p = tmp_path / "in.pdf"
     p.write_text("%PDF-1.4", encoding="utf-8")
 
-    class DummyPreconvert:
+    class DummyPdfBackend:
         @staticmethod
         def to_markdown(path: str) -> str:  # noqa: ARG003 - external API shape
             assert path == str(p)
@@ -88,7 +91,7 @@ def test_read_input_source_pdf(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) 
     def dummy_norm(md: str, *, title: str | None) -> str:  # noqa: ARG001
         return md
 
-    monkeypatch.setattr(cli_io, "preconvert", DummyPreconvert)
+    monkeypatch.setitem(sys.modules, "pymupdf4llm", DummyPdfBackend())
     monkeypatch.setattr(cli_io, "normalize_pdf_text", dummy_norm)
 
     got = cli_io.read_input_source(text=None, input_path=str(p), append=False, output_path=None)
