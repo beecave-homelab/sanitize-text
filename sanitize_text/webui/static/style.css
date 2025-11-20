@@ -112,7 +112,8 @@ body {
     background-color: var(--bg-panel);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     padding: 1.5rem;
     gap: 1rem;
 }

@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Form Inputs Monitoring for CLI Preview ---
     const inputs = [
         'input-text', 'custom-text', 'cleanup-check', 'verbose-check',
-        'output-format', 'pdf-mode', 'font-size'
+        'output-format', 'pdf-mode', 'font-size', 'pdf-backend'
     ];
     inputs.forEach(id => {
         const el = document.getElementById(id);
@@ -164,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (state.custom) form.append('custom', state.custom);
                 form.append('cleanup', state.cleanup);
                 form.append('verbose', state.verbose);
+                form.append('pdf_backend', state.pdfBackend);
                 
                 const res = await fetch('/process-file', { method: 'POST', body: form });
                 data = await res.json();
@@ -217,6 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 form.append('output_format', state.format);
                 form.append('pdf_mode', state.pdfMode);
                 form.append('font_size', state.fontSize);
+                form.append('pdf_backend', state.pdfBackend);
                 
                 res = await fetch('/download-file', { method: 'POST', body: form });
             }
@@ -271,7 +273,8 @@ document.addEventListener('DOMContentLoaded', () => {
             verbose: document.getElementById('verbose-check').checked,
             format: document.getElementById('output-format').value,
             pdfMode: document.getElementById('pdf-mode').value,
-            fontSize: document.getElementById('font-size').value
+            fontSize: document.getElementById('font-size').value,
+            pdfBackend: (document.getElementById('pdf-backend') || { value: 'pymupdf4llm' }).value
         };
     }
 
@@ -314,7 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     verbose: state.verbose,
                     output_format: state.format,
                     pdf_mode: state.pdfMode,
-                    font_size: state.fontSize
+                    font_size: state.fontSize,
+                    pdf_backend: state.pdfBackend
                 })
             });
             const data = await res.json();

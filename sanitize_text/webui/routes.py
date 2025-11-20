@@ -126,6 +126,7 @@ def _build_cli_preview(
     output_format: str,
     pdf_mode: str,
     font_size: int,
+    pdf_backend: str | None = None,
 ) -> str:
     """Return a ``sanitize-text`` CLI command preview for the WebUI.
 
@@ -165,7 +166,7 @@ def _build_cli_preview(
     return " ".join(parts)
 
 
-def _read_uploaded_file_to_text(upload_path: Path) -> str:
+def _read_uploaded_file_to_text(upload_path: Path, *, pdf_backend: str = "markitdown") -> str:
     """Return text extracted from an uploaded file path.
 
     Uses the same conversion rules as the CLI: PDF, DOC/DOCX, RTF, images,
@@ -173,7 +174,16 @@ def _read_uploaded_file_to_text(upload_path: Path) -> str:
     """
     ext = upload_path.suffix.lower()
     if ext == ".pdf":
-        raw_md = preconvert.to_markdown(str(upload_path))
+        backend = (pdf_backend or "markitdown").lower()
+        if backend == "pymupdf4llm":
+            try:
+                import pymupdf4llm  # type: ignore[import]
+            except Exception:  # noqa: BLE001
+                raw_md = preconvert.to_markdown(str(upload_path))
+            else:
+                raw_md = pymupdf4llm.to_markdown(str(upload_path))
+        else:
+            raw_md = preconvert.to_markdown(str(upload_path))
         # Normalize to plain text similar to CLI cleanup path
         from sanitize_text.utils.normalize import normalize_pdf_text
 
@@ -326,6 +336,8 @@ def init_routes(app: Flask) -> Flask:
         if file.filename == "":
             return jsonify({"error": "Empty filename"}), 400
 
+        pdf_backend = request.form.get("pdf_backend", "pymupdf4llm")
+
         # Persist upload to a temporary file to reuse existing converters
         suffix = Path(file.filename).suffix or ""
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
@@ -333,7 +345,7 @@ def init_routes(app: Flask) -> Flask:
             tmp_path = Path(tmp.name)
 
         try:
-            input_text = _read_uploaded_file_to_text(tmp_path)
+            input_text = _read_uploaded_file_to_text(tmp_path, pdf_backend=pdf_backend)
         finally:
             try:
                 os.unlink(tmp_path)
@@ -481,13 +493,15 @@ def init_routes(app: Flask) -> Flask:
         if file.filename == "":
             return jsonify({"error": "Empty filename"}), 400
 
+        pdf_backend = request.form.get("pdf_backend", "pymupdf4llm")
+
         suffix = Path(file.filename).suffix or ""
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_in:
             file.save(tmp_in)
             in_path = Path(tmp_in.name)
 
         try:
-            input_text = _read_uploaded_file_to_text(in_path)
+            input_text = _read_uploaded_file_to_text(in_path, pdf_backend=pdf_backend)
         finally:
             try:
                 os.unlink(in_path)
