@@ -1,9 +1,10 @@
 [project]
 name = "sanitize-text"
-version = "0.1.0"
-description = ""
+version = "1.0.0"
+description = "A powerful tool for detecting and sanitizing personally identifiable information (PII) in text, with support for both English and Dutch languages."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
+
 dependencies = [
   "Flask>=3.1.2",
   "python-dotenv>=1.2.1",
@@ -24,6 +25,16 @@ dependencies = [
   "pip>=25.3",
 ]
 
+[tool.pdm.dev-dependencies]
+lint = [
+  "ruff>=0.6.9",
+]
+
+test = [
+  "pytest>=8.0.0",
+  "pytest-cov>=5.0.0",
+]
+
 [project.scripts]
 sanitize-text = "sanitize_text.cli.main:main"
 sanitize-text-webui = "sanitize_text.webui.main:main"
@@ -34,15 +45,6 @@ build-backend = "pdm.backend"
 
 [tool.pdm]
 distribution = true
-
-[tool.pdm.dev-dependencies]
-lint = [
-  "ruff>=0.6.9",
-]
-test = [
-  "pytest>=8.0.0",
-  "pytest-cov>=5.0.0",
-]
 
 [tool.ruff]
 # Align with repo guidance; adjust if project standard differs
@@ -88,3 +90,4 @@ test-cov = "pytest --cov=. --cov-report=term-missing:skip-covered --cov-report=x
 
 sanitize_text.cli = { call = "sanitize_text.cli.main:main" }
 sanitize_text.webui = { call = "sanitize_text.webui.main:main" }
+sanitize_text.add_entity = { call = "sanitize_text.add_entity.main:main" }
