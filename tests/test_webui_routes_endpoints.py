@@ -188,3 +188,103 @@ def test_cli_preview_builds_command_for_file_pdf():
     # Other flags derived from booleans
     assert "--no-cleanup" in command
     assert "-v" in command
+
+
+def test_process_file_pdf_uses_default_backend(monkeypatch) -> None:
+    """/process-file should default to pdf_backend=pymupdf4llm for PDFs."""
+    app = _make_app_with_patches()
+    client = app.test_client()
+
+    mod = importlib.import_module("sanitize_text.webui.routes")
+
+    seen: dict[str, object] = {}
+
+    def fake_read_uploaded(path, *, pdf_backend: str) -> str:  # noqa: ARG001
+        seen["backend"] = pdf_backend
+        return "PDF TEXT"
+
+    monkeypatch.setattr(mod, "_read_uploaded_file_to_text", fake_read_uploaded)
+
+    data = {
+        "file": (io.BytesIO(b"pdf-bytes"), "input.pdf"),
+        "locale": "en_US",
+    }
+    resp = client.post("/process-file", data=data, content_type="multipart/form-data")
+    assert resp.status_code == 200
+    assert seen["backend"] == "pymupdf4llm"
+
+
+def test_process_file_pdf_respects_explicit_backend(monkeypatch) -> None:
+    """/process-file should pass through an explicit pdf_backend value."""
+    app = _make_app_with_patches()
+    client = app.test_client()
+
+    mod = importlib.import_module("sanitize_text.webui.routes")
+
+    seen: dict[str, object] = {}
+
+    def fake_read_uploaded(path, *, pdf_backend: str) -> str:  # noqa: ARG001
+        seen["backend"] = pdf_backend
+        return "PDF TEXT"
+
+    monkeypatch.setattr(mod, "_read_uploaded_file_to_text", fake_read_uploaded)
+
+    data = {
+        "file": (io.BytesIO(b"pdf-bytes"), "input.pdf"),
+        "locale": "en_US",
+        "pdf_backend": "markitdown",
+    }
+    resp = client.post("/process-file", data=data, content_type="multipart/form-data")
+    assert resp.status_code == 200
+    assert seen["backend"] == "markitdown"
+
+
+def test_download_file_pdf_uses_default_backend(monkeypatch) -> None:
+    """/download-file should default to pdf_backend=pymupdf4llm for PDFs."""
+    app = _make_app_with_patches()
+    client = app.test_client()
+
+    mod = importlib.import_module("sanitize_text.webui.routes")
+
+    seen: dict[str, object] = {}
+
+    def fake_read_uploaded(path, *, pdf_backend: str) -> str:  # noqa: ARG001
+        seen["backend"] = pdf_backend
+        return "PDF TEXT"
+
+    monkeypatch.setattr(mod, "_read_uploaded_file_to_text", fake_read_uploaded)
+
+    data = {
+        "file": (io.BytesIO(b"pdf-bytes"), "input.pdf"),
+        "output_format": "pdf",
+        "font_size": "12",
+    }
+    resp = client.post("/download-file", data=data, content_type="multipart/form-data")
+    assert resp.status_code == 200
+    assert seen["backend"] == "pymupdf4llm"
+
+
+def test_download_file_pdf_respects_explicit_backend(monkeypatch) -> None:
+    """/download-file should pass through an explicit pdf_backend value."""
+    app = _make_app_with_patches()
+    client = app.test_client()
+
+    mod = importlib.import_module("sanitize_text.webui.routes")
+
+    seen: dict[str, object] = {}
+
+    def fake_read_uploaded(path, *, pdf_backend: str) -> str:  # noqa: ARG001
+        seen["backend"] = pdf_backend
+        return "PDF TEXT"
+
+    monkeypatch.setattr(mod, "_read_uploaded_file_to_text", fake_read_uploaded)
+
+    data = {
+        "file": (io.BytesIO(b"pdf-bytes"), "input.pdf"),
+        "output_format": "pdf",
+        "font_size": "12",
+        "pdf_backend": "markitdown",
+    }
+    resp = client.post("/download-file", data=data, content_type="multipart/form-data")
+    assert resp.status_code == 200
+    assert seen["backend"] == "markitdown"
