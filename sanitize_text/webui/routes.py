@@ -576,6 +576,7 @@ def init_routes(app: Flask) -> Flask:
         download_name = f"scrubbed{suffix}"
         mimetypes = {
             "txt": "text/plain",
+            "md": "text/markdown",
             "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "pdf": "application/pdf",
         }
