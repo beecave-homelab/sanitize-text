@@ -5,6 +5,8 @@
 # But include these files
 !.gitignore
 !README.md
+!VERSIONS.md
+!project-overview.md
 !requirements.txt
 !requirements.dev.txt
 !run.py
