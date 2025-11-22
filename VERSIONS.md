@@ -2,12 +2,41 @@
 
 ## ToC
 
-- [v1.1.0 (Current)](#v110-current---22-11-2025)
+- [v1.2.0 (Current)](#v120-current---22-11-2025)
+- [v1.1.0](#v110---22-11-2025)
 - [v1.0.0](#v100---21-11-2025)
 
-## **v1.1.0** (Current) - *22-11-2025*
+## **v1.2.0** (Current) - *22-11-2025*
 
 ### ✨ **Brief Description**
+
+Patch release delivering configurable WebUI CLI options, matching tests, updated documentation, and lint configuration fixes.
+
+### ✨ **New Features in v1.2.0**
+
+- **Added**: Configurable host, port, debug, and NLP download options to the Click-based WebUI entry point.
+
+### 🐛 **Bug Fixes in v1.2.0**
+
+- **Fixed**: Residual blank line in `sanitize_text.utils.nlp_resources` imports to satisfy linting rules.
+  - **Issue**: Markdownlint and Ruff flagged inconsistent spacing after import blocks.
+  - **Root Cause**: Previous refactor left an empty spacer contradicting lint expectations.
+  - **Solution**: Removed the superfluous newline to keep imports contiguous.
+
+### 🔧 **Improvements in v1.2.0**
+
+- **Improved**: Added markdownlint configuration and `.gitignore` updates so HTML details/summary blocks remain compliant.
+- **Updated**: Documentation describing new WebUI CLI options plus matching Click-based integration tests.
+
+### 📝 **Key Commits in v1.2.0**
+
+`fd4a83b`, `5ce358e`, `ff48ffb`
+
+---
+
+## **v1.1.0** - *22-11-2025*
+
+### ✨ **Brief Description (v1.1.0)**
 
 Minor release focusing on SOLID-aligned refactors, a shared multi-locale scrubbing helper, configurable post-processing, and updated documentation.
 
