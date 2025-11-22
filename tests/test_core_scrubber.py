@@ -94,8 +94,12 @@ def stub_custom_detectors(monkeypatch):
 
     base = ModuleType("sanitize_text.utils.custom_detectors.base")
 
-    class DutchEntityDetector:  # only the cache is accessed
+    class DutchEntityDetector:  # only the cache and reset hook are accessed
         _dutch_loaded_entities = {"seed"}
+
+        @classmethod
+        def reset_loaded_entities(cls) -> None:
+            cls._dutch_loaded_entities.clear()
 
     base.DutchEntityDetector = DutchEntityDetector
 

@@ -424,15 +424,25 @@ class DutchEntityDetector(JSONEntityDetector):
     #: Shared set of entities already loaded by higher-priority detectors
     _dutch_loaded_entities: set[str] = set()
 
+    @classmethod
+    def reset_loaded_entities(cls) -> None:
+        """Reset the shared cache of loaded Dutch entities.
+
+        This is primarily used by orchestration helpers to ensure each new
+        scrubber instance starts from a clean deduplication state.
+        """
+        cls._dutch_loaded_entities.clear()
+
     def _load_json_entities(self) -> None:
         """Load entities while deduplicating across detector types."""
         super()._load_json_entities()
         # Filter out entities already loaded by higher-priority detectors
+        cache = type(self)._dutch_loaded_entities
         original_count = len(self.entities)
-        self.entities = [e for e in self.entities if e.lower() not in self._dutch_loaded_entities]
+        self.entities = [e for e in self.entities if e.lower() not in cache]
         # Track newly loaded entities for future detectors
         for entity in self.entities:
-            self._dutch_loaded_entities.add(entity.lower())
+            cache.add(entity.lower())
         # Log filtering if significant
         removed = original_count - len(self.entities)
         if removed > 0:

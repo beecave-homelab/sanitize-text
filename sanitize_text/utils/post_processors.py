@@ -85,3 +85,6 @@ class HashedPIIReplacer(PostProcessor):
                 filth.replacement_string = placeholder
 
         return filth_list
+
+
+DEFAULT_POST_PROCESSOR_FACTORY = HashedPIIReplacer

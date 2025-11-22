@@ -81,6 +81,34 @@ class ScrubOutcome:
     errors: dict[str, str]
 
 
+@dataclass(frozen=True)
+class LocaleResult:
+    """Scrubbing outcome for a single locale.
+
+    Attributes:
+        locale: Locale identifier.
+        text: Scrubbed text for the locale.
+        filth: Optional list of filth objects collected for the locale.
+    """
+
+    locale: str
+    text: str
+    filth: list[scrubadub.filth.Filth] | None = None
+
+
+@dataclass(frozen=True)
+class MultiLocaleResult:
+    """Multi-locale scrubbing result for high-level callers.
+
+    Attributes:
+        results: Per-locale scrubbed text and optional filth.
+        errors: Error messages keyed by locale for failed runs.
+    """
+
+    results: list[LocaleResult]
+    errors: dict[str, str]
+
+
 def _spacy_is_available() -> bool:
     """Return ``True`` when ``scrubadub-spacy`` is importable."""
     try:
@@ -361,6 +389,7 @@ def setup_scrubber(
     selected_detectors: list[str] | None = None,
     custom_text: str | None = None,
     verbose: bool = False,
+    post_processor_factory: Callable[[], object] | None = None,
 ) -> scrubadub.Scrubber:
     """Return a configured scrubber for ``locale``.
 
@@ -370,6 +399,9 @@ def setup_scrubber(
             the default enabled detectors are used.
         custom_text: Optional custom text to treat as PII.
         verbose: Whether the detectors should expose verbose behaviour.
+        post_processor_factory: Optional callable returning a post-processor
+            instance. Defaults to :data:`DEFAULT_POST_PROCESSOR_FACTORY`, which
+            creates :class:`sanitize_text.utils.post_processors.HashedPIIReplacer`.
 
     Returns:
         scrubadub.Scrubber: Scrubber instance ready to process text for the
@@ -380,11 +412,11 @@ def setup_scrubber(
 
     from sanitize_text.utils.custom_detectors import CustomWordDetector
     from sanitize_text.utils.custom_detectors.base import DutchEntityDetector
-    from sanitize_text.utils.post_processors import HashedPIIReplacer
+    from sanitize_text.utils.post_processors import DEFAULT_POST_PROCESSOR_FACTORY
 
     # Reset entity deduplication cache for new scrubber instance
     if locale == "nl_NL":
-        DutchEntityDetector._dutch_loaded_entities.clear()
+        DutchEntityDetector.reset_loaded_entities()
 
     detector_list: list[scrubadub.detectors.Detector] = []
     context = DetectorContext(locale=locale)
@@ -421,10 +453,13 @@ def setup_scrubber(
             except Exception as exc:  # pragma: no cover - defensive
                 logger.warning("Could not add detector %s: %s", spec.name, exc)
 
+    factory = post_processor_factory or DEFAULT_POST_PROCESSOR_FACTORY
+    post_processors = [factory()]
+
     scrubber = scrubadub.Scrubber(
         locale=locale,
         detector_list=detector_list,
-        post_processor_list=[HashedPIIReplacer()],
+        post_processor_list=post_processors,
     )
 
     scrubber.detectors = {detector.name: detector for detector in detector_list}
@@ -435,6 +470,68 @@ def setup_scrubber(
         detector._verbose = verbose  # type: ignore[attr-defined]
 
     return scrubber
+
+
+def run_multi_locale_scrub(
+    *,
+    text: str,
+    locale: str | None,
+    per_locale_detectors: dict[str, list[str]] | None = None,
+    custom_text: str | None = None,
+    cleanup: bool = True,
+    cleanup_func: Callable[[str], str] | None = None,
+    post_processor_factory: Callable[[], object] | None = None,
+    verbose: bool = False,
+    include_filth: bool = False,
+) -> MultiLocaleResult:
+    """Return scrubbed text (and optional filth) for one or both locales.
+
+    This helper encapsulates the repeated pattern of multi-locale processing:
+    building the locale list, constructing scrubbers, applying optional
+    cleanup, and (optionally) collecting filth for inspection.
+    """
+    locales_to_process = ["en_US", "nl_NL"] if locale is None else [locale]
+    results: list[LocaleResult] = []
+    errors: dict[str, str] = {}
+
+    for current_locale in locales_to_process:
+        detectors_for_locale: list[str] | None = None
+        if per_locale_detectors is not None:
+            detectors_for_locale = per_locale_detectors.get(current_locale, [])
+        try:
+            scrubber = setup_scrubber(
+                current_locale,
+                detectors_for_locale,
+                custom_text=custom_text,
+                verbose=verbose,
+                post_processor_factory=post_processor_factory,
+            )
+            scrubbed_text = scrubber.clean(text)
+            if cleanup and cleanup_func is not None:
+                scrubbed_text = cleanup_func(scrubbed_text)
+
+            filths: list[scrubadub.filth.Filth] | None = None
+            if include_filth:
+                filth_map = collect_filth(
+                    text,
+                    locale=current_locale,
+                    selected_detectors=detectors_for_locale,
+                    custom_text=custom_text,
+                )
+                filths = filth_map.get(current_locale, [])
+
+            results.append(
+                LocaleResult(
+                    locale=current_locale,
+                    text=scrubbed_text,
+                    filth=filths,
+                )
+            )
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning("Processing failed for locale %s: %s", current_locale, exc)
+            errors[current_locale] = str(exc)
+
+    return MultiLocaleResult(results=results, errors=errors)
 
 
 def scrub_text(

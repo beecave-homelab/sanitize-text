@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import tempfile
 from pathlib import Path
@@ -9,14 +10,16 @@ from pathlib import Path
 from flask import Flask, Response, jsonify, render_template, request, send_file
 
 from sanitize_text.core.scrubber import (
-    collect_filth,
     get_available_detectors,
-    setup_scrubber,
+    run_multi_locale_scrub,
 )
 from sanitize_text.output import get_writer
 from sanitize_text.utils import preconvert
 from sanitize_text.utils.cleanup import cleanup_output
 from sanitize_text.webui import helpers
+
+logger = logging.getLogger(__name__)
+
 
 GENERIC_DETECTORS = {
     "email",
@@ -58,23 +61,6 @@ def _format_results_text(results: list[dict[str, str]]) -> str:
         Combined string with sections per-locale.
     """
     return helpers.format_results_text(results)
-
-
-def _normalize_detector_tokens(detectors: list[str] | None) -> list[str]:
-    """Return normalized detector names without locale prefixes.
-
-    The WebUI represents locale-specific detectors using a ``"<locale>:<name>"``
-    prefix (for example ``"en:name"``). The CLI, however, expects bare
-    detector names. This helper removes such prefixes and de-duplicates
-    detector tokens while preserving a stable order for display.
-
-    Args:
-        detectors: Raw detector tokens from the WebUI payload.
-
-    Returns:
-        A list of normalized detector names suitable for CLI ``--detectors``.
-    """
-    return helpers.normalize_detector_tokens(detectors)
 
 
 def _build_cli_preview(
@@ -203,40 +189,33 @@ def init_routes(app: Flask) -> Flask:
             return jsonify({"error": "No text provided"}), 400
 
         per_locale_selection = _build_locale_selections(selected_detectors)
-        locales_to_process = ["en_US", "nl_NL"] if locale is None else [locale]
+        multi_result = run_multi_locale_scrub(
+            text=input_text,
+            locale=locale,
+            per_locale_detectors=per_locale_selection,
+            custom_text=custom,
+            cleanup=cleanup,
+            cleanup_func=cleanup_output,
+            verbose=verbose,
+            include_filth=verbose,
+        )
 
         results: list[dict[str, object]] = []
-        for current_locale in locales_to_process:
-            try:
-                detectors_for_locale = None
-                if per_locale_selection is not None:
-                    detectors_for_locale = per_locale_selection.get(current_locale, [])
-                scrubber = setup_scrubber(
-                    current_locale, detectors_for_locale, custom_text=custom, verbose=verbose
-                )
-                scrubbed_text = scrubber.clean(input_text)
-                if cleanup:
-                    scrubbed_text = cleanup_output(scrubbed_text)
-                payload: dict[str, object] = {"locale": current_locale, "text": scrubbed_text}
-                if verbose:
-                    filths = collect_filth(
-                        input_text,
-                        locale=current_locale,
-                        selected_detectors=detectors_for_locale,
-                        custom_text=custom,
-                    ).get(current_locale, [])
-                    payload["filth"] = [
-                        {
-                            "type": getattr(f, "type", ""),
-                            "text": getattr(f, "text", ""),
-                            "replacement": getattr(f, "replacement_string", ""),
-                        }
-                        for f in filths
-                    ]
-                results.append(payload)
-            except Exception as exc:  # pragma: no cover - defensive
-                print(f"Warning: Processing failed for locale {current_locale}: {exc}")
-                continue
+        for item in multi_result.results:
+            payload: dict[str, object] = {
+                "locale": item.locale,
+                "text": item.text,
+            }
+            if verbose and item.filth is not None:
+                payload["filth"] = [
+                    {
+                        "type": getattr(f, "type", ""),
+                        "text": getattr(f, "text", ""),
+                        "replacement": getattr(f, "replacement_string", ""),
+                    }
+                    for f in item.filth
+                ]
+            results.append(payload)
 
         if not results:
             return jsonify({"error": "All processing attempts failed"}), 500
@@ -295,40 +274,33 @@ def init_routes(app: Flask) -> Flask:
                 detectors_fields = [t for t in raw.replace(",", " ").split() if t]
 
         per_locale_selection = _build_locale_selections(detectors_fields or None)
-        locales_to_process = ["en_US", "nl_NL"] if locale is None else [locale]
+        multi_result = run_multi_locale_scrub(
+            text=input_text,
+            locale=locale,
+            per_locale_detectors=per_locale_selection,
+            custom_text=custom,
+            cleanup=cleanup,
+            cleanup_func=cleanup_output,
+            verbose=verbose,
+            include_filth=verbose,
+        )
 
         results: list[dict[str, object]] = []
-        for current_locale in locales_to_process:
-            try:
-                detectors_for_locale = None
-                if per_locale_selection is not None:
-                    detectors_for_locale = per_locale_selection.get(current_locale, [])
-                scrubber = setup_scrubber(
-                    current_locale, detectors_for_locale, custom_text=custom, verbose=verbose
-                )
-                scrubbed_text = scrubber.clean(input_text)
-                if cleanup:
-                    scrubbed_text = cleanup_output(scrubbed_text)
-                payload: dict[str, object] = {"locale": current_locale, "text": scrubbed_text}
-                if verbose:
-                    filths = collect_filth(
-                        input_text,
-                        locale=current_locale,
-                        selected_detectors=detectors_for_locale,
-                        custom_text=custom,
-                    ).get(current_locale, [])
-                    payload["filth"] = [
-                        {
-                            "type": getattr(f, "type", ""),
-                            "text": getattr(f, "text", ""),
-                            "replacement": getattr(f, "replacement_string", ""),
-                        }
-                        for f in filths
-                    ]
-                results.append(payload)
-            except Exception as exc:  # pragma: no cover - defensive
-                print(f"Warning: Processing failed for locale {current_locale}: {exc}")
-                continue
+        for item in multi_result.results:
+            payload: dict[str, object] = {
+                "locale": item.locale,
+                "text": item.text,
+            }
+            if verbose and item.filth is not None:
+                payload["filth"] = [
+                    {
+                        "type": getattr(f, "type", ""),
+                        "text": getattr(f, "text", ""),
+                        "replacement": getattr(f, "replacement_string", ""),
+                    }
+                    for f in item.filth
+                ]
+            results.append(payload)
 
         if not results:
             return jsonify({"error": "All processing attempts failed"}), 500
@@ -357,22 +329,20 @@ def init_routes(app: Flask) -> Flask:
 
         # Build results text first (so multi-locale matches CLI semantics)
         per_locale_selection = _build_locale_selections(selected_detectors)
-        locales_to_process = ["en_US", "nl_NL"] if locale is None else [locale]
+        multi_result = run_multi_locale_scrub(
+            text=input_text,
+            locale=locale,
+            per_locale_detectors=per_locale_selection,
+            custom_text=custom,
+            cleanup=cleanup,
+            cleanup_func=cleanup_output,
+            verbose=False,
+            include_filth=False,
+        )
 
-        interim_results: list[dict[str, str]] = []
-        for current_locale in locales_to_process:
-            try:
-                detectors_for_locale = None
-                if per_locale_selection is not None:
-                    detectors_for_locale = per_locale_selection.get(current_locale, [])
-                scrubber = setup_scrubber(current_locale, detectors_for_locale, custom_text=custom)
-                scrubbed_text = scrubber.clean(input_text)
-                if cleanup:
-                    scrubbed_text = cleanup_output(scrubbed_text)
-                interim_results.append({"locale": current_locale, "text": scrubbed_text})
-            except Exception as exc:  # pragma: no cover - defensive
-                print(f"Warning: Processing failed for locale {current_locale}: {exc}")
-                continue
+        interim_results: list[dict[str, str]] = [
+            {"locale": item.locale, "text": item.text} for item in multi_result.results
+        ]
 
         if not interim_results:
             return jsonify({"error": "All processing attempts failed"}), 500
@@ -457,22 +427,20 @@ def init_routes(app: Flask) -> Flask:
                 detectors_fields = [t for t in raw.replace(",", " ").split() if t]
 
         per_locale_selection = _build_locale_selections(detectors_fields or None)
-        locales_to_process = ["en_US", "nl_NL"] if locale is None else [locale]
+        multi_result = run_multi_locale_scrub(
+            text=input_text,
+            locale=locale,
+            per_locale_detectors=per_locale_selection,
+            custom_text=custom,
+            cleanup=cleanup,
+            cleanup_func=cleanup_output,
+            verbose=False,
+            include_filth=False,
+        )
 
-        interim_results: list[dict[str, str]] = []
-        for current_locale in locales_to_process:
-            try:
-                detectors_for_locale = None
-                if per_locale_selection is not None:
-                    detectors_for_locale = per_locale_selection.get(current_locale, [])
-                scrubber = setup_scrubber(current_locale, detectors_for_locale, custom_text=custom)
-                scrubbed_text = scrubber.clean(input_text)
-                if cleanup:
-                    scrubbed_text = cleanup_output(scrubbed_text)
-                interim_results.append({"locale": current_locale, "text": scrubbed_text})
-            except Exception as exc:  # pragma: no cover - defensive
-                print(f"Warning: Processing failed for locale {current_locale}: {exc}")
-                continue
+        interim_results: list[dict[str, str]] = [
+            {"locale": item.locale, "text": item.text} for item in multi_result.results
+        ]
 
         if not interim_results:
             return jsonify({"error": "All processing attempts failed"}), 500
