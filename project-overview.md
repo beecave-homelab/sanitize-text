@@ -9,23 +9,23 @@ generated: 2025-11-21T12:43:00+01:00
 
 sanitize-text detects and removes personally identifiable information (PII) from text and common document formats for Dutch (`nl_NL`) and English (`en_US`), via a shared scrubbing core, a Click-based CLI, and a Flask web UI.
 
-[![Language](mdc:https:/img.shields.io/badge/Python-3.10--3.12-blue)](https://www.python.org/)
-[![Version](mdc:https:/img.shields.io/badge/Version-1.0.0-brightgreen)](#version-summary)
-[![License](mdc:https:/img.shields.io/badge/License-MIT-yellow)](LICENSE)
+[![Language](https://img.shields.io/badge/Python-3.10--3.12-blue)](https://www.python.org/)
+[![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen)](#version-summary)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ## Table of Contents
 
-- [Quickstart for Developers](mdc:#quickstart-for-developers)
-- [Version Summary](mdc:#version-summary)
-- [Project Features](mdc:#project-features)
-- [Project Structure](mdc:#project-structure)
-- [Architecture Highlights](mdc:#architecture-highlights)
-- [API](mdc:#api)
-- [CLI](mdc:#cli)
-- [WebUI](mdc:#webui)
-- [Docker](mdc:#docker)
-- [Tests](mdc:#tests)
-- [CI/CD](mdc:#cicd)
+- [Quickstart for Developers](#quickstart-for-developers)
+- [Version Summary](#version-summary)
+- [Project Features](#project-features)
+- [Project Structure](#project-structure)
+- [Architecture Highlights](#architecture-highlights)
+- [API](#api)
+- [CLI](#cli)
+- [WebUI](#webui)
+- [Docker](#docker)
+- [Tests](#tests)
+- [CI/CD](#cicd)
 
 ## Quickstart for Developers
 
@@ -67,7 +67,7 @@ sanitize_text/                # Library and application package
   cli/                        # Click-based CLI entrypoints and IO helpers
   core/                       # Scrubber orchestration and detector catalogue
   webui/                      # Flask app factory, routes, templates, static assets
-  utils/                      # Pre-conversion, cleanup, NLP resources, PDF helpers, post-processors
+  utils/                      # Pre-conversion, I/O helpers, cleanup, NLP resources, PDF helpers, post-processors, custom detectors
   add_entity/                 # CLI to extend Dutch entity JSON lists
   data/                       # Locale-specific entity data (nl_entities/, en_entities/)
 scripts/                      # Helper scripts for conversion and data extraction
@@ -81,15 +81,14 @@ tests/                        # Pytest suite for core, CLI, WebUI, utils, output
 - **Layered design**: core scrubbing engine in [`sanitize_text/core/scrubber.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/core/scrubber.py).
 - **Detector catalogue**: detectors declared via `DetectorSpec`/`DetectorContext` dataclasses with locale-aware enabling.
 - **UI frontends**: CLI in [`sanitize_text/cli/main.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/cli/main.py) and Flask WebUI in [`sanitize_text/webui`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/webui) share the same scrubber and output writers.
-- **Conversion + output layer**: [`sanitize_text/utils/preconvert.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/utils/preconvert.py) and [`sanitize_text/output.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/output.py) isolate binary/rich-document handling and artifact writing.
+- **Shared file-to-text helpers**: `sanitize_text.utils.io_helpers.read_file_to_text` is used by both the CLI (`cli.io.read_input_source`) and WebUI (`webui.helpers.read_uploaded_file_to_text`) to treat PDFs, Office docs, RTF, and images consistently.
+- **CLI flow** reads input (`--text`/`--input`/stdin/append) via `sanitize_text.cli.io.read_input_source`, routes it through `_run_scrub()`, applies generic cleanup, and uses `output.get_writer()` for TXT/MD/DOCX/PDF artifacts.
+- **WebUI flow** mirrors CLI semantics: routes in [`sanitize_text/webui/routes.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/webui/routes.py) scrub text or uploaded files, enrich responses with filth metadata, and stream downloadable artifacts.
+- **Pre-conversion** uses [`sanitize_text/utils/preconvert.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/utils/preconvert.py) and, optionally, `markitdown`/`pymupdf4llm` and `tesseract` to normalize PDFs, Office docs, RTF, and images into text.
 - **Cleanup + post-processing**: [`sanitize_text/utils/cleanup.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/utils/cleanup.py) and post-processors normalize output text and apply hashed PII replacements.
 - **Data & detectors**: locale-specific entity JSON under [`sanitize_text/data`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/data) and custom detectors in [`sanitize_text/utils/custom_detectors`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/utils/custom_detectors).
 - **Scrubber orchestration** builds `scrubadub.Scrubber` per locale via `setup_scrubber()`, selecting enabled detectors, attaching `HashedPIIReplacer`, and exposing `scrub_text()` / `collect_filth()`.
-- **CLI flow** reads input (`--text`/`--input`/stdin/append), routes it through `_run_scrub()`, applies generic cleanup, and uses `output.get_writer()` for TXT/MD/DOCX/PDF artifacts.
-- **WebUI flow** mirrors CLI semantics: routes in [`sanitize_text/webui/routes.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/webui/routes.py) scrub text or uploaded files, enrich responses with filth metadata, and stream downloadable artifacts.
-- **Pre-conversion** uses [`sanitize_text/utils/preconvert.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/utils/preconvert.py) and, optionally, `markitdown`/`pymupdf4llm` and `tesseract` to normalize PDFs, Office docs, RTF, and images into text.
-- **Locale handling**: both CLI and WebUI can process `en_US`, `nl_NL`, or both; when no locale is specified, both are run, with results combined and failures reported per locale.
-- **Deployment**: Docker + Gunicorn run `sanitize_text.webui:create_app()` in production; [`docker-compose.dev.yaml`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/docker-compose.dev.yaml) wires live-reload Flask with source mounts for developers.
+- **Logging & verbose output**: custom detectors and NLP resource helpers use the standard `logging` module for warnings and verbose traces, so the core/domain logic stays decoupled from Click and `print`, and CLI/WebUI can configure logging as needed.
 
 ## Flow Diagrams
 
@@ -138,7 +137,7 @@ flowchart LR
 - **Entry script**: [`sanitize_text/webui/main.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/webui/main.py) exposes `main()` for console scripts and `python -m sanitize_text.webui`.
 - **Templates & assets**: HTML templates live under [`sanitize_text/webui/templates/`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/webui/templates), with JS/CSS under [`sanitize_text/webui/static/`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/webui/static).
 - **Features**: detector selection, locale toggles, custom text, cleanup switch, verbose filth inspection, and CLI command preview.
-- **File handling**: `/process-file` and `/download-file` save uploads to temp files, convert via `preconvert`, scrub, then stream JSON or artifacts.
+- **File handling**: `/process-file` and `/download-file` save uploads to temp files, convert via `webui.helpers.read_uploaded_file_to_text` (backed by the shared `utils.io_helpers.read_file_to_text` and `preconvert` module), scrub, then stream JSON or artifacts.
 - Development: `python -m sanitize_text.webui` or `docker-compose -f docker-compose.dev.yaml up`.
 - Production: Dockerfile + Gunicorn (`sanitize_text.webui:create_app()`) or equivalent WSGI hosting.
 
