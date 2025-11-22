@@ -141,7 +141,15 @@ def _run_scrub(
         for loc, filths in filth_map.items():
             click.echo(f"\nFound PII for {loc}:")
             for f in filths:
-                mapping = f"  - {f.type}: '{f.text}' -> '{f.replacement_string}'"
+                replacement = getattr(f, "replacement_string", "")
+                display_type = getattr(f, "type", "unknown")
+                if (
+                    display_type == "unknown"
+                    and isinstance(replacement, str)
+                    and replacement.startswith("URL-")
+                ):
+                    display_type = "url"
+                mapping = f"  - {display_type}: '{f.text}' -> '{replacement}'"
                 click.echo(mapping)
     return scrubbed_text
 
