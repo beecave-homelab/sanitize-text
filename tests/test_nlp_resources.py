@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import builtins
+import logging
 import sys
 from collections.abc import Callable
 from types import SimpleNamespace
@@ -23,7 +24,7 @@ def _import_blocker(block_names: set[str]) -> Callable[..., Any]:
 
 
 def test_download_optional_models__when_nltk_and_spacy_missing(
-    capsys: pytest.CaptureFixture[str],
+    caplog: pytest.LogCaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Gracefully skip when optional deps are not installed."""
@@ -32,11 +33,12 @@ def test_download_optional_models__when_nltk_and_spacy_missing(
     # Block imports only for nltk and spacy within the call
     monkeypatch.setattr(builtins, "__import__", _import_blocker({"nltk", "spacy"}))
 
-    nlp_resources.download_optional_models()
+    with caplog.at_level(logging.INFO):
+        nlp_resources.download_optional_models()
 
-    out = capsys.readouterr().out
-    assert "NLTK not installed; skipping corpus download." in out
-    assert "spaCy not installed; skipping model download." in out
+    messages = "\n".join(caplog.messages)
+    assert "NLTK not installed; skipping corpus download." in messages
+    assert "spaCy not installed; skipping model download." in messages
 
 
 def test_download_optional_models__nltk_downloads(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -63,7 +65,7 @@ def test_download_optional_models__nltk_downloads(monkeypatch: pytest.MonkeyPatc
 
 
 def test_download_optional_models__spacy_models_already_available(
-    capsys: pytest.CaptureFixture[str],
+    caplog: pytest.LogCaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """When spaCy can load models, ensure we surface informative messages."""
@@ -82,17 +84,18 @@ def test_download_optional_models__spacy_models_already_available(
     monkeypatch.setitem(sys.modules, "spacy", dummy_spacy)  # type: ignore[assignment]
 
     try:
-        nlp_resources.download_optional_models()
+        with caplog.at_level(logging.INFO):
+            nlp_resources.download_optional_models()
     finally:
         sys.modules.pop("spacy", None)
 
-    out = capsys.readouterr().out
-    assert "spaCy model en_core_web_sm already available" in out
-    assert "spaCy model nl_core_news_sm already available" in out
+    messages = "\n".join(caplog.messages)
+    assert "spaCy model en_core_web_sm already available" in messages
+    assert "spaCy model nl_core_news_sm already available" in messages
 
 
 def test_download_optional_models__spacy_download_on_missing_and_warn_on_failure(
-    capsys: pytest.CaptureFixture[str],
+    caplog: pytest.LogCaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Trigger download when load raises OSError and warn if download fails."""
@@ -120,17 +123,18 @@ def test_download_optional_models__spacy_download_on_missing_and_warn_on_failure
     monkeypatch.setitem(sys.modules, "spacy", dummy_spacy)  # type: ignore[assignment]
 
     try:
-        nlp_resources.download_optional_models()
+        with caplog.at_level(logging.INFO):
+            nlp_resources.download_optional_models()
     finally:
         sys.modules.pop("spacy", None)
 
-    out = capsys.readouterr().out
+    messages = "\n".join(caplog.messages)
     # en_core_web_sm: should attempt and report success message path
-    assert "Downloading spaCy model en_core_web_sm…" in out
-    assert "Successfully downloaded en_core_web_sm" in out
+    assert "Downloading spaCy model en_core_web_sm…" in messages
+    assert "Successfully downloaded en_core_web_sm" in messages
     # nl_core_news_sm: should warn on failure
-    assert "Downloading spaCy model nl_core_news_sm…" in out
-    assert "Warning: Could not download spaCy model nl_core_news_sm: network error" in out
+    assert "Downloading spaCy model nl_core_news_sm…" in messages
+    assert "Warning: Could not download spaCy model nl_core_news_sm: network error" in messages
 
     assert load_calls == ["en_core_web_sm", "nl_core_news_sm"]
     assert download_calls == ["en_core_web_sm", "nl_core_news_sm"]

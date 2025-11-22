@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 import pytest
 
 from sanitize_text.utils.custom_detectors.markdown_url_detector import MarkdownUrlDetector
@@ -37,23 +39,25 @@ def test_bare_domain_detector_sharepoint_prev_next_combinations() -> None:
     assert "point.com" not in urls
 
 
-def test_markdown_url_detector_verbose_output(capsys: pytest.CaptureFixture[str]) -> None:
-    """Verbose mode prints per-match lines and totals (covering echo branches)."""
+def test_markdown_url_detector_verbose_output(caplog: pytest.LogCaptureFixture) -> None:
+    """Verbose mode emits per-match lines and totals (covering verbose branches)."""
     det = MarkdownUrlDetector()
     det._verbose = True  # type: ignore[attr-defined]
     text = "See [a](http://example.com) and [[b]](https://x.y)"
-    _ = list(det.iter_filth(text))
-    out = capsys.readouterr().out
-    assert "Scanning for Markdown URLs" in out
-    assert "Total matches" in out
+    with caplog.at_level(logging.INFO):
+        _ = list(det.iter_filth(text))
+    messages = "\n".join(caplog.messages)
+    assert "Scanning for Markdown URLs" in messages
+    assert "Total matches" in messages
 
 
-def test_sharepoint_url_detector_verbose_output(capsys: pytest.CaptureFixture[str]) -> None:
-    """Verbose mode prints per-match lines and totals for sharepoint detector."""
+def test_sharepoint_url_detector_verbose_output(caplog: pytest.LogCaptureFixture) -> None:
+    """Verbose mode emits per-match lines and totals for sharepoint detector."""
     det = SharePointUrlDetector()
     det._verbose = True  # type: ignore[attr-defined]
     text = "https://t.sharepoint.com/sites/a/b/c and https://x.sharepoint.com/d/e/f?g=1"
-    _ = list(det.iter_filth(text))
-    out = capsys.readouterr().out
-    assert "Scanning for SharePoint URLs" in out
-    assert "Total matches" in out
+    with caplog.at_level(logging.INFO):
+        _ = list(det.iter_filth(text))
+    messages = "\n".join(caplog.messages)
+    assert "Scanning for SharePoint URLs" in messages
+    assert "Total matches" in messages
