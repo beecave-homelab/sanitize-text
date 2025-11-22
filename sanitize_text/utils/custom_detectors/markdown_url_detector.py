@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from collections.abc import Iterator
 
@@ -10,6 +11,8 @@ from scrubadub.detectors import RegexDetector, register_detector
 from sanitize_text.utils.filth import MarkdownUrlFilth
 
 from .url_detector import BareDomainDetector
+
+logger = logging.getLogger(__name__)
 
 
 @register_detector
@@ -69,11 +72,9 @@ class MarkdownUrlDetector(RegexDetector):
         document_name: str | None = None,
     ) -> Iterator[MarkdownUrlFilth]:
         """Yield ``UrlFilth`` for each URL found in Markdown links."""
-        import click
-
         verbose = getattr(self, "_verbose", False)
         if verbose:
-            click.echo(f"  [{self.name}] Scanning for Markdown URLs...")
+            logger.info("  [%s] Scanning for Markdown URLs...", self.name)
 
         match_count = 0
         for match in self.regex.finditer(text):
@@ -98,7 +99,12 @@ class MarkdownUrlDetector(RegexDetector):
             if verbose:
                 # Truncate long URLs for display
                 display_url = url[:60] + "..." if len(url) > 60 else url
-                click.echo(f"    ✓ Found: '[{link_text}]({display_url})' ({self.name})")
+                logger.info(
+                    "    ✓ Found: '[%s](%s)' (%s)",
+                    link_text,
+                    display_url,
+                    self.name,
+                )
 
             yield MarkdownUrlFilth(
                 beg=match.start(),
@@ -112,4 +118,4 @@ class MarkdownUrlDetector(RegexDetector):
             )
 
         if verbose:
-            click.echo(f"  [{self.name}] Total matches: {match_count}")
+            logger.info("  [%s] Total matches: %d", self.name, match_count)

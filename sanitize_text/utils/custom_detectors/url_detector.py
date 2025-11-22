@@ -1,11 +1,15 @@
 """URL detectors."""
 
+from __future__ import annotations
+
+import logging
 import re
 from collections.abc import Iterator
 
-import click
 from scrubadub.detectors import RegexDetector, register_detector
 from scrubadub.filth.url import UrlFilth
+
+logger = logging.getLogger(__name__)
 
 
 @register_detector
@@ -82,7 +86,7 @@ class BareDomainDetector(RegexDetector):
         """
         verbose = getattr(self, "_verbose", False)
         if verbose:
-            click.echo(f"  [{self.name}] Scanning for URLs...")
+            logger.info("  [%s] Scanning for URLs...", self.name)
 
         match_count = 0
         for m in self.regex.finditer(text):
@@ -151,7 +155,7 @@ class BareDomainDetector(RegexDetector):
 
             match_count += 1
             if verbose:
-                click.echo(f"    ✓ Found: '{url}' ({self.name})")
+                logger.info("    ✓ Found: '%s' (%s)", url, self.name)
             yield UrlFilth(
                 beg=m.start(),
                 end=m.end(),
@@ -161,4 +165,4 @@ class BareDomainDetector(RegexDetector):
             )
 
         if verbose:
-            click.echo(f"  [{self.name}] Total matches: {match_count}")
+            logger.info("  [%s] Total matches: %d", self.name, match_count)

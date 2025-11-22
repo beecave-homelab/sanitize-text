@@ -6,11 +6,14 @@ commonly produced by exports (e.g., "),[[", ")]", ").", ",").
 
 from __future__ import annotations
 
+import logging
 import re
 from collections.abc import Iterator
 
 from scrubadub.detectors import RegexDetector, register_detector
 from scrubadub.filth.url import UrlFilth
+
+logger = logging.getLogger(__name__)
 
 
 @register_detector
@@ -53,11 +56,9 @@ class SharePointUrlDetector(RegexDetector):
         Yields:
             UrlFilth instances for each detected SharePoint URL.
         """
-        import click
-
         verbose = getattr(self, "_verbose", False)
         if verbose:
-            click.echo(f"  [{self.name}] Scanning for SharePoint URLs...")
+            logger.info("  [%s] Scanning for SharePoint URLs...", self.name)
 
         match_count = 0
         for m in self.regex.finditer(text):
@@ -71,7 +72,7 @@ class SharePointUrlDetector(RegexDetector):
             if verbose:
                 # Truncate long URLs for display
                 display_url = url[:60] + "..." if len(url) > 60 else url
-                click.echo(f"    ✓ Found: '{display_url}' ({self.name})")
+                logger.info("    ✓ Found: '%s' (%s)", display_url, self.name)
 
             yield UrlFilth(
                 beg=m.start(),
@@ -82,4 +83,4 @@ class SharePointUrlDetector(RegexDetector):
             )
 
         if verbose:
-            click.echo(f"  [{self.name}] Total matches: {match_count}")
+            logger.info("  [%s] Total matches: %d", self.name, match_count)

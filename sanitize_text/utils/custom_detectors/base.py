@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from collections.abc import Iterator
 from pathlib import Path
 
 import ahocorasick
-import click
 from scrubadub.detectors import Detector
+
+logger = logging.getLogger(__name__)
 
 
 class JSONEntityDetector(Detector):
@@ -51,10 +53,7 @@ class JSONEntityDetector(Detector):
             filepath = data_dir / self.json_file
 
             if not filepath.exists():
-                click.echo(
-                    f"Warning: Could not find entity file {self.json_file}",
-                    err=True,
-                )
+                logger.warning("Could not find entity file %s", self.json_file)
                 return
 
             with open(filepath, encoding="utf-8") as file_handle:
@@ -70,10 +69,7 @@ class JSONEntityDetector(Detector):
                         continue
                     self.entities.append(match)
         except Exception as exc:
-            click.echo(
-                f"Warning: Could not load JSON entity file {self.json_file}: {exc}",
-                err=True,
-            )
+            logger.warning("Could not load JSON entity file %s: %s", self.json_file, exc)
 
     def _build_automaton(self) -> None:
         """Build Aho-Corasick automaton for efficient multi-pattern matching.
@@ -118,7 +114,7 @@ class JSONEntityDetector(Detector):
 
         if verbose:
             entity_count = len(self.entities)
-            click.echo(f"  [{self.name}] Searching for {entity_count} entities...")
+            logger.info("  [%s] Searching for %d entities...", self.name, entity_count)
 
         # Helpers for a normalization-aware fallback for multi-word entities
         def _strip_zw(s: str) -> str:
@@ -190,7 +186,7 @@ class JSONEntityDetector(Detector):
             seen_matches.add((start_idx, end_idx + 1))
             match_count += 1
             if verbose:
-                click.echo(f"    ✓ Found: '{matched_text}' ({self.name})")
+                logger.info("    ✓ Found: '%s' (%s)", matched_text, self.name)
 
             yield self.filth_cls(
                 beg=start_idx,
@@ -214,7 +210,7 @@ class JSONEntityDetector(Detector):
             match_count = match_count_ref[0]
 
         if verbose:
-            click.echo(f"  [{self.name}] Total matches: {match_count}")
+            logger.info("  [%s] Total matches: %d", self.name, match_count)
 
     def _search_normalized_entities(
         self,
@@ -331,7 +327,11 @@ class JSONEntityDetector(Detector):
                 match_count_ref[0] += 1
 
                 if verbose:
-                    click.echo(f"    ✓ Found (normalized): '{original_slice}' ({self.name})")
+                    logger.info(
+                        "    ✓ Found (normalized): '%s' (%s)",
+                        original_slice,
+                        self.name,
+                    )
 
                 yield self.filth_cls(
                     beg=start,
@@ -436,12 +436,7 @@ class DutchEntityDetector(JSONEntityDetector):
         # Log filtering if significant
         removed = original_count - len(self.entities)
         if removed > 0:
-            import click
-
-            click.echo(
-                f"  [{self.name}] Filtered {removed} duplicate entities",
-                err=True,
-            )
+            logger.info("  [%s] Filtered %d duplicate entities", self.name, removed)
 
     COMMON_WORDS = {
         "een",

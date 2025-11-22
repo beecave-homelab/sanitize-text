@@ -1,12 +1,16 @@
 """IP address detectors."""
 
+from __future__ import annotations
+
+import logging
 import re
 from collections.abc import Iterator
 
-import click
 from scrubadub.detectors import RegexDetector, register_detector
 
 from sanitize_text.utils.filth import PrivateIPFilth, PublicIPFilth
+
+logger = logging.getLogger(__name__)
 
 
 @register_detector
@@ -31,13 +35,13 @@ class PrivateIPDetector(RegexDetector):
         """Yield private IP filth with optional verbose logging."""
         verbose = getattr(self, "_verbose", False)
         if verbose:
-            click.echo(f"  [{self.name}] Scanning for private IPs...")
+            logger.info("  [%s] Scanning for private IPs...", self.name)
 
         match_count = 0
         for match in self.regex.finditer(text):
             match_count += 1
             if verbose:
-                click.echo(f"    ✓ Found: '{match.group()}' ({self.name})")
+                logger.info("    ✓ Found: '%s' (%s)", match.group(), self.name)
             yield self.filth_cls(
                 beg=match.start(),
                 end=match.end(),
@@ -47,7 +51,7 @@ class PrivateIPDetector(RegexDetector):
             )
 
         if verbose:
-            click.echo(f"  [{self.name}] Total matches: {match_count}")
+            logger.info("  [%s] Total matches: %d", self.name, match_count)
 
 
 @register_detector
@@ -76,13 +80,13 @@ class PublicIPDetector(RegexDetector):
         """Yield public IP filth with optional verbose logging."""
         verbose = getattr(self, "_verbose", False)
         if verbose:
-            click.echo(f"  [{self.name}] Scanning for public IPs...")
+            logger.info("  [%s] Scanning for public IPs...", self.name)
 
         match_count = 0
         for match in self.regex.finditer(text):
             match_count += 1
             if verbose:
-                click.echo(f"    ✓ Found: '{match.group()}' ({self.name})")
+                logger.info("    ✓ Found: '%s' (%s)", match.group(), self.name)
             yield self.filth_cls(
                 beg=match.start(),
                 end=match.end(),
@@ -92,4 +96,4 @@ class PublicIPDetector(RegexDetector):
             )
 
         if verbose:
-            click.echo(f"  [{self.name}] Total matches: {match_count}")
+            logger.info("  [%s] Total matches: %d", self.name, match_count)
