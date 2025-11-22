@@ -53,7 +53,7 @@ pdm run pytest -q
 - **Configurable detectors** (email, phone, URL, IPs, names, organizations, locations, `date_of_birth`, optional spaCy entities).
 - **CLI workflow** for streaming text, files, stdin, and append mode with rich output formats (txt/md/docx/pdf).
 - **Web UI** for interactive scrubbing, detector selection, CLI command preview, and file upload/download.
-- **Entity management tool** to extend Dutch city/name/organization lists stored under [`sanitize_text/data/nl_entities`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/data/nl_entities).
+- **Entity management tool** to extend Dutch city/name/organization lists stored under [`sanitize_text/data/nl_entities`](sanitize_text/data/nl_entities).
 - **Binary/rich document support** via pre-conversion utilities for PDF, DOC/DOCX, RTF, and image OCR.
 - **Export pipeline** to TXT/DOCX/PDF with layout-aware PDF rendering and cleanup of placeholders/gibberish.
 - **Test suite** covering CLI, WebUI, core scrubber, detectors, normalization, and output writers.
@@ -78,17 +78,17 @@ tests/                        # Pytest suite for core, CLI, WebUI, utils, output
 
 ## Architecture Highlights
 
-- **Layered design**: core scrubbing engine in [`sanitize_text/core/scrubber.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/core/scrubber.py).
+- **Layered design**: core scrubbing engine in [`sanitize_text/core/scrubber.py`](sanitize_text/core/scrubber.py).
 - **Detector catalogue**: detectors declared via `DetectorSpec`/`DetectorContext` dataclasses with locale-aware enabling.
-- **UI frontends**: CLI in [`sanitize_text/cli/main.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/cli/main.py) and Flask WebUI in [`sanitize_text/webui`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/webui) share the same scrubber and output writers.
+- **UI frontends**: CLI in [`sanitize_text/cli/main.py`](sanitize_text/cli/main.py) and Flask WebUI in [`sanitize_text/webui`](sanitize_text/webui) share the same scrubber and output writers.
 - **Shared file-to-text helpers**: `sanitize_text.utils.io_helpers.read_file_to_text` is used by both the CLI (`cli.io.read_input_source`) and WebUI (`webui.helpers.read_uploaded_file_to_text`) to treat PDFs, Office docs, RTF, and images consistently.
 - **CLI flow** reads input (`--text`/`--input`/stdin/append) via `sanitize_text.cli.io.read_input_source`, routes it through `_run_scrub()`, applies generic cleanup, and uses `output.get_writer()` for TXT/MD/DOCX/PDF artifacts.
-- **WebUI flow** mirrors CLI semantics: routes in [`sanitize_text/webui/routes.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/webui/routes.py) scrub text or uploaded files, enrich responses with filth metadata, and stream downloadable artifacts.
-- **Pre-conversion** uses [`sanitize_text/utils/preconvert.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/utils/preconvert.py) and, optionally, `markitdown`/`pymupdf4llm` and `tesseract` to normalize PDFs, Office docs, RTF, and images into text.
-- **Cleanup + post-processing**: [`sanitize_text/utils/cleanup.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/utils/cleanup.py) and post-processors normalize output text and apply hashed PII replacements.
-- **Data & detectors**: locale-specific entity JSON under [`sanitize_text/data`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/data) and custom detectors in [`sanitize_text/utils/custom_detectors`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/utils/custom_detectors).
-- **Scrubber orchestration** builds `scrubadub.Scrubber` per locale via `setup_scrubber()`, selecting enabled detectors, attaching `HashedPIIReplacer`, and exposing `scrub_text()` / `collect_filth()`.
-- **Logging & verbose output**: custom detectors and NLP resource helpers use the standard `logging` module for warnings and verbose traces, so the core/domain logic stays decoupled from Click and `print`, and CLI/WebUI can configure logging as needed.
+- **WebUI flow** mirrors CLI semantics: routes in [`sanitize_text/webui/routes.py`](sanitize_text/webui/routes.py) scrub text or uploaded files, enrich responses with filth metadata, and stream downloadable artifacts.
+- **Pre-conversion** uses [`sanitize_text/utils/preconvert.py`](sanitize_text/utils/preconvert.py) and, optionally, `markitdown`/`pymupdf4llm` and `tesseract` to normalize PDFs, Office docs, RTF, and images into text.
+- **Cleanup + post-processing**: [`sanitize_text/utils/cleanup.py`](sanitize_text/utils/cleanup.py) and post-processors normalize output text and apply hashed PII replacements. `setup_scrubber()` accepts a configurable `post_processor_factory` hook (defaulting to `HashedPIIReplacer` via `DEFAULT_POST_PROCESSOR_FACTORY`) for advanced integrations.
+- **Data & detectors**: locale-specific entity JSON under [`sanitize_text/data`](sanitize_text/data) and custom detectors in [`sanitize_text/utils/custom_detectors`](sanitize_text/utils/custom_detectors).
+- **Scrubber orchestration** builds `scrubadub.Scrubber` per locale via `setup_scrubber()` and reuses a shared multi-locale helper `run_multi_locale_scrub()` for CLI/WebUI-style flows, selecting enabled detectors, attaching post-processors, and exposing `scrub_text()` / `collect_filth()`.
+- **Logging & verbose output**: custom detectors, NLP resource helpers, and WebUI routes use the standard `logging` module for warnings and verbose traces, so the core/domain logic stays decoupled from Click and `print`, and CLI/WebUI can configure logging as needed.
 
 ## Flow Diagrams
 
@@ -113,7 +113,7 @@ flowchart LR
 
 ## API
 
-- **Framework**: Flask app created by [`sanitize_text/webui/run.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/webui/run.py) and wired in [`sanitize_text/webui/routes.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/webui/routes.py).
+- **Framework**: Flask app created by [`sanitize_text/webui/run.py`](sanitize_text/webui/run.py) and wired in [`sanitize_text/webui/routes.py`](sanitize_text/webui/routes.py).
 - **HTML root**: `GET /` renders `templates/index.html` with detector catalogues and spaCy availability flags.
 - **JSON text API**: `POST /process` accepts JSON `{text, locale?, detectors?, custom?, cleanup?, verbose?}` and returns per-locale scrubbed text plus optional filth metadata.
 - **JSON file API**: `POST /process-file` (`multipart/form-data`) uploads a document, converts it to text, and returns scrubbed text per locale.
@@ -123,19 +123,19 @@ flowchart LR
 
 ## CLI
 
-- **Entry point**: [`sanitize_text/cli/main.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/cli/main.py) is exposed as the `sanitize-text` console script in [`pyproject.toml`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/pyproject.toml).
+- **Entry point**: [`sanitize_text/cli/main.py`](sanitize_text/cli/main.py) is exposed as the `sanitize-text` console script in [`pyproject.toml`](pyproject.toml).
 - **Commands**: a top-level Click group provides the default scrub flow plus `list-detectors` and `scrub` subcommands.
 - **Input sources**: `--text`, `--input`, `--append` (reuse output as input), or stdin; PDF pre-conversion backend selectable via `--pdf-backend`.
 - **Locale & detectors**: `--locale` (`en_US`/`nl_NL`) and `--detectors` map to the detector catalogue shared with the WebUI.
-- **Output handling**: [`sanitize_text/cli/io.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/cli/io.py) infers formats and delegates to `output.get_writer()` for TXT/MD/DOCX/PDF artifacts.
-- **Optional resources**: `--download-nlp-models` pre-fetches spaCy/NLTK assets via [`sanitize_text/utils/nlp_resources.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/utils/nlp_resources.py).
+- **Output handling**: [`sanitize_text/cli/io.py`](sanitize_text/cli/io.py) infers formats and delegates to `output.get_writer()` for TXT/MD/DOCX/PDF artifacts.
+- **Optional resources**: `--download-nlp-models` pre-fetches spaCy/NLTK assets via [`sanitize_text/utils/nlp_resources.py`](sanitize_text/utils/nlp_resources.py).
 - Core scrubbing logic lives in `_run_scrub()` and `core.scrubber` so tests can exercise behaviour without invoking Click or touching the filesystem.
 
 ## WebUI
 
-- **App factory**: [`sanitize_text/webui/run.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/webui/run.py) defines `create_app()` and registers routes via `routes.init_routes(app)`.
-- **Entry script**: [`sanitize_text/webui/main.py`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/webui/main.py) exposes `main()` for console scripts and `python -m sanitize_text.webui`.
-- **Templates & assets**: HTML templates live under [`sanitize_text/webui/templates/`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/webui/templates), with JS/CSS under [`sanitize_text/webui/static/`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/sanitize_text/webui/static).
+- **App factory**: [`sanitize_text/webui/run.py`](sanitize_text/webui/run.py) defines `create_app()` and registers routes via `routes.init_routes(app)`.
+- **Entry script**: [`sanitize_text/webui/main.py`](sanitize_text/webui/main.py) exposes `main()` for console scripts and `python -m sanitize_text.webui`.
+- **Templates & assets**: HTML templates live under [`sanitize_text/webui/templates/`](sanitize_text/webui/templates), with JS/CSS under [`sanitize_text/webui/static/`](sanitize_text/webui/static).
 - **Features**: detector selection, locale toggles, custom text, cleanup switch, verbose filth inspection, and CLI command preview.
 - **File handling**: `/process-file` and `/download-file` save uploads to temp files, convert via `webui.helpers.read_uploaded_file_to_text` (backed by the shared `utils.io_helpers.read_file_to_text` and `preconvert` module), scrub, then stream JSON or artifacts.
 - Development: `python -m sanitize_text.webui` or `docker-compose -f docker-compose.dev.yaml up`.
@@ -143,14 +143,14 @@ flowchart LR
 
 ## Docker
 
-- [`Dockerfile`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/Dockerfile) builds a Python 3.12-slim image, installs the package with `pip install .`, and runs Gunicorn on port 8000.
-- [`docker-compose.yaml`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/docker-compose.yaml) defines a `webui` service for production-like deployment, mapping `8000:8000`.
-- [`docker-compose.dev.yaml`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/docker-compose.dev.yaml) wires a development container with source volume mounts and Flask `--reload`.
+- [`Dockerfile`](Dockerfile) builds a Python 3.12-slim image, installs the package with `pip install .`, and runs Gunicorn on port 8000.
+- [`docker-compose.yaml`](docker-compose.yaml) defines a `webui` service for production-like deployment, mapping `8000:8000`.
+- [`docker-compose.dev.yaml`](docker-compose.dev.yaml) wires a development container with source volume mounts and Flask `--reload`.
 - Both compose files set `FLASK_APP=sanitize_text.webui:create_app` and `PYTHONUNBUFFERED=1`; dev mode also enables `FLASK_ENV=development` and `FLASK_DEBUG=1`.
 
 ## Tests
 
-- **Test runner**: pytest is configured in [`pyproject.toml`](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/pyproject.toml) with `--maxfail=1 -q --import-mode=append`.
+- **Test runner**: pytest is configured in [`pyproject.toml`](pyproject.toml) with `--maxfail=1 -q --import-mode=append`.
 - **Core**: tests cover scrubber orchestration, detector catalogues, NLP resources, normalization, and PDF utilities.
 - **CLI**: tests exercise CLI options, IO helpers, verbose mode, and end-to-end scrubbing flows.
 - **WebUI**: tests validate app factory, route registration, JSON responses, and export/download endpoints.
@@ -161,6 +161,6 @@ flowchart LR
 
 > No GitHub Actions or other CI configuration is present in this repo at this commit (no workflow files under `.github/`).
 
-- Add a workflow that runs Ruff (`pdm run ruff check .`) and pytest with coverage on push/PR, mirroring local commands in [AGENTS.md](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/AGENTS.md) and [pyproject.toml](https://github.com/beecave-homelab/sanitize-text/blob/c30ca71ce7ebad61e178de8f7b2c020b83b9bf21/pyproject.toml).
+- Add a workflow that runs Ruff (`pdm run ruff check .`) and pytest with coverage on push/PR, mirroring local commands in [AGENTS.md](AGENTS.md) and [pyproject.toml](pyproject.toml).
 
 **Always update this file when code or configuration changes.**

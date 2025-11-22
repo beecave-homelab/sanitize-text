@@ -55,7 +55,7 @@ The main modules are:
 
 ### Requirements
 
-- **Python**: 3.10–3.12 (`requires-python = ">=3.10,<3.13"` in `pyproject.toml`).
+- **Python**: 3.10–3.12 (`requires-python = ">=3.10,<3.13"` in [pyproject.toml](pyproject.toml)).
 - **OS**: Developed on macOS, expected to work on Linux. Windows may work but is not explicitly tested.
 - **Storage**:
   - Base installation is under ~100 MB and runs entirely on CPU.
@@ -84,7 +84,7 @@ This makes the `sanitize-text` and `sanitize-text-webui` commands available on y
    source .venv/bin/activate
    ```
 
-2. Install runtime dependencies from `requirements.txt`:
+2. Install runtime dependencies from [requirements.txt](requirements.txt):
 
    ```bash
    pip install -U pip
@@ -103,7 +103,7 @@ cd sanitize-text
 pdm install
 ```
 
-This installs the project and its runtime dependencies into a PDM-managed environment. For development-specific usage (linting, tests, etc.), see `project-overview.md`.
+This installs the project and its runtime dependencies into a PDM-managed environment. For development-specific usage (linting, tests, etc.), see [project-overview.md](project-overview.md).
 
 ### Run with Docker (Web UI)
 
@@ -276,8 +276,8 @@ PDF-specific options (`--pdf-mode`, `--pdf-font`, `--font-size`) control layout 
 
 For development setup, linting/formatting, test workflows, and architecture details, see:
 
-- `project-overview.md` – overall structure, CLI/WebUI flows, Docker usage, and test layout.
-- `AGENTS.md` – coding standards, Ruff configuration, and testing/coverage expectations.
+- [project-overview.md](project-overview.md) – overall structure, CLI/WebUI flows, Docker usage, and test layout.
+- [AGENTS.md](AGENTS.md) – coding standards, Ruff configuration, and testing/coverage expectations.
 
 ## Contributing
 
