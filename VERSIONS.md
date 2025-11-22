@@ -2,9 +2,33 @@
 
 ## ToC
 
-- [v1.0.0 (Current)](#v100-current---21-11-2025)
+- [v1.1.0 (Current)](#v110-current---22-11-2025)
+- [v1.0.0](#v100---21-11-2025)
 
-## **v1.0.0** (Current) - *21-11-2025*
+## **v1.1.0** (Current) - *22-11-2025*
+
+### ✨ **Brief Description**
+
+Minor release focusing on SOLID-aligned refactors, a shared multi-locale scrubbing helper, configurable post-processing, and updated documentation.
+
+### ✨ **New Features in v1.1.0**
+
+- **Enhanced**: Shared multi-locale scrubbing helper `run_multi_locale_scrub()` for CLI/WebUI-style flows.
+- **Enhanced**: Configurable post-processing via `post_processor_factory` and `DEFAULT_POST_PROCESSOR_FACTORY`.
+
+### 🔧 **Improvements in v1.1.0**
+
+- **Improved**: WebUI routes now use logging-based warnings and delegate multi-locale orchestration to shared helpers.
+- **Improved**: Dutch entity deduplication uses an explicit `DutchEntityDetector.reset_loaded_entities()` hook.
+- **Updated**: Documentation to describe the new architecture helpers and to use relative links for internal files.
+
+### 📝 **Key Commits in v1.1.0**
+
+`8c8a185`, `189152d`, `cb291d7`, `556119c`, `9586710`
+
+---
+
+## **v1.0.0** - *21-11-2025*
 
 ### **Brief Description**
 
