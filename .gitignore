@@ -22,6 +22,7 @@
 !AGENTS.md
 !input/.gitkeep
 !output/.gitkeep
+!.markdownlint.json
 
 # Include all files in these directories
 !nl_entities/
