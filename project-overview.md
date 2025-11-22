@@ -135,7 +135,7 @@ flowchart LR
 ## WebUI
 
 - **App factory**: [`sanitize_text/webui/run.py`](sanitize_text/webui/run.py) defines `create_app()` and registers routes via `routes.init_routes(app)`.
-- **Entry script**: [`sanitize_text/webui/main.py`](sanitize_text/webui/main.py) exposes `main()` for console scripts and `python -m sanitize_text.webui`.
+- **Entry scripts**: [`sanitize_text/webui/main.py`](sanitize_text/webui/main.py) exposes a Click-based `sanitize-text-webui` console command for local development (configurable `--host`, `--port`, `--debug/--no-debug`, and `--download-nlp-models/--no-download-nlp-models`), while [`sanitize_text/webui/__main__.py`](sanitize_text/webui/__main__.py) supports `python -m sanitize_text.webui`.
 - **Templates & assets**: HTML templates live under [`sanitize_text/webui/templates/`](sanitize_text/webui/templates), with JS/CSS under [`sanitize_text/webui/static/`](sanitize_text/webui/static).
 - **Features**: detector selection, locale toggles, custom text, cleanup switch, verbose filth inspection, and CLI command preview.
 - **File handling**: `/process-file` and `/download-file` save uploads to temp files, convert via `webui.helpers.read_uploaded_file_to_text` (backed by the shared `utils.io_helpers.read_file_to_text` and `preconvert` module), scrub, then stream JSON or artifacts.
@@ -157,6 +157,11 @@ flowchart LR
 - **WebUI**: tests validate app factory, route registration, JSON responses, and export/download endpoints.
 - **Output & cleanup**: tests cover writers, cleanup utilities, and edge cases for placeholders and gibberish runs.
 - `pdm run pytest -q` for unit tests; `pdm run pytest --cov=. --cov-report=term-missing:skip-covered --cov-report=xml` for coverage.
+  
+- **Latest run (22-11-2025)**:
+  - Commands: `pdm run pytest -q` and `pdm run test-cov`.
+  - Result: 154 tests passed with approximately 95% total coverage (`coverage.xml` generated).
+  - Warning: one `RuntimeWarning` from `tests/test_webui_run.py::test_run_module_download_flag_triggers_download` emitted by `runpy` about `sanitize_text.webui.run` already being present in `sys.modules` when executed as `__main__`. The test fully controls the injected modules via monkeypatching, so behaviour is deterministic despite this warning.
 
 ## CI/CD
 

@@ -195,7 +195,17 @@ Development server from the project tree:
 sanitize-text-webui
 ```
 
-This starts a Flask server (via `sanitize_text.webui.main`) on `http://localhost:5000`.
+This starts a Click-based development server (via `sanitize_text.webui.main`) on
+`http://127.0.0.1:5000` by default and downloads optional NLP resources before serving
+requests. You can configure the host, port, debug mode, and model download behaviour:
+
+```bash
+# Bind to all interfaces on port 8000 without downloading NLP models
+sanitize-text-webui --host 0.0.0.0 --port 8000 --no-download-nlp-models
+
+# Disable Flask debug mode
+sanitize-text-webui --no-debug
+```
 
 Containerized Web UI:
 
