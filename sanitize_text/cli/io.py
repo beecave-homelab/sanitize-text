@@ -12,6 +12,7 @@ from pathlib import Path
 from sanitize_text.output import get_writer
 from sanitize_text.utils import preconvert
 from sanitize_text.utils.cleanup import cleanup_output
+from sanitize_text.utils.io_helpers import read_file_to_text
 from sanitize_text.utils.normalize import normalize_pdf_text
 
 
@@ -46,26 +47,12 @@ def read_input_source(
         return Path(output_path).read_text(encoding="utf-8", errors="replace")
 
     if input_path:
-        ext = Path(input_path).suffix.lower()
-        if ext == ".pdf":
-            backend = (pdf_backend or "pymupdf4llm").lower()
-            if backend == "pymupdf4llm":
-                try:
-                    import pymupdf4llm  # type: ignore[import]
-                except Exception:  # noqa: BLE001
-                    raw_md = preconvert.to_markdown(input_path)
-                else:
-                    raw_md = pymupdf4llm.to_markdown(input_path)
-            else:
-                raw_md = preconvert.to_markdown(input_path)
-            return normalize_pdf_text(raw_md, title=None)
-        if ext in {".doc", ".docx"}:
-            return preconvert.docx_to_text(input_path)
-        if ext == ".rtf":
-            return preconvert.rtf_to_text(input_path)
-        if ext in {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp", ".webp"}:
-            return preconvert.image_to_text(input_path)
-        return Path(input_path).read_text(encoding="utf-8", errors="replace")
+        return read_file_to_text(
+            Path(input_path),
+            pdf_backend=pdf_backend,
+            preconvert_module=preconvert,
+            normalize_pdf_text_func=normalize_pdf_text,
+        )
 
     if text is not None:
         return text

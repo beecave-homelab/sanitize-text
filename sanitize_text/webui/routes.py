@@ -16,6 +16,7 @@ from sanitize_text.core.scrubber import (
 from sanitize_text.output import get_writer
 from sanitize_text.utils import preconvert
 from sanitize_text.utils.cleanup import cleanup_output
+from sanitize_text.webui import helpers
 
 GENERIC_DETECTORS = {
     "email",
@@ -29,16 +30,10 @@ GENERIC_DETECTORS = {
 
 def _group_detectors() -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
     """Return dictionaries of generic, English, and Dutch detectors."""
-    english = get_available_detectors("en_US")
-    dutch = get_available_detectors("nl_NL")
-
-    generic = {key: english[key] for key in GENERIC_DETECTORS if key in english}
-    english_specific = {
-        key: value for key, value in english.items() if key not in GENERIC_DETECTORS
-    }
-    dutch_specific = {key: value for key, value in dutch.items() if key not in GENERIC_DETECTORS}
-
-    return generic, english_specific, dutch_specific
+    return helpers.group_detectors(
+        get_available_detectors=get_available_detectors,
+        generic_detector_names=GENERIC_DETECTORS,
+    )
 
 
 def _build_locale_selections(
@@ -50,25 +45,7 @@ def _build_locale_selections(
         Mapping from locale code to a sorted list of detector names, or ``None``
         if no selections were provided.
     """
-    if not selected_detectors:
-        return None
-
-    generic_selection = {token for token in selected_detectors if ":" not in token}
-    locale_map = {
-        "en_US": set(generic_selection),
-        "nl_NL": set(generic_selection),
-    }
-
-    for token in selected_detectors:
-        if ":" not in token:
-            continue
-        prefix, _, detector_name = token.partition(":")
-        if prefix == "en":
-            locale_map["en_US"].add(detector_name)
-        elif prefix == "nl":
-            locale_map["nl_NL"].add(detector_name)
-
-    return {locale: sorted(detectors) for locale, detectors in locale_map.items()}
+    return helpers.build_locale_selections(selected_detectors)
 
 
 def _format_results_text(results: list[dict[str, str]]) -> str:
@@ -80,12 +57,7 @@ def _format_results_text(results: list[dict[str, str]]) -> str:
     Returns:
         Combined string with sections per-locale.
     """
-    sections: list[str] = []
-    for item in results:
-        loc = item.get("locale", "?")
-        text = item.get("text", "")
-        sections.append(f"Results for {loc}:\n{text}")
-    return "\n\n".join(sections)
+    return helpers.format_results_text(results)
 
 
 def _normalize_detector_tokens(detectors: list[str] | None) -> list[str]:
@@ -102,18 +74,7 @@ def _normalize_detector_tokens(detectors: list[str] | None) -> list[str]:
     Returns:
         A list of normalized detector names suitable for CLI ``--detectors``.
     """
-    if not detectors:
-        return []
-
-    seen: set[str] = set()
-    normalized: list[str] = []
-    for token in detectors:
-        name = token.split(":", 1)[-1]
-        if not name or name in seen:
-            continue
-        seen.add(name)
-        normalized.append(name)
-    return normalized
+    return helpers.normalize_detector_tokens(detectors)
 
 
 def _build_cli_preview(
@@ -134,39 +95,17 @@ def _build_cli_preview(
     options without echoing full user content. It is meant purely for
     discoverability so GUI users can learn the equivalent terminal command.
     """
-    parts: list[str] = ["sanitize-text"]
-
-    if source == "file":
-        parts.extend(["-i", "<input-file>"])
-    else:
-        # Default to inline text when source is not explicitly "file".
-        parts.extend(["-t", "<text>"])
-
-    if locale:
-        parts.extend(["-l", locale])
-
-    normalized_detectors = _normalize_detector_tokens(detectors)
-    if normalized_detectors:
-        detector_str = " ".join(sorted(normalized_detectors))
-        parts.extend(["-d", f'"{detector_str}"'])
-
-    if not cleanup:
-        parts.append("--no-cleanup")
-
-    if verbose:
-        parts.append("-v")
-
-    if output_format and output_format != "txt":
-        parts.extend(["--output-format", output_format])
-
-    if output_format == "pdf":
-        parts.extend(["--pdf-mode", pdf_mode])
-        parts.extend(["--font-size", str(font_size)])
-
-    if source == "file" and pdf_backend:
-        parts.extend(["--pdf-backend", pdf_backend])
-
-    return " ".join(parts)
+    return helpers.build_cli_preview(
+        source=source,
+        locale=locale,
+        detectors=detectors,
+        cleanup=cleanup,
+        verbose=verbose,
+        output_format=output_format,
+        pdf_mode=pdf_mode,
+        font_size=font_size,
+        pdf_backend=pdf_backend,
+    )
 
 
 def _read_uploaded_file_to_text(upload_path: Path, *, pdf_backend: str = "markitdown") -> str:
@@ -175,29 +114,14 @@ def _read_uploaded_file_to_text(upload_path: Path, *, pdf_backend: str = "markit
     Uses the same conversion rules as the CLI: PDF, DOC/DOCX, RTF, images,
     otherwise treats it as UTF-8 text.
     """
-    ext = upload_path.suffix.lower()
-    if ext == ".pdf":
-        backend = (pdf_backend or "markitdown").lower()
-        if backend == "pymupdf4llm":
-            try:
-                import pymupdf4llm  # type: ignore[import]
-            except Exception:  # noqa: BLE001
-                raw_md = preconvert.to_markdown(str(upload_path))
-            else:
-                raw_md = pymupdf4llm.to_markdown(str(upload_path))
-        else:
-            raw_md = preconvert.to_markdown(str(upload_path))
-        # Normalize to plain text similar to CLI cleanup path
-        from sanitize_text.utils.normalize import normalize_pdf_text
+    from sanitize_text.utils.normalize import normalize_pdf_text
 
-        return normalize_pdf_text(raw_md, title=None)
-    if ext in {".doc", ".docx"}:
-        return preconvert.docx_to_text(str(upload_path))
-    if ext == ".rtf":
-        return preconvert.rtf_to_text(str(upload_path))
-    if ext in {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp", ".webp"}:
-        return preconvert.image_to_text(str(upload_path))
-    return upload_path.read_text(encoding="utf-8", errors="replace")
+    return helpers.read_uploaded_file_to_text(
+        upload_path,
+        pdf_backend=pdf_backend,
+        preconvert_module=preconvert,
+        normalize_pdf_text_func=normalize_pdf_text,
+    )
 
 
 def init_routes(app: Flask) -> Flask:
