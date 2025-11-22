@@ -1,10 +1,13 @@
-"""Tests for :mod:`sanitize_text.webui.__main__` behavior."""
+"""Tests for :mod:`sanitize_text.webui` entry behavior."""
 
 from __future__ import annotations
 
+import importlib
 import runpy
 import sys
 from types import SimpleNamespace
+
+from click.testing import CliRunner
 
 
 def test_webui_main_runs_app_and_downloads(monkeypatch) -> None:
@@ -35,3 +38,68 @@ def test_webui_main_runs_app_and_downloads(monkeypatch) -> None:
 
     assert calls["download"] == 1
     assert calls["run"] == 1
+
+
+def test_webui_click_main_downloads_and_runs_with_defaults(monkeypatch) -> None:
+    """sanitize_text.webui.main should download models and run app with defaults."""
+    mod = importlib.import_module("sanitize_text.webui.main")
+
+    calls = {"download": 0, "run": []}
+
+    class DummyApp:
+        def run(self, host: str, port: int, debug: bool = False) -> None:  # noqa: FBT001
+            calls["run"].append({"host": host, "port": port, "debug": debug})
+
+    def download_optional_models() -> None:
+        calls["download"] += 1
+
+    def create_app() -> DummyApp:
+        return DummyApp()
+
+    monkeypatch.setattr(mod, "download_optional_models", download_optional_models)
+    monkeypatch.setattr(mod, "create_app", create_app)
+
+    runner = CliRunner()
+    result = runner.invoke(mod.main, [])
+
+    assert result.exit_code == 0
+    assert calls["download"] == 1
+    assert calls["run"] == [{"host": "127.0.0.1", "port": 5000, "debug": True}]
+
+
+def test_webui_click_main_respects_host_port_debug_and_download_flag(monkeypatch) -> None:
+    """CLI options should control host/port/debug and optional model download."""
+    mod = importlib.import_module("sanitize_text.webui.main")
+
+    calls = {"download": 0, "run": []}
+
+    class DummyApp:
+        def run(self, host: str, port: int, debug: bool = False) -> None:  # noqa: FBT001
+            calls["run"].append({"host": host, "port": port, "debug": debug})
+
+    def download_optional_models() -> None:
+        calls["download"] += 1
+
+    def create_app() -> DummyApp:
+        return DummyApp()
+
+    monkeypatch.setattr(mod, "download_optional_models", download_optional_models)
+    monkeypatch.setattr(mod, "create_app", create_app)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        mod.main,
+        [
+            "--host",
+            "0.0.0.0",
+            "--port",
+            "8000",
+            "--no-debug",
+            "--no-download-nlp-models",
+        ],
+    )
+
+    assert result.exit_code == 0
+    # download should not be called when --no-download-nlp-models is used
+    assert calls["download"] == 0
+    assert calls["run"] == [{"host": "0.0.0.0", "port": 8000, "debug": False}]
