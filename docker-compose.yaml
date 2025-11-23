@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: sanitize-text-webui
+    image: ghcr.io/beecave-homelab/sanitize-text:main
     ports:
       - "8000:8000"
     environment:
