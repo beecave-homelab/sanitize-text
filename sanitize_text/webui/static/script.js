@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const verboseOn = document.getElementById('verbose-check').checked;
         const parts = data.results.map(r => {
-            let section = `--- Results for ${r.locale} ---\n${r.text}`;
+            let section = `${r.text}`;
             if (verboseOn && r.filth) {
                 section += `\n\n[VERBOSE LOG]\n` + r.filth.map(f => `- ${f.type}: "${f.text}" -> "${f.replacement}"`).join('\n');
             }

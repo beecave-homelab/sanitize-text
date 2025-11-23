@@ -129,7 +129,7 @@ This runs `flask run --reload` in a container, also exposed on `http://localhost
 
 Key options that control how scrubbing behaves:
 
-- `--locale / -l`: Locale code (`nl_NL` or `en_US`). When omitted, the core can process both locales.
+- `--locale / -l`: Locale code (`nl_NL` or `en_US`). When omitted, the core defaults to `nl_NL`.
 - `--detectors / -d`: Space-separated detector names (for example `"email url name"`).
 - `--custom / -c`: Custom text fragment that should always be treated as PII.
 - `--cleanup/--no-cleanup`: Enable or disable final cleanup and normalization.
@@ -174,7 +174,7 @@ Common options:
 - `-t, --text`: Inline input text.
 - `-i, --input`: Path to an input file to scrub.
 - `-o, --output`: Output path (defaults to `$PWD/output/scrubbed.txt`).
-- `-l, --locale`: Locale (`nl_NL` or `en_US`).
+- `-l, --locale`: Locale (`nl_NL` or `en_US`). Defaults to `nl_NL` when omitted.
 - `-d, --detectors`: Space-separated detector names.
 - `-a, --append`: Append to an existing output file instead of overwriting.
 - `--output-format`: Explicit format (`txt`, `md`, `docx`, `pdf`).

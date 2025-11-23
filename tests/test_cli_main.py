@@ -127,9 +127,9 @@ def test_run_scrub_basic_non_verbose(monkeypatch) -> None:
 
     class DummyOutcome:
         def __init__(self) -> None:
-            self.texts = {"en_US": "EN", "nl_NL": "NL"}
+            self.texts = {mod.DEFAULT_LOCALE: "NL"}
             self.errors = {}
-            self.detectors = {"en_US": ["email"]}
+            self.detectors = {mod.DEFAULT_LOCALE: ["email"]}
 
     monkeypatch.setattr(mod, "scrub_text", lambda *a, **k: DummyOutcome())
     monkeypatch.setattr(mod, "maybe_cleanup", lambda text, enabled: text)
@@ -142,7 +142,7 @@ def test_run_scrub_basic_non_verbose(monkeypatch) -> None:
         cleanup=True,
         verbose=False,
     )
-    assert "Results for en_US:\nEN" in out and "Results for nl_NL:\nNL" in out
+    assert out == "NL"
 
 
 def test_run_scrub_verbose_logs_and_collects(monkeypatch) -> None:
@@ -151,9 +151,9 @@ def test_run_scrub_verbose_logs_and_collects(monkeypatch) -> None:
 
     class DummyOutcome:
         def __init__(self) -> None:
-            self.texts = {"en_US": "EN"}
+            self.texts = {mod.DEFAULT_LOCALE: "NL"}
             self.errors = {}
-            self.detectors = {"en_US": ["email", "url"]}
+            self.detectors = {mod.DEFAULT_LOCALE: ["email", "url"]}
 
     monkeypatch.setattr(mod, "scrub_text", lambda *a, **k: DummyOutcome())
     monkeypatch.setattr(mod, "maybe_cleanup", lambda text, enabled: text)
@@ -181,8 +181,8 @@ def test_run_scrub_verbose_logs_and_collects(monkeypatch) -> None:
     result = runner.invoke(_runner_cmd)
 
     assert result.exit_code == 0
-    assert "[Processing locale: en_US]" in result.output
-    assert "Results for en_US:\nEN" in result.output
+    assert f"[Processing locale: {mod.DEFAULT_LOCALE}]" in result.output
+    assert "NL" in result.output
 
 
 def test_main_error_from_read_input_source(monkeypatch) -> None:

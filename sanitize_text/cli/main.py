@@ -32,6 +32,7 @@ from sanitize_text.cli.io import (
     write_output,
 )
 from sanitize_text.core.scrubber import (
+    DEFAULT_LOCALE,
     get_available_detectors,
     get_generic_detector_descriptions,
     scrub_text,
@@ -95,13 +96,9 @@ def _run_scrub(
         custom_text=custom,
         verbose=verbose,
     )
-    locales_to_process = [locale] if locale else ["en_US", "nl_NL"]
+    locales_to_process = [locale] if locale else [DEFAULT_LOCALE]
 
-    formatted_sections = [
-        f"Results for {loc}:\n{outcome.texts[loc]}"
-        for loc in locales_to_process
-        if loc in outcome.texts
-    ]
+    formatted_sections = [outcome.texts[loc] for loc in locales_to_process if loc in outcome.texts]
     scrubbed_text = "\n\n".join(formatted_sections)
     scrubbed_text = maybe_cleanup(scrubbed_text, cleanup)
 
@@ -223,7 +220,9 @@ def _run_scrub(
     "--locale",
     "-l",
     type=click.Choice(["nl_NL", "en_US"]),
-    help="Locale for text processing. Processes both if not specified.",
+    help=(
+        "Locale for text processing. Defaults to the nl_NL pipeline when no locale is provided."
+    ),
     metavar="<locale>",
 )
 @click.option(
@@ -352,7 +351,7 @@ def main(
         spinner.start()
 
     if verbose:
-        target_locales = locale if locale is not None else "en_US and nl_NL"
+        target_locales = locale if locale is not None else DEFAULT_LOCALE
         click.echo(f"[Starting scrub for locale(s): {target_locales}]")
         if detectors:
             click.echo(f"[Requested detectors: {detectors}]")

@@ -21,6 +21,9 @@ if TYPE_CHECKING:  # pragma: no cover - for type hints only
 logger = logging.getLogger(__name__)
 
 
+DEFAULT_LOCALE = "nl_NL"
+
+
 @dataclass(frozen=True)
 class DetectorContext:
     """Context passed to detector factories.
@@ -336,12 +339,12 @@ def get_generic_detector_descriptions(locale: str | None = None) -> dict[str, st
 
     Args:
         locale: Optional locale identifier used to check conditional
-            availability. Defaults to ``"en_US"`` when omitted.
+            availability. Defaults to :data:`DEFAULT_LOCALE` when omitted.
 
     Returns:
         dict[str, str]: Mapping of detector names to descriptions.
     """
-    context = DetectorContext(locale=locale or "en_US")
+    context = DetectorContext(locale=locale or DEFAULT_LOCALE)
     return {spec.name: spec.description for spec in _iter_enabled_specs(GENERIC_DETECTORS, context)}
 
 
@@ -484,13 +487,13 @@ def run_multi_locale_scrub(
     verbose: bool = False,
     include_filth: bool = False,
 ) -> MultiLocaleResult:
-    """Return scrubbed text (and optional filth) for one or both locales.
+    """Return scrubbed text (and optional filth) for the requested locale.
 
     This helper encapsulates the repeated pattern of multi-locale processing:
     building the locale list, constructing scrubbers, applying optional
     cleanup, and (optionally) collecting filth for inspection.
     """
-    locales_to_process = ["en_US", "nl_NL"] if locale is None else [locale]
+    locales_to_process = [DEFAULT_LOCALE] if locale is None else [locale]
     results: list[LocaleResult] = []
     errors: dict[str, str] = {}
 
@@ -545,8 +548,8 @@ def scrub_text(
 
     Args:
         text: Raw text to scrub.
-        locale: Optional locale identifier. When omitted, both Dutch and
-            English locales are processed.
+        locale: Optional locale identifier. When omitted, the default locale
+            :data:`DEFAULT_LOCALE` is processed.
         selected_detectors: Optional list of detector names. When ``None`` the
             default detectors for each locale are used.
         custom_text: Optional custom text treated as PII.
@@ -562,7 +565,7 @@ def scrub_text(
     scrubbed_texts: dict[str, str] = {}
     detectors_by_locale: dict[str, list[str]] = {}
     errors: dict[str, str] = {}
-    locales_to_process = ["en_US", "nl_NL"] if locale is None else [locale]
+    locales_to_process = [DEFAULT_LOCALE] if locale is None else [locale]
     for current_locale in locales_to_process:
         try:
             scrubber = setup_scrubber(current_locale, selected_detectors, custom_text, verbose)
@@ -590,7 +593,7 @@ def collect_filth(
 
     Args:
         text: The text to analyse.
-        locale: Optional locale (default: both).
+        locale: Optional locale (default: :data:`DEFAULT_LOCALE`).
         selected_detectors: Optional list of detectors.
         custom_text: Optional custom text.
 
@@ -601,7 +604,7 @@ def collect_filth(
     from scrubadub import filth as _filth  # noqa: F401  # imported for typing only
 
     out: dict[str, list[scrubadub.filth.Filth]] = {}
-    locales_to_process = [locale] if locale else ["en_US", "nl_NL"]
+    locales_to_process = [locale] if locale else [DEFAULT_LOCALE]
 
     for current_locale in locales_to_process:
         scrubber = setup_scrubber(current_locale, selected_detectors, custom_text)

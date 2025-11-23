@@ -24,13 +24,13 @@ def test_remove_form_feeds_and_trim_trailing_spaces() -> None:
 
 def test_insert_h1_if_missing() -> None:
     """If no H1 is present, insert a top-level heading as first content."""
-    src = "Results for en_US:\nBody"
-    out = normalize_pdf_text(src, title="Results (en_US)")
+    src = "Body"
+    out = normalize_pdf_text(src, title="Results (nl_NL)")
     lines = out.splitlines()
     assert lines[0].startswith("# ")
-    assert lines[0] == "# Results (en_US)"
+    assert lines[0] == "# Results (nl_NL)"
     assert lines[1] == ""
-    assert lines[2] == "Results for en_US:"
+    assert lines[2] == "Body"
 
 
 def test_preserve_existing_h1() -> None:

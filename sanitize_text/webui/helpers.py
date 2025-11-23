@@ -88,9 +88,8 @@ def format_results_text(results: list[dict[str, str]]) -> str:
     """
     sections: list[str] = []
     for item in results:
-        loc = item.get("locale", "?")
         text = item.get("text", "")
-        sections.append(f"Results for {loc}:\n{text}")
+        sections.append(text)
     return "\n\n".join(sections)
 
 

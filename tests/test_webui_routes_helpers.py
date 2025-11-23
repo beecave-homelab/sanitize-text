@@ -55,8 +55,7 @@ def test_format_results_text_combines_sections() -> None:
         {"locale": "en_US", "text": "Foo"},
         {"locale": "nl_NL", "text": "Bar"},
     ])
-    assert "Results for en_US:" in combined and "Foo" in combined
-    assert "Results for nl_NL:" in combined and "Bar" in combined
+    assert combined == "Foo\n\nBar"
 
 
 def test_read_uploaded_file_to_text_plain_and_pdf(tmp_path, monkeypatch) -> None:

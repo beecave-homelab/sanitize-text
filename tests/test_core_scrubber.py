@@ -195,7 +195,7 @@ def test_setup_scrubber_selection_verbose_and_custom(
 
 
 def test_scrub_text_success_and_errors(monkeypatch):
-    """scrub_text aggregates per-locale success and logs errors; raises if none succeed."""
+    """scrub_text returns default locale output and raises when it fails."""
     from sanitize_text.core import scrubber as s
 
     class FakeScrubber:
@@ -208,31 +208,28 @@ def test_scrub_text_success_and_errors(monkeypatch):
             return f"{text}|{self.locale}"
 
     def setup(locale, selected_detectors, custom_text, verbose=False):  # noqa: ARG001 - signature match
-        if locale == "en_US":
+        if locale == s.DEFAULT_LOCALE:
             return FakeScrubber(locale=locale)
-        if locale == "nl_NL":
-            raise RuntimeError("boom")
         raise AssertionError("unexpected locale in test")
 
     monkeypatch.setattr(s, "setup_scrubber", setup, raising=True)
 
-    # en_US succeeds, nl_NL fails -> partial success with recorded error
     outcome = s.scrub_text("hello")
-    assert outcome.texts == {"en_US": "hello|en_US"}
-    assert "nl_NL" in outcome.errors
-    assert outcome.detectors["en_US"] == ["d"]
+    assert outcome.texts == {s.DEFAULT_LOCALE: f"hello|{s.DEFAULT_LOCALE}"}
+    assert not outcome.errors
+    assert outcome.detectors[s.DEFAULT_LOCALE] == ["d"]
 
-    # Both fail -> raise
+    # Failure for requested locale raises
     def setup_all_fail(locale, *_args, **_kwargs):
         raise RuntimeError(f"fail-{locale}")
 
     monkeypatch.setattr(s, "setup_scrubber", setup_all_fail, raising=True)
     with pytest.raises(Exception, match="All processing attempts failed"):
-        s.scrub_text("hello")
+        s.scrub_text("hello", locale="en_US")
 
 
 def test_collect_filth_applies_replacer(monkeypatch, stub_scrubadub):
-    """collect_filth returns filths with replacement strings applied for both locales."""
+    """collect_filth returns filths with replacement strings applied for default locale."""
     from sanitize_text.core import scrubber as s
 
     class FakeFilth:
@@ -260,7 +257,7 @@ def test_collect_filth_applies_replacer(monkeypatch, stub_scrubadub):
     monkeypatch.setitem(sys.modules, "scrubadub.filth", sf)
 
     out = s.collect_filth("hello")
-    assert set(out.keys()) == {"en_US", "nl_NL"}
+    assert set(out.keys()) == {s.DEFAULT_LOCALE}
 
     # Each filth should have replacement_string assigned
     for locale, filths in out.items():
@@ -271,7 +268,7 @@ def test_collect_filth_applies_replacer(monkeypatch, stub_scrubadub):
 
 
 def test_get_generic_detector_descriptions_defaults(patch_minimal_specs):
-    """Generic detector descriptions default to en_US when locale omitted."""
+    """Generic detector descriptions default to nl_NL when locale omitted."""
     from sanitize_text.core import scrubber as s
 
     out_default = s.get_generic_detector_descriptions()
