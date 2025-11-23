@@ -280,16 +280,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderResults(data) {
         if (!data.results) return;
-        
+
         const verboseOn = document.getElementById('verbose-check').checked;
         const parts = data.results.map(r => {
-            let section = `--- Results for ${r.locale} ---\n${r.text}`;
+            let section = r.text || '';
             if (verboseOn && r.filth) {
-                section += `\n\n[VERBOSE LOG]\n` + r.filth.map(f => `- ${f.type}: "${f.text}" -> "${f.replacement}"`).join('\n');
+                section += `\n\n[VERBOSE LOG]\n` + r.filth
+                    .map(f => `- ${f.type}: "${f.text}" -> "${f.replacement}"`)
+                    .join('\n');
             }
             return section;
         });
-        
+
         outputText.value = parts.join('\n\n');
         resultMeta.textContent = `Processed ${data.results.length} locale(s).`;
     }

@@ -95,14 +95,17 @@ def _run_scrub(
         custom_text=custom,
         verbose=verbose,
     )
-    locales_to_process = [locale] if locale else ["en_US", "nl_NL"]
+    locales_to_process = ["en_US", "nl_NL"] if locale is None else [locale]
 
-    formatted_sections = [
-        f"Results for {loc}:\n{outcome.texts[loc]}"
-        for loc in locales_to_process
-        if loc in outcome.texts
-    ]
-    scrubbed_text = "\n\n".join(formatted_sections)
+    primary_locale = locale or "nl_NL"
+    if primary_locale in outcome.texts:
+        scrubbed_text = outcome.texts[primary_locale]
+    else:
+        scrubbed_text = "\n\n".join(
+            outcome.texts[loc] for loc in locales_to_process if loc in outcome.texts
+        )
+        if not scrubbed_text:
+            scrubbed_text = "\n\n".join(outcome.texts.values())
     scrubbed_text = maybe_cleanup(scrubbed_text, cleanup)
 
     failed_locales = [loc for loc in locales_to_process if loc not in outcome.texts]

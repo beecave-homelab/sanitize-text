@@ -142,7 +142,8 @@ def test_run_scrub_basic_non_verbose(monkeypatch) -> None:
         cleanup=True,
         verbose=False,
     )
-    assert "Results for en_US:\nEN" in out and "Results for nl_NL:\nNL" in out
+    # When no locale is specified, nl_NL should be the default output without headers.
+    assert out == "NL"
 
 
 def test_run_scrub_verbose_logs_and_collects(monkeypatch) -> None:
@@ -182,7 +183,8 @@ def test_run_scrub_verbose_logs_and_collects(monkeypatch) -> None:
 
     assert result.exit_code == 0
     assert "[Processing locale: en_US]" in result.output
-    assert "Results for en_US:\nEN" in result.output
+    assert "EN" in result.output
+    assert "Results for en_US:" not in result.output
 
 
 def test_main_error_from_read_input_source(monkeypatch) -> None:
