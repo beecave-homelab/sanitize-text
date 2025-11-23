@@ -132,9 +132,9 @@ class JSONEntityDetector(Detector):
         # Unicode-safe letter pattern for word boundary checks
         letters_pattern = r"[0-9A-Za-zÀ-ÖØ-öø-ÿ]"
 
-        match_count = 0
         text_lower = text.lower()
-        seen_matches: set[tuple[int, int]] = set()  # Track (start, end) to avoid duplicates
+        seen_spans: set[tuple[int, int]] = set()
+        candidates: list[tuple[int, int, str]] = []
 
         # Single-pass search using Aho-Corasick automaton
         for end_idx, original_entity in self._automaton.iter(text_lower):
@@ -142,8 +142,8 @@ class JSONEntityDetector(Detector):
             start_idx = end_idx - len(original_entity) + 1
             matched_text = text[start_idx : end_idx + 1]
 
-            # Skip if we've already yielded this exact match position
-            if (start_idx, end_idx + 1) in seen_matches:
+            # Skip if we've already recorded this exact span
+            if (start_idx, end_idx + 1) in seen_spans:
                 continue
 
             # Word boundary check: match must not be inside a larger word
@@ -183,31 +183,34 @@ class JSONEntityDetector(Detector):
             if not any(char.isalpha() for char in matched_text):
                 continue
 
-            seen_matches.add((start_idx, end_idx + 1))
-            match_count += 1
+            seen_spans.add((start_idx, end_idx + 1))
+            candidates.append((start_idx, end_idx + 1, matched_text))
+
+        # Fallback: normalization-aware search for multi-word entities
+        # Handles cases like "Foo & Bar" matching "Foo en Bar" or zero-width chars
+        if self._multi_word_entities:
+            self._search_normalized_entities(
+                text=text,
+                document_name=document_name,
+                verbose=verbose,
+                seen_spans=seen_spans,
+                candidates=candidates,
+            )
+
+        filtered = self._filter_overlapping_candidates(candidates)
+        match_count = len(filtered)
+
+        for start_idx, end_idx, matched_text in filtered:
             if verbose:
                 logger.info("    ✓ Found: '%s' (%s)", matched_text, self.name)
 
             yield self.filth_cls(
                 beg=start_idx,
-                end=end_idx + 1,
+                end=end_idx,
                 text=matched_text,
                 detector_name=self.name,
                 document_name=document_name,
             )
-
-        # Fallback: normalization-aware search for multi-word entities
-        # Handles cases like "Foo & Bar" matching "Foo en Bar" or zero-width chars
-        if self._multi_word_entities:
-            match_count_ref = [match_count]
-            yield from self._search_normalized_entities(
-                text=text,
-                document_name=document_name,
-                verbose=verbose,
-                match_count_ref=match_count_ref,
-                seen_matches=seen_matches,
-            )
-            match_count = match_count_ref[0]
 
         if verbose:
             logger.info("  [%s] Total matches: %d", self.name, match_count)
@@ -217,17 +220,10 @@ class JSONEntityDetector(Detector):
         text: str,
         document_name: str | None,
         verbose: bool,
-        match_count_ref: list[int],
-        seen_matches: set[tuple[int, int]],
-    ) -> Iterator[object]:
-        """Fallback search for multi-word entities with normalization.
-
-        Handles entities with zero-width characters, flexible whitespace,
-        and '&' / '&amp;' variations (e.g., Dutch 'en' for '&').
-
-        Yields:
-            Filth objects for normalized entity matches.
-        """
+        seen_spans: set[tuple[int, int]],
+        candidates: list[tuple[int, int, str]],
+    ) -> None:
+        """Fallback search for multi-word entities with normalization."""
 
         def _strip_zw(s: str) -> str:
             return re.sub(r"[\u200b\u200c\u200d\u2060\u00AD]", "", s)
@@ -246,7 +242,10 @@ class JSONEntityDetector(Detector):
 
         for entity_lower in self._multi_word_entities:
             # Already matched via automaton, skip this expensive fallback
-            if entity_lower in {text[s:e].lower() for s, e in seen_matches}:
+            if any(
+                entity_lower == text[s:e].lower()
+                for s, e in seen_spans
+            ):
                 continue
 
             norm_entity = _normalize_for_entity(entity_lower)
@@ -271,7 +270,7 @@ class JSONEntityDetector(Detector):
                     continue
 
                 # Skip if already matched
-                if (start, end) in seen_matches:
+                if (start, end) in seen_spans:
                     pos = idx + 1
                     continue
 
@@ -323,25 +322,34 @@ class JSONEntityDetector(Detector):
                     pos = idx + 1
                     continue
 
-                seen_matches.add((start, end))
-                match_count_ref[0] += 1
-
-                if verbose:
-                    logger.info(
-                        "    ✓ Found (normalized): '%s' (%s)",
-                        original_slice,
-                        self.name,
-                    )
-
-                yield self.filth_cls(
-                    beg=start,
-                    end=end,
-                    text=original_slice,
-                    detector_name=self.name,
-                    document_name=document_name,
-                )
+                seen_spans.add((start, end))
+                candidates.append((start, end, original_slice))
 
                 pos = idx + 1
+
+    @staticmethod
+    def _filter_overlapping_candidates(
+        candidates: list[tuple[int, int, str]],
+    ) -> list[tuple[int, int, str]]:
+        """Return non-overlapping candidates preferring longer spans."""
+        if not candidates:
+            return []
+
+        ranked = sorted(
+            candidates,
+            key=lambda item: (-(item[1] - item[0]), item[0]),
+        )
+        selected: list[tuple[int, int, str]] = []
+        spans: list[tuple[int, int]] = []
+
+        for candidate in ranked:
+            start, end, _ = candidate
+            if any(not (end <= s or start >= e) for s, e in spans):
+                continue
+            selected.append(candidate)
+            spans.append((start, end))
+
+        return sorted(selected, key=lambda item: item[0])
 
     def _map_normalized_span(
         self,
