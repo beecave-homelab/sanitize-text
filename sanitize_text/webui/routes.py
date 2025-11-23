@@ -7,9 +7,10 @@ import os
 import tempfile
 from pathlib import Path
 
-from flask import Flask, Response, jsonify, render_template, request, send_file
+from flask import Flask, Response, current_app, jsonify, render_template, request, send_file
 
 from sanitize_text.core.scrubber import (
+    MultiLocaleResult,
     get_available_detectors,
     run_multi_locale_scrub,
 )
@@ -19,6 +20,55 @@ from sanitize_text.utils.cleanup import cleanup_output
 from sanitize_text.webui import helpers
 
 logger = logging.getLogger(__name__)
+
+
+def _log_verbose_summary(
+    source: str,
+    *,
+    raw_text: str,
+    result: MultiLocaleResult,
+) -> None:
+    """Emit CLI-style verbose details for a processed request."""
+    active_logger = current_app.logger if current_app else logger
+    active_logger.info(
+        "[WebUI][VERBOSE] %s request length=%d characters.",
+        source,
+        len(raw_text),
+    )
+    for locale_result in result.results:
+        locale = locale_result.locale
+        active_logger.info(
+            "[WebUI][VERBOSE] Locale %s produced %d characters.",
+            locale,
+            len(locale_result.text),
+        )
+        filths = locale_result.filth or []
+        if filths:
+            active_logger.info(
+                "[WebUI][VERBOSE] Found %d PII match(es) for %s.",
+                len(filths),
+                locale,
+            )
+            for filth in filths:
+                replacement = getattr(filth, "replacement_string", "")
+                display_type = getattr(filth, "type", "unknown") or "unknown"
+                text = getattr(filth, "text", "")
+                active_logger.info(
+                    "    - %s: '%s' -> '%s'",
+                    display_type,
+                    text,
+                    replacement,
+                )
+        else:
+            active_logger.info("[WebUI][VERBOSE] No PII matches for %s.", locale)
+
+    if result.errors:
+        for failed_locale, message in result.errors.items():
+            active_logger.warning(
+                "[WebUI][VERBOSE] Locale %s failed: %s",
+                failed_locale,
+                message,
+            )
 
 
 GENERIC_DETECTORS = {
@@ -183,7 +233,9 @@ def init_routes(app: Flask) -> Flask:
         selected_detectors = data.get("detectors") or []
         custom = data.get("custom") or None
         cleanup = bool(data.get("cleanup", True))
-        verbose = bool(data.get("verbose", False))
+        request_verbose = bool(data.get("verbose", False))
+        app_verbose = bool(current_app.config.get("SANITIZE_VERBOSE", False))
+        effective_verbose = app_verbose or request_verbose
 
         if not input_text:
             return jsonify({"error": "No text provided"}), 400
@@ -196,8 +248,8 @@ def init_routes(app: Flask) -> Flask:
             custom_text=custom,
             cleanup=cleanup,
             cleanup_func=cleanup_output,
-            verbose=verbose,
-            include_filth=verbose,
+            verbose=effective_verbose,
+            include_filth=effective_verbose,
         )
 
         results: list[dict[str, object]] = []
@@ -206,7 +258,7 @@ def init_routes(app: Flask) -> Flask:
                 "locale": item.locale,
                 "text": item.text,
             }
-            if verbose and item.filth is not None:
+            if request_verbose and item.filth is not None:
                 payload["filth"] = [
                     {
                         "type": getattr(f, "type", ""),
@@ -219,6 +271,9 @@ def init_routes(app: Flask) -> Flask:
 
         if not results:
             return jsonify({"error": "All processing attempts failed"}), 500
+
+        if effective_verbose:
+            _log_verbose_summary("text", raw_text=input_text, result=multi_result)
 
         return jsonify({"results": results})
 
@@ -264,7 +319,9 @@ def init_routes(app: Flask) -> Flask:
         locale = request.form.get("locale") or None
         custom = request.form.get("custom") or None
         cleanup = request.form.get("cleanup", "true").lower() in {"1", "true", "yes", "on"}
-        verbose = request.form.get("verbose", "false").lower() in {"1", "true", "yes", "on"}
+        request_verbose = request.form.get("verbose", "false").lower() in {"1", "true", "yes", "on"}
+        app_verbose = bool(current_app.config.get("SANITIZE_VERBOSE", False))
+        effective_verbose = app_verbose or request_verbose
 
         # detectors may come as repeated fields or comma/space separated
         detectors_fields: list[str] = request.form.getlist("detectors") or []
@@ -281,8 +338,8 @@ def init_routes(app: Flask) -> Flask:
             custom_text=custom,
             cleanup=cleanup,
             cleanup_func=cleanup_output,
-            verbose=verbose,
-            include_filth=verbose,
+            verbose=effective_verbose,
+            include_filth=effective_verbose,
         )
 
         results: list[dict[str, object]] = []
@@ -291,7 +348,7 @@ def init_routes(app: Flask) -> Flask:
                 "locale": item.locale,
                 "text": item.text,
             }
-            if verbose and item.filth is not None:
+            if request_verbose and item.filth is not None:
                 payload["filth"] = [
                     {
                         "type": getattr(f, "type", ""),
@@ -304,6 +361,9 @@ def init_routes(app: Flask) -> Flask:
 
         if not results:
             return jsonify({"error": "All processing attempts failed"}), 500
+
+        if effective_verbose:
+            _log_verbose_summary("file", raw_text=input_text, result=multi_result)
 
         return jsonify({"results": results})
 

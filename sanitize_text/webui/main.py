@@ -43,7 +43,19 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
         "before starting the server."
     ),
 )
-def main(host: str, port: int, debug: bool, download_nlp_models: bool) -> None:
+@click.option(
+    "--verbose/--no-verbose",
+    default=False,
+    show_default=True,
+    help="Log verbose scrub details to the terminal for every request.",
+)
+def main(
+    host: str,
+    port: int,
+    debug: bool,
+    download_nlp_models: bool,
+    verbose: bool,
+) -> None:
     """Run the web UI development server.
 
     This command starts a Flask development server hosting the
@@ -56,11 +68,12 @@ def main(host: str, port: int, debug: bool, download_nlp_models: bool) -> None:
         debug: Whether to enable Flask debug mode.
         download_nlp_models: Whether to download optional NLP resources
             before starting the server.
+        verbose: Whether to emit verbose scrub details to stdout.
     """
     if download_nlp_models:
         download_optional_models()
 
-    app = create_app()
+    app = create_app(verbose=verbose)
     app.run(host=host, port=port, debug=debug)
 
 

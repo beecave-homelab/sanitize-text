@@ -11,13 +11,19 @@ from sanitize_text.utils.nlp_resources import download_optional_models
 from sanitize_text.webui import routes
 
 
-def create_app() -> Flask:
+def create_app(*, verbose: bool = False) -> Flask:
     """Create and configure the Flask application.
+
+    Args:
+        verbose: Whether to emit scrub details to stdout for every request.
 
     Returns:
         The configured Flask application instance.
     """
     app = Flask(__name__)
+    if not hasattr(app, "config"):
+        app.config = {}
+    app.config["SANITIZE_VERBOSE"] = verbose
     routes.init_routes(app)
     return app
 
