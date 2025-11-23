@@ -154,8 +154,7 @@ def _run_scrub(
     return scrubbed_text
 
 
-@click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
-@click.pass_context
+@click.command(context_settings=CONTEXT_SETTINGS)
 @click.option(
     "--text",
     "-t",
@@ -260,7 +259,6 @@ def _run_scrub(
     help="Download optional NLP resources (NLTK corpora and spaCy small models) before running.",
 )
 def main(
-    ctx: click.Context,
     text: str | None,
     input: str | None,
     output: str | None,
@@ -309,19 +307,29 @@ def main(
         append: Whether to use output file as input.
     """  # noqa: D301  # non-raw docstring required for Click \b/\f
     # If --list-detectors flag is used, show detectors and exit (back-compat)
-    if list_detectors and (ctx.invoked_subcommand is None):
+    if list_detectors:
         _print_detectors()
-        return
-
-    # If user invoked a subcommand, do not run default flow
-    if ctx.invoked_subcommand is not None:
         return
 
     # Optional: download NLP resources
     if download_nlp_models:
+        if verbose:
+            click.echo(
+                "[Downloading optional NLP resources (spaCy models, NLTK corpora)...]",
+            )
         download_optional_models()
 
     # Determine input text via helper
+    if verbose:
+        source_desc = "stdin"
+        if text is not None:
+            source_desc = "inline text"
+        elif input is not None:
+            source_desc = f"input file {input}"
+        elif append and output:
+            source_desc = f"append mode using {output}"
+        click.echo(f"[Resolving input from {source_desc} (pdf_backend={pdf_backend})]")
+
     try:
         input_text = read_input_source(
             text=text,
@@ -334,11 +342,22 @@ def main(
         click.echo(f"Error: {exc}", err=True)
         sys.exit(1)
 
+    if verbose:
+        click.echo(f"[Input resolved: {len(input_text)} characters]")
+
     # Set up spinner (only if not verbose)
     spinner = None
     if not verbose:
         spinner = Halo(text="Scrubbing PII", spinner="dots")
         spinner.start()
+
+    if verbose:
+        target_locales = locale if locale is not None else "en_US and nl_NL"
+        click.echo(f"[Starting scrub for locale(s): {target_locales}]")
+        if detectors:
+            click.echo(f"[Requested detectors: {detectors}]")
+        if custom:
+            click.echo("[Custom text configured for detection]")
 
     try:
         # Process text with selected detectors
@@ -358,12 +377,18 @@ def main(
     else:
         if spinner:
             spinner.succeed("Scrubbing completed")
+        if verbose:
+            click.echo("[Scrubbing completed]")
 
     # Handle output
     if text and output is None and output_format is None:
+        if verbose:
+            click.echo("[Writing scrubbed text to stdout]")
         click.echo(scrubbed_text)
     else:
         fmt = infer_output_format(output, output_format)
+        if verbose:
+            click.echo(f"[Writing output using format={fmt}]")
         try:
             out_path = write_output(
                 text=scrubbed_text,
@@ -378,149 +403,6 @@ def main(
             sys.exit(1)
 
         click.echo(f"Scrubbed text saved to {out_path}")
-
-
-@main.command("list-detectors")
-def list_detectors_cmd() -> None:
-    """List available detectors and exit."""
-    _print_detectors()
-
-
-@main.command("scrub")
-@click.option("--text", "-t", type=str, help="Inline text input.")
-@click.option(
-    "--input",
-    "-i",
-    type=click.Path(exists=True),
-    help="Input file path.",
-)
-@click.option(
-    "--output",
-    "-o",
-    type=click.Path(writable=True),
-    help="Output file path.",
-)
-@click.option(
-    "--output-format",
-    type=click.Choice(["txt", "md", "docx", "pdf"]),
-    help="Explicit output format.",
-)
-@click.option(
-    "--pdf-mode",
-    type=click.Choice(["pre", "para"]),
-    default="pre",
-    show_default=True,
-)
-@click.option(
-    "--pdf-font",
-    type=click.Path(exists=True, dir_okay=False),
-)
-@click.option("--font-size", type=int, default=11, show_default=True)
-@click.option(
-    "--pdf-backend",
-    type=click.Choice(["pymupdf4llm", "markitdown"]),
-    default="pymupdf4llm",
-    show_default=True,
-)
-@click.option("--verbose", "-v", is_flag=True, help="Show mappings for found PII.")
-@click.option("--append", "-a", is_flag=True, help="Use output file as input.")
-@click.option(
-    "--locale",
-    "-l",
-    type=click.Choice(["nl_NL", "en_US"]),
-    metavar="<locale>",
-)
-@click.option(
-    "--detectors",
-    "-d",
-    metavar="<detectors>",
-    help="Space-separated detectors.",
-)
-@click.option("--custom", "-c", metavar="<text>", help="Custom text to detect.")
-@click.option(
-    "--cleanup/--no-cleanup",
-    default=True,
-    show_default=True,
-    help="Cleanup output.",
-)
-@click.option(
-    "--download-nlp-models",
-    is_flag=True,
-    help="Download optional NLP resources (NLTK corpora and spaCy small models) before running.",
-)
-def scrub_cmd(
-    *,
-    text: str | None,
-    input: str | None,
-    output: str | None,
-    output_format: str | None,
-    pdf_mode: str,
-    pdf_font: str | None,
-    font_size: int,
-    pdf_backend: str,
-    verbose: bool,
-    append: bool,
-    locale: str | None,
-    detectors: str | None,
-    custom: str | None,
-    cleanup: bool,
-    download_nlp_models: bool,
-) -> None:
-    """Scrub PII from input and write output (subcommand)."""
-    if download_nlp_models:
-        download_optional_models()
-    try:
-        input_text = read_input_source(
-            text=text,
-            input_path=input,
-            append=append,
-            output_path=output,
-            pdf_backend=pdf_backend,
-        )
-    except Exception as exc:
-        click.echo(f"Error: {exc}", err=True)
-        sys.exit(1)
-
-    spinner = None
-    if not verbose:
-        spinner = Halo(text="Scrubbing PII", spinner="dots")
-        spinner.start()
-    try:
-        scrubbed_text = _run_scrub(
-            input_text=input_text,
-            locale=locale,
-            detectors=detectors,
-            custom=custom,
-            cleanup=cleanup,
-            verbose=verbose,
-        )
-    except Exception as e:  # pragma: no cover
-        if spinner:
-            spinner.fail("Scrubbing failed")
-        click.echo(f"Error: {str(e)}", err=True)
-        sys.exit(1)
-    else:
-        if spinner:
-            spinner.succeed("Scrubbing completed")
-
-    if text and output is None and output_format is None:
-        click.echo(scrubbed_text)
-        return
-
-    fmt = infer_output_format(output, output_format)
-    try:
-        out_path = write_output(
-            text=scrubbed_text,
-            output=output,
-            fmt=fmt,
-            pdf_mode=pdf_mode,
-            pdf_font=pdf_font,
-            font_size=font_size,
-        )
-    except Exception as exc:  # pragma: no cover
-        click.echo(f"Error writing output: {exc}", err=True)
-        sys.exit(1)
-    click.echo(f"Scrubbed text saved to {out_path}")
 
 
 if __name__ == "__main__":
