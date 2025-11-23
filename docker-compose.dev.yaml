@@ -1,0 +1,16 @@
+services:
+  webui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sanitize-text-webui-dev
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_APP=sanitize_text.webui:create_app
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .:/app
+    command: flask run --host=0.0.0.0 --port=8000 --reload

@@ -9,39 +9,56 @@ respective JSON files.
 Examples:
     Add a new city:
         $ python -m sanitize_text.add_entity -c "Amsterdam"
-    
+
     Add a new name:
         $ python -m sanitize_text.add_entity -n "John Smith"
-    
+
     Add a new organization:
         $ python -m sanitize_text.add_entity -o "Example B.V."
-    
+
     Add multiple entities:
-        $ python -m sanitize_text.add_entity -c "Amsterdam" -n "John Smith" -o "Example B.V."
+        $ python -m sanitize_text.add_entity -c "Amsterdam" \
+            -n "John Smith" -o "Example B.V."
 """
 
 import json
-import os
+from collections.abc import Callable
 from pathlib import Path
-from typing import List, Dict, Optional
+
 import click
 
 # Define custom context settings
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+
 
 class EntityManager:
     """Manages the addition of entities to sanitization JSON files."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        stdout: Callable[[str], None] | None = None,
+        stderr: Callable[[str], None] | None = None,
+    ) -> None:
         """Initialize the EntityManager with paths to JSON files."""
         self.base_path = Path(__file__).parent.parent / "data" / "nl_entities"
         self.files = {
             "city": self.base_path / "cities.json",
             "name": self.base_path / "names.json",
-            "organization": self.base_path / "organizations.json"
+            "organization": self.base_path / "organizations.json",
         }
+        # Allow injectable output functions so the domain logic does not depend
+        # directly on Click. Defaults preserve existing CLI behavior.
+        if stdout is None:
+            self._stdout = lambda message: click.echo(message)
+        else:
+            self._stdout = stdout
+        if stderr is None:
+            self._stderr = lambda message: click.echo(message, err=True)
+        else:
+            self._stderr = stderr
 
-    def load_json(self, file_path: Path) -> List[Dict[str, str]]:
+    def load_json(self, file_path: Path) -> list[dict[str, str]]:
         """Load and parse a JSON file.
 
         Args:
@@ -51,19 +68,19 @@ class EntityManager:
             List of dictionaries containing entity data
         """
         try:
-            with open(file_path, 'r', encoding='utf-8') as json_file:
+            with open(file_path, encoding="utf-8") as json_file:
                 return json.load(json_file)
         except FileNotFoundError:
-            click.echo(f"Error: File {file_path} not found.", err=True)
+            self._stderr(f"Error: File {file_path} not found.")
             return []
         except PermissionError:
-            click.echo(f"Error: Permission denied when accessing {file_path}", err=True)
+            self._stderr(f"Error: Permission denied when accessing {file_path}")
             return []
         except json.JSONDecodeError:
-            click.echo(f"Error: Invalid JSON format in {file_path}", err=True)
+            self._stderr(f"Error: Invalid JSON format in {file_path}")
             return []
 
-    def save_json(self, file_path: Path, data: List[Dict[str, str]]) -> bool:
+    def save_json(self, file_path: Path, data: list[dict[str, str]]) -> bool:
         """Save data to a JSON file.
 
         Args:
@@ -74,14 +91,14 @@ class EntityManager:
             bool: True if save was successful, False otherwise
         """
         try:
-            with open(file_path, 'w', encoding='utf-8') as json_file:
+            with open(file_path, "w", encoding="utf-8") as json_file:
                 json.dump(data, json_file, indent=4, ensure_ascii=False)
             return True
         except PermissionError:
-            click.echo(f"Error: Permission denied when writing to {file_path}", err=True)
+            self._stderr(f"Error: Permission denied when writing to {file_path}")
             return False
         except Exception as error:
-            click.echo(f"Error saving file: {str(error)}", err=True)
+            self._stderr(f"Error saving file: {str(error)}")
             return False
 
     def add_entity(self, entity_type: str, value: str) -> bool:
@@ -95,20 +112,22 @@ class EntityManager:
             bool: True if addition was successful, False otherwise
         """
         if entity_type not in self.files:
-            click.echo(f"Error: Invalid entity type '{entity_type}'", err=True)
+            self._stderr(f"Error: Invalid entity type '{entity_type}'")
             return False
 
         file_path = self.files[entity_type]
         entities = self.load_json(file_path)
-        
+
         new_entry = {
             "match": value,
-            "filth_type": "location" if entity_type == "city" else entity_type
+            "filth_type": "location" if entity_type == "city" else entity_type,
         }
 
         # Check for existing entries (case-insensitive)
         if any(entity["match"].lower() == value.lower() for entity in entities):
-            click.echo(f"Warning: {entity_type.capitalize()} '{value}' already exists", err=True)
+            self._stderr(
+                f"Warning: {entity_type.capitalize()} '{value}' already exists",
+            )
             return False
 
         # Add new entry and maintain alphabetical order
@@ -116,31 +135,35 @@ class EntityManager:
         entities.sort(key=lambda x: x["match"].lower())
 
         if self.save_json(file_path, entities):
-            click.echo(f"Successfully added {entity_type} '{value}'")
+            self._stdout(f"Successfully added {entity_type} '{value}'")
             return True
         return False
 
+
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.option(
-    "--city", "-c",
+    "--city",
+    "-c",
     type=str,
     help="Add a new city to the sanitization list.",
-    metavar="<city>"
+    metavar="<city>",
 )
 @click.option(
-    "--name", "-n",
+    "--name",
+    "-n",
     type=str,
     help="Add a new person name to the sanitization list.",
-    metavar="<name>"
+    metavar="<name>",
 )
 @click.option(
-    "--organization", "-o",
+    "--organization",
+    "-o",
     type=str,
     help="Add a new organization to the sanitization list.",
-    metavar="<organization>"
+    metavar="<organization>",
 )
-def main(city: Optional[str], name: Optional[str], organization: Optional[str]) -> None:
-    """Add new entities to sanitization lists.
+def main(city: str | None, name: str | None, organization: str | None) -> None:
+    r"""Add new entities to sanitization lists.
 
     This tool manages the addition of new entities to the sanitization lists used
     for PII detection. Each entity type is stored in a separate JSON file and
@@ -159,7 +182,7 @@ def main(city: Optional[str], name: Optional[str], organization: Optional[str]) 
         organization: Organization name to add
     """
     entity_manager = EntityManager()
-    
+
     if not any([city, name, organization]):
         ctx = click.get_current_context()
         click.echo(ctx.get_help())
@@ -172,5 +195,6 @@ def main(city: Optional[str], name: Optional[str], organization: Optional[str]) 
     if organization:
         entity_manager.add_entity("organization", organization)
 
+
 if __name__ == "__main__":
-    main() 
+    main()

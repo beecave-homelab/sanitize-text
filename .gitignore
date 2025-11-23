@@ -5,15 +5,24 @@
 # But include these files
 !.gitignore
 !README.md
+!VERSIONS.md
+!project-overview.md
 !requirements.txt
+!requirements.dev.txt
 !run.py
 !sanitize-cli.py
 !LICENSE
 !.dockerignore
 !docker-compose.yaml
+!docker-compose.dev.yaml
 !Dockerfile
 !setup.py
 !MANIFEST.in
+!pyproject.toml
+!AGENTS.md
+!input/.gitkeep
+!output/.gitkeep
+!.markdownlint.json
 
 # Include all files in these directories
 !nl_entities/
@@ -26,6 +35,10 @@
 !sanitize_webui/**
 !sanitize_text/
 !sanitize_text/**
+!tests/
+!tests/**
+!scripts/
+!scripts/**
 
 # Explicitly ignore these
 .DS_Store
@@ -34,8 +47,9 @@ __pycache__/
 .env
 venv/
 output/
-tests/
 .git/
 *.egg-info/
 build/
 dist/
+sanitize_text/models/en_pii_ner/
+sanitize_text/models/nl_pii_ner/

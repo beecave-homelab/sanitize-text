@@ -1,1 +1,2 @@
-recursive-include sanitize_text/data/nl_entities *.json 
+recursive-include sanitize_text/data/nl_entities *.json
+recursive-include sanitize_text/data/en_entities *.json

@@ -1,265 +1,578 @@
-#!venv/bin/python3
-"""Web routes and API endpoints for the text sanitization web interface.
+"""Web routes and API endpoints for the text sanitization web interface."""
 
-This module provides the Flask routes and supporting functions for the web interface,
-including text processing endpoints and scrubber configuration.
-"""
+from __future__ import annotations
 
+import logging
 import os
-from flask import request, render_template, jsonify
-import scrubadub
-import scrubadub_spacy
-import spacy
-from scrubadub.filth import Filth
-from sanitize_text.utils.detectors import (
-    BareDomainDetector,
-    MarkdownUrlDetector,
-    PrivateIPDetector,
-    PublicIPDetector,
-    DutchLocationDetector,
-    DutchOrganizationDetector,
-    DutchNameDetector
+import tempfile
+from pathlib import Path
+
+from flask import (
+    Flask,
+    Response,
+    after_this_request,
+    current_app,
+    jsonify,
+    render_template,
+    request,
+    send_file,
 )
 
-def load_spacy_model(model_name: str) -> spacy.language.Language:
-    """Load a spaCy language model, downloading it if necessary.
-    
-    Args:
-        model_name: Name of the spaCy model to load (e.g., 'en_core_web_sm')
-        
-    Returns:
-        The loaded spaCy model or None if loading fails
-    """
-    try:
-        return spacy.load(model_name)
-    except OSError:
-        try:
-            spacy.cli.download(model_name)
-            return spacy.load(model_name)
-        except Exception as e:
-            print(f"Warning: Could not load or download model {model_name}: {str(e)}")
-            return None
+from sanitize_text.core.scrubber import (
+    MultiLocaleResult,
+    get_available_detectors,
+    run_multi_locale_scrub,
+)
+from sanitize_text.output import get_writer
+from sanitize_text.utils import preconvert
+from sanitize_text.utils.cleanup import cleanup_output
+from sanitize_text.webui import helpers
 
-def load_entity_lists():
-    """Load entity lists from nl_entities directory."""
-    known_pii = []
-    try:
-        entity_dir = 'nl_entities'
-        if not os.path.exists(entity_dir):
-            print(f"Warning: Directory {entity_dir} does not exist")
-            return known_pii
-            
-        for filename in os.listdir(entity_dir):
-            if not filename.endswith('.txt'):
-                continue
-                
-            filename_without_ext = os.path.splitext(filename)[0].lower()
-            if any(name_type in filename_without_ext for name_type in ['names', 'male_names', 'female_names']):
-                filth_type = 'name'
-            else:
-                filth_type = filename_without_ext
-            
-            try:
-                filepath = os.path.join(entity_dir, filename)
-                with open(filepath, 'r') as f:
-                    entities = [line.strip() for line in f if line.strip()]
-                    for entity in entities:
-                        known_pii.append({
-                            'match': entity,
-                            'filth_type': filth_type,
-                            'ignore_case': True
-                        })
-            except Exception as e:
-                print(f"Warning: Could not load entity list {filename}: {str(e)}")
-    except Exception as e:
-        print(f"Warning: Error loading entity lists: {str(e)}")
-    
-    return known_pii
+logger = logging.getLogger(__name__)
 
-class KnownFilthDetector(scrubadub.detectors.Detector):
-    """Detector for known PII items loaded from entity lists.
-    
-    This detector uses predefined lists of entities (names, locations, etc.)
-    to identify PII in text. It supports case-insensitive matching and
-    different types of filth based on the entity lists.
-    """
-    name = 'known_filth_detector'
 
-    def __init__(self, known_filth_items, **kwargs):
-        """Initialize the detector with a list of known PII items.
-        
-        Args:
-            known_filth_items: List of dictionaries containing PII items and their types
-            **kwargs: Additional arguments passed to the parent Detector class
-        """
-        self.known_filth_items = known_filth_items
-        super().__init__(**kwargs)
-
-    def iter_filth(self, text, document_name=None):
-        """Iterate through text to find matches from the known filth items.
-        
-        Args:
-            text: The text to search for PII
-            document_name: Optional name of the document being processed
-            
-        Yields:
-            Filth objects for each PII match found
-        """
-        for item in self.known_filth_items:
-            match = item['match']
-            pos = 0
-            while True:
-                start = text.find(match, pos)
-                if start == -1:
-                    break
-                yield Filth(
-                    beg=start,
-                    end=start + len(match),
-                    text=match,
-                    detector_name=self.name,
-                    filth_type=item['filth_type']
-                )
-                pos = start + 1
-
-class HashedPIIReplacer(scrubadub.post_processors.PostProcessor):
-    """Post-processor that replaces PII with hashed identifiers.
-    
-    This processor takes detected PII and replaces it with a combination
-    of the PII type and a hash of the original text, making it traceable
-    while maintaining privacy.
-    """
-    name = 'hashed_pii_replacer'
-    
-    def process_filth(self, filth_list):
-        """Process a list of filth objects, replacing text with hashed identifiers.
-        
-        Args:
-            filth_list: List of Filth objects to process
-            
-        Returns:
-            The processed list of Filth objects with replacement strings
-        """
-        for filth in filth_list:
-            filth_type = filth.type.upper()
-            filth.replacement_string = f"{filth_type}-{hash(filth.text) % 10000:04d}"
-        return filth_list
-
-def setup_scrubber(locale, selected_detectors=None):
-    """Helper function to set up a scrubber with appropriate detectors and post-processors."""
-    detector_list = []
-    
-    # Map of detector names to their classes/constructors
-    detector_map = {
-        'email': lambda: scrubadub.detectors.EmailDetector(name=f'email_{locale}'),
-        'phone': lambda: scrubadub.detectors.PhoneDetector(name=f'phone_{locale}'),
-        'url': lambda: scrubadub.detectors.UrlDetector(name=f'url_{locale}'),
-        'twitter': lambda: scrubadub.detectors.TwitterDetector(name=f'twitter_{locale}'),
-        'skype': lambda: scrubadub.detectors.SkypeDetector(name=f'skype_{locale}'),
-        'bare_domain': lambda: BareDomainDetector(name=f'bare_domain_{locale}'),
-        'markdown_url': lambda: MarkdownUrlDetector(name=f'markdown_url_{locale}'),
-        'private_ip': lambda: PrivateIPDetector(name=f'private_ip_{locale}'),
-        'public_ip': lambda: PublicIPDetector(name=f'public_ip_{locale}'),
-        'spacy_en': lambda: scrubadub_spacy.detectors.SpacyEntityDetector(model='en_core_web_sm', name='spacy_en'),
-        'dob_en': lambda: scrubadub.detectors.DateOfBirthDetector(name='dob_en'),
-        'spacy_nl': lambda: scrubadub_spacy.detectors.SpacyEntityDetector(model='nl_core_news_sm', name='spacy_nl'),
-        'known_pii': lambda: KnownFilthDetector(known_filth_items=load_entity_lists(), name=f'known_pii_{locale}'),
-        'dutch_location': lambda: DutchLocationDetector(name=f'dutch_location_{locale}'),
-        'dutch_organization': lambda: DutchOrganizationDetector(name=f'dutch_organization_{locale}'),
-        'dutch_name': lambda: DutchNameDetector(name=f'dutch_name_{locale}')
-    }
-
-    # If no detectors specified, use all available for the locale
-    if not selected_detectors:
-        selected_detectors = list(detector_map.keys())
-
-    # Add selected detectors based on locale
-    for detector_name in selected_detectors:
-        if detector_name in detector_map:
-            # Skip English detectors for Dutch locale and vice versa
-            if locale == 'nl_NL' and detector_name in ['spacy_en', 'dob_en']:
-                continue
-            if locale == 'en_US' and detector_name in ['spacy_nl', 'known_pii', 'dutch_location', 'dutch_organization', 'dutch_name']:
-                continue
-            detector_list.append(detector_map[detector_name]())
-    
-    scrubber = scrubadub.Scrubber(
-        locale=locale,
-        detector_list=detector_list,
-        post_processor_list=[
-            HashedPIIReplacer(),
-            scrubadub.post_processors.PrefixSuffixReplacer(
-                prefix='{{',
-                suffix='}}'
-            )
-        ]
+def _log_verbose_summary(
+    source: str,
+    *,
+    raw_text: str,
+    result: MultiLocaleResult,
+) -> None:
+    """Emit CLI-style verbose details for a processed request."""
+    active_logger = current_app.logger if current_app else logger
+    active_logger.info(
+        "[WebUI][VERBOSE] %s request length=%d characters.",
+        source,
+        len(raw_text),
     )
-    
-    return scrubber
+    for locale_result in result.results:
+        locale = locale_result.locale
+        active_logger.info(
+            "[WebUI][VERBOSE] Locale %s produced %d characters.",
+            locale,
+            len(locale_result.text),
+        )
+        filths = locale_result.filth or []
+        if filths:
+            active_logger.info(
+                "[WebUI][VERBOSE] Found %d PII match(es) for %s.",
+                len(filths),
+                locale,
+            )
+            for filth in filths:
+                replacement = getattr(filth, "replacement_string", "")
+                display_type = getattr(filth, "type", "unknown") or "unknown"
+                text = getattr(filth, "text", "")
+                active_logger.info(
+                    "    - %s: '%s' -> '%s'",
+                    display_type,
+                    text,
+                    replacement,
+                )
+        else:
+            active_logger.info("[WebUI][VERBOSE] No PII matches for %s.", locale)
 
-def init_routes(app):
-    """Initialize Flask routes for the web interface.
-    
-    Args:
-        app: Flask application instance
+    if result.errors:
+        for failed_locale, message in result.errors.items():
+            active_logger.warning(
+                "[WebUI][VERBOSE] Locale %s failed: %s",
+                failed_locale,
+                message,
+            )
+
+
+GENERIC_DETECTORS = {
+    "email",
+    "phone",
+    "url",
+    "markdown_url",
+    "private_ip",
+    "public_ip",
+}
+
+
+def _group_detectors() -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
+    """Return dictionaries of generic, English, and Dutch detectors."""
+    return helpers.group_detectors(
+        get_available_detectors=get_available_detectors,
+        generic_detector_names=GENERIC_DETECTORS,
+    )
+
+
+def _build_locale_selections(
+    selected_detectors: list[str] | None,
+) -> dict[str, list[str]] | None:
+    """Transform raw checkbox values into per-locale detector selections.
+
+    Returns:
+        Mapping from locale code to a sorted list of detector names, or ``None``
+        if no selections were provided.
     """
-    @app.route('/')
-    def index():
-        """Render the main page of the web interface."""
-        return render_template('index.html')
-    
-    @app.route('/process', methods=['POST'])
-    def process():
-        """Process text and remove PII based on specified locale and detectors.
-        
-        Expects a JSON payload with:
-            - text: The text to process
-            - locale: Optional locale code ('nl_NL' or 'en_US')
-            - detectors: Optional list of detector names to use
-            
+    return helpers.build_locale_selections(selected_detectors)
+
+
+def _format_results_text(results: list[dict[str, str]]) -> str:
+    """Return a human-readable text for multiple locales.
+
+    Args:
+        results: List of dicts with keys ``locale`` and ``text``.
+
+    Returns:
+        Combined string with sections per-locale.
+    """
+    return helpers.format_results_text(results)
+
+
+def _build_cli_preview(
+    *,
+    source: str,
+    locale: str | None,
+    detectors: list[str] | None,
+    cleanup: bool,
+    verbose: bool,
+    output_format: str,
+    pdf_mode: str,
+    font_size: int,
+    pdf_backend: str | None = None,
+) -> str:
+    """Return a ``sanitize-text`` CLI command preview for the WebUI.
+
+    The preview is intentionally shell-oriented, mirroring the main CLI
+    options without echoing full user content. It is meant purely for
+    discoverability so GUI users can learn the equivalent terminal command.
+    """
+    return helpers.build_cli_preview(
+        source=source,
+        locale=locale,
+        detectors=detectors,
+        cleanup=cleanup,
+        verbose=verbose,
+        output_format=output_format,
+        pdf_mode=pdf_mode,
+        font_size=font_size,
+        pdf_backend=pdf_backend,
+    )
+
+
+def _read_uploaded_file_to_text(upload_path: Path, *, pdf_backend: str = "markitdown") -> str:
+    """Return text extracted from an uploaded file path.
+
+    Uses the same conversion rules as the CLI: PDF, DOC/DOCX, RTF, images,
+    otherwise treats it as UTF-8 text.
+    """
+    from sanitize_text.utils.normalize import normalize_pdf_text
+
+    return helpers.read_uploaded_file_to_text(
+        upload_path,
+        pdf_backend=pdf_backend,
+        preconvert_module=preconvert,
+        normalize_pdf_text_func=normalize_pdf_text,
+    )
+
+
+def init_routes(app: Flask) -> Flask:
+    """Initialize Flask routes for the web interface.
+
+    Returns:
+        The Flask application with routes registered.
+    """
+    generic_detectors, english_detectors, dutch_detectors = _group_detectors()
+    spacy_available = "spacy_entities" in english_detectors or "spacy_entities" in dutch_detectors
+
+    @app.route("/")
+    def index() -> str:
+        """Render the main page of the web interface.
+
         Returns:
-            JSON response with scrubbed text or error message
+            Rendered HTML for the index page.
         """
-        data = request.json
-        input_text = data.get('text', '')
-        locale = data.get('locale')  # Can be 'nl_NL', 'en_US', or None for both
-        selected_detectors = data.get('detectors', [])
-        
-        if not input_text:
-            return jsonify({'error': 'No text provided'}), 400
-            
+        return render_template(
+            "index.html",
+            generic_detectors=generic_detectors,
+            english_detectors=english_detectors,
+            dutch_detectors=dutch_detectors,
+            spacy_available=spacy_available,
+        )
+
+    @app.route("/cli-preview", methods=["POST"])
+    def cli_preview() -> Response:
+        """Return a CLI command preview for the current WebUI configuration.
+
+        The JSON payload mirrors the WebUI options and is translated to a
+        human-readable ``sanitize-text`` command string that users can copy.
+        """
+        data = request.json or {}
+        source = (data.get("source") or "text").lower()
+        locale = data.get("locale") or None
+        detectors = data.get("detectors") or []
+        cleanup = bool(data.get("cleanup", True))
+        verbose = bool(data.get("verbose", False))
+        output_format = (data.get("output_format") or "txt").lower()
+        pdf_mode = (data.get("pdf_mode") or "pre").lower()
+        pdf_backend = (data.get("pdf_backend") or "pymupdf4llm").lower()
+
+        font_size_raw = data.get("font_size", 11)
         try:
-            scrubbed_texts = []
-            locales_to_process = ['en_US', 'nl_NL'] if locale is None else [locale]
-            
-            for current_locale in locales_to_process:
+            font_size = int(font_size_raw)
+        except (TypeError, ValueError):  # pragma: no cover - defensive
+            font_size = 11
+
+        command = _build_cli_preview(
+            source=source,
+            locale=locale,
+            detectors=detectors,
+            cleanup=cleanup,
+            verbose=verbose,
+            output_format=output_format,
+            pdf_mode=pdf_mode,
+            font_size=font_size,
+            pdf_backend=pdf_backend,
+        )
+        return jsonify({"command": command})
+
+    @app.route("/process", methods=["POST"])
+    def process() -> Response:
+        """Process text and remove PII based on specified locale and detectors.
+
+        Returns:
+            A JSON response with processing results or an error message.
+        """
+        data = request.json or {}
+        input_text = data.get("text", "")
+        locale = data.get("locale") or None
+        selected_detectors = data.get("detectors") or []
+        custom = data.get("custom") or None
+        cleanup = bool(data.get("cleanup", True))
+        request_verbose = bool(data.get("verbose", False))
+        app_verbose = bool(current_app.config.get("SANITIZE_VERBOSE", False))
+        effective_verbose = app_verbose or request_verbose
+
+        if not input_text:
+            return jsonify({"error": "No text provided"}), 400
+
+        per_locale_selection = _build_locale_selections(selected_detectors)
+        multi_result = run_multi_locale_scrub(
+            text=input_text,
+            locale=locale,
+            per_locale_detectors=per_locale_selection,
+            custom_text=custom,
+            cleanup=cleanup,
+            cleanup_func=cleanup_output,
+            verbose=effective_verbose,
+            include_filth=effective_verbose,
+        )
+
+        results: list[dict[str, object]] = []
+        for item in multi_result.results:
+            payload: dict[str, object] = {
+                "locale": item.locale,
+                "text": item.text,
+            }
+            if request_verbose and item.filth is not None:
+                payload["filth"] = [
+                    {
+                        "type": getattr(f, "type", ""),
+                        "text": getattr(f, "text", ""),
+                        "replacement": getattr(f, "replacement_string", ""),
+                    }
+                    for f in item.filth
+                ]
+            results.append(payload)
+
+        if not results:
+            return jsonify({"error": "All processing attempts failed"}), 500
+
+        if effective_verbose:
+            _log_verbose_summary("text", raw_text=input_text, result=multi_result)
+
+        return jsonify({"results": results})
+
+    @app.route("/process-file", methods=["POST"])
+    def process_file() -> Response:
+        """Process an uploaded file and return scrubbed text as JSON.
+
+        The request must be ``multipart/form-data`` with fields:
+        - file: the uploaded file
+        - locale: optional locale (en_US/nl_NL)
+        - detectors: optional repeated field or comma-separated values
+        - custom: optional custom text
+        - cleanup: optional boolean (default True)
+        - verbose: optional boolean (default False)
+
+        Returns:
+            Response: JSON body with results per-locale or an error message.
+        """
+        if "file" not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+
+        file = request.files["file"]
+        if file.filename == "":
+            return jsonify({"error": "Empty filename"}), 400
+
+        pdf_backend = request.form.get("pdf_backend", "pymupdf4llm")
+
+        # Persist upload to a temporary file to reuse existing converters
+        suffix = Path(file.filename).suffix or ""
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            file.save(tmp)
+            tmp_path = Path(tmp.name)
+
+        try:
+            input_text = _read_uploaded_file_to_text(tmp_path, pdf_backend=pdf_backend)
+        finally:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+        # Parse options
+        locale = request.form.get("locale") or None
+        custom = request.form.get("custom") or None
+        cleanup = request.form.get("cleanup", "true").lower() in {"1", "true", "yes", "on"}
+        request_verbose = request.form.get("verbose", "false").lower() in {"1", "true", "yes", "on"}
+        app_verbose = bool(current_app.config.get("SANITIZE_VERBOSE", False))
+        effective_verbose = app_verbose or request_verbose
+
+        # detectors may come as repeated fields or comma/space separated
+        detectors_fields: list[str] = request.form.getlist("detectors") or []
+        if not detectors_fields:
+            raw = request.form.get("detectors", "")
+            if raw:
+                detectors_fields = [t for t in raw.replace(",", " ").split() if t]
+
+        per_locale_selection = _build_locale_selections(detectors_fields or None)
+        multi_result = run_multi_locale_scrub(
+            text=input_text,
+            locale=locale,
+            per_locale_detectors=per_locale_selection,
+            custom_text=custom,
+            cleanup=cleanup,
+            cleanup_func=cleanup_output,
+            verbose=effective_verbose,
+            include_filth=effective_verbose,
+        )
+
+        results: list[dict[str, object]] = []
+        for item in multi_result.results:
+            payload: dict[str, object] = {
+                "locale": item.locale,
+                "text": item.text,
+            }
+            if request_verbose and item.filth is not None:
+                payload["filth"] = [
+                    {
+                        "type": getattr(f, "type", ""),
+                        "text": getattr(f, "text", ""),
+                        "replacement": getattr(f, "replacement_string", ""),
+                    }
+                    for f in item.filth
+                ]
+            results.append(payload)
+
+        if not results:
+            return jsonify({"error": "All processing attempts failed"}), 500
+
+        if effective_verbose:
+            _log_verbose_summary("file", raw_text=input_text, result=multi_result)
+
+        return jsonify({"results": results})
+
+    @app.route("/export", methods=["POST"])
+    def export_text() -> Response:
+        """Return a downloadable file for scrubbed text from JSON payload.
+
+        Expects JSON with keys: text, locale, detectors, custom, cleanup,
+        output_format (txt|docx|pdf), and optional pdf_mode, font_size.
+        """
+        data = request.json or {}
+        input_text = data.get("text", "")
+        if not input_text:
+            return jsonify({"error": "No text provided"}), 400
+
+        locale = data.get("locale") or None
+        selected_detectors = data.get("detectors") or []
+        custom = data.get("custom") or None
+        cleanup = bool(data.get("cleanup", True))
+        output_format = (data.get("output_format") or "txt").lower()
+        pdf_mode = data.get("pdf_mode", "pre")
+        font_size = int(data.get("font_size", 11))
+
+        # Build results text first (so multi-locale matches CLI semantics)
+        per_locale_selection = _build_locale_selections(selected_detectors)
+        multi_result = run_multi_locale_scrub(
+            text=input_text,
+            locale=locale,
+            per_locale_detectors=per_locale_selection,
+            custom_text=custom,
+            cleanup=cleanup,
+            cleanup_func=cleanup_output,
+            verbose=False,
+            include_filth=False,
+        )
+
+        interim_results: list[dict[str, str]] = [
+            {"locale": item.locale, "text": item.text} for item in multi_result.results
+        ]
+
+        if not interim_results:
+            return jsonify({"error": "All processing attempts failed"}), 500
+
+        combined_text = _format_results_text(interim_results)
+
+        # Write to a temporary file using existing writers
+        writer = get_writer(output_format)
+        suffix = f".{output_format}"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            tmp_path = Path(tmp.name)
+        write_kwargs: dict[str, object] = {}
+        if output_format == "pdf":
+            write_kwargs = {"pdf_mode": pdf_mode, "pdf_font": None, "font_size": font_size}
+        writer.write(combined_text, str(tmp_path), **write_kwargs)
+
+        download_name = f"scrubbed{suffix}"
+        mimetypes = {
+            "txt": "text/plain",
+            "md": "text/markdown",
+            "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "pdf": "application/pdf",
+        }
+
+        @after_this_request
+        def remove_export_file(response: Response) -> Response:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+            return response
+
+        return send_file(
+            str(tmp_path),
+            mimetype=mimetypes.get(output_format, "application/octet-stream"),
+            as_attachment=True,
+            download_name=download_name,
+        )
+
+    @app.route("/download-file", methods=["POST"])
+    def download_file() -> Response:
+        """Process an uploaded file and return a downloadable artifact.
+
+        multipart/form-data fields:
+        - file: input document
+        - pdf_font: optional TTF font file (PDF only)
+        - locale, detectors, custom, cleanup
+        - output_format (txt|docx|pdf), pdf_mode, font_size
+
+        Returns:
+            Response: File attachment in the requested format.
+        """
+        if "file" not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+
+        file = request.files["file"]
+        if file.filename == "":
+            return jsonify({"error": "Empty filename"}), 400
+
+        pdf_backend = request.form.get("pdf_backend", "pymupdf4llm")
+
+        suffix = Path(file.filename).suffix or ""
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_in:
+            file.save(tmp_in)
+            in_path = Path(tmp_in.name)
+
+        try:
+            input_text = _read_uploaded_file_to_text(in_path, pdf_backend=pdf_backend)
+        finally:
+            try:
+                os.unlink(in_path)
+            except OSError:
+                pass
+
+        # Options
+        locale = request.form.get("locale") or None
+        custom = request.form.get("custom") or None
+        cleanup = request.form.get("cleanup", "true").lower() in {"1", "true", "yes", "on"}
+        output_format = (request.form.get("output_format") or "txt").lower()
+        pdf_mode = request.form.get("pdf_mode", "pre")
+        font_size_raw = request.form.get("font_size", "11")
+        try:
+            font_size = int(font_size_raw)
+        except ValueError:
+            font_size = 11
+
+        detectors_fields: list[str] = request.form.getlist("detectors") or []
+        if not detectors_fields:
+            raw = request.form.get("detectors", "")
+            if raw:
+                detectors_fields = [t for t in raw.replace(",", " ").split() if t]
+
+        per_locale_selection = _build_locale_selections(detectors_fields or None)
+        multi_result = run_multi_locale_scrub(
+            text=input_text,
+            locale=locale,
+            per_locale_detectors=per_locale_selection,
+            custom_text=custom,
+            cleanup=cleanup,
+            cleanup_func=cleanup_output,
+            verbose=False,
+            include_filth=False,
+        )
+
+        interim_results: list[dict[str, str]] = [
+            {"locale": item.locale, "text": item.text} for item in multi_result.results
+        ]
+
+        if not interim_results:
+            return jsonify({"error": "All processing attempts failed"}), 500
+
+        combined_text = _format_results_text(interim_results)
+
+        # Prepare PDF font if provided
+        pdf_font_path: str | None = None
+        if output_format == "pdf" and "pdf_font" in request.files:
+            font_file = request.files["pdf_font"]
+            if font_file and font_file.filename:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".ttf") as tmp_font:
+                    font_file.save(tmp_font)
+                    pdf_font_path = tmp_font.name
+
+        writer = get_writer(output_format)
+        suffix = f".{output_format}"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_out:
+            out_path = Path(tmp_out.name)
+        write_kwargs: dict[str, object] = {}
+        if output_format == "pdf":
+            write_kwargs = {"pdf_mode": pdf_mode, "pdf_font": pdf_font_path, "font_size": font_size}
+        writer.write(combined_text, str(out_path), **write_kwargs)
+
+        download_name = f"scrubbed{suffix}"
+        mimetypes = {
+            "txt": "text/plain",
+            "md": "text/markdown",
+            "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "pdf": "application/pdf",
+        }
+
+        @after_this_request
+        def remove_download_files(response: Response) -> Response:
+            try:
+                if out_path.exists():
+                    os.unlink(out_path)
+            except OSError:
+                pass
+
+            if pdf_font_path and Path(pdf_font_path).exists():
                 try:
-                    # Load appropriate language model
-                    lang_code = current_locale.split('_')[0]
-                    model_name = "en_core_web_sm" if lang_code == "en" else "nl_core_news_sm"
-                    
-                    nlp = load_spacy_model(model_name)
-                    if nlp is None:
-                        continue
-                    
-                    # Process the input text
-                    doc = nlp(input_text)
-                    
-                    # Setup and run scrubber with selected detectors
-                    scrubber = setup_scrubber(current_locale, selected_detectors)
-                    scrubbed_text = scrubber.clean(input_text)
-                    scrubbed_texts.append({
-                        'locale': current_locale,
-                        'text': scrubbed_text
-                    })
-                    
-                except Exception as e:
-                    print(f"Warning: Processing failed for locale {current_locale}: {str(e)}")
-                    continue
-            
-            if not scrubbed_texts:
-                return jsonify({'error': 'All processing attempts failed'}), 500
-                
-            return jsonify({'results': scrubbed_texts})
-            
-        except Exception as e:
-            return jsonify({'error': f'Scrubbing failed: {str(e)}'}), 500
+                    os.unlink(pdf_font_path)
+                except OSError:
+                    pass
+            return response
+
+        response = send_file(
+            str(out_path),
+            mimetype=mimetypes.get(output_format, "application/octet-stream"),
+            as_attachment=True,
+            download_name=download_name,
+        )
+        # Best-effort cleanup of temp font after response is sent handled by OS
+        return response
+
+    return app

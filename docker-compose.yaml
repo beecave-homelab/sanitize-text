@@ -1,0 +1,13 @@
+services:
+  webui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sanitize-text-webui
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_APP=sanitize_text.webui:create_app
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped

@@ -1,45 +1,42 @@
-#!venv/bin/python3
+"""Run helpers and app factory for the web UI."""
 
+from __future__ import annotations
+
+import sys
 import warnings
-import nltk
-import spacy
+
 from flask import Flask
-from . import routes
 
-def download_required_models():
-    """Download all required NLTK and spaCy models."""
-    # Download NLTK data
-    try:
-        nltk.download('punkt', quiet=True)
-        nltk.download('averaged_perceptron_tagger', quiet=True)
-    except Exception as e:
-        print(f"Warning: Could not download NLTK data: {str(e)}")
+from sanitize_text.utils.nlp_resources import download_optional_models
+from sanitize_text.webui import routes
 
-    # Download spaCy models
-    spacy_models = ['en_core_web_sm', 'nl_core_news_sm']
-    for model in spacy_models:
-        try:
-            spacy.load(model)
-            print(f"SpaCy model {model} already downloaded")
-        except OSError:
-            try:
-                print(f"Downloading SpaCy model {model}...")
-                spacy.cli.download(model)
-                print(f"Successfully downloaded {model}")
-            except Exception as e:
-                print(f"Warning: Could not download SpaCy model {model}: {str(e)}")
 
-def create_app():
-    """Create and configure the Flask application."""
+def create_app(*, verbose: bool = False) -> Flask:
+    """Create and configure the Flask application.
+
+    Args:
+        verbose: Whether to emit scrub details to stdout for every request.
+
+    Returns:
+        The configured Flask application instance.
+    """
     app = Flask(__name__)
+    if not hasattr(app, "config"):
+        app.config = {}
+    app.config["SANITIZE_VERBOSE"] = verbose
     routes.init_routes(app)
     return app
+
 
 # Suppress specific warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="scrubadub")
 warnings.filterwarnings("ignore", category=FutureWarning, module="thinc")
 
-if __name__ == '__main__':
-    download_required_models()
+if __name__ == "__main__":
+    # Optional flag: allow `-m sanitize_text.webui --download-nlp-models`
+    if "--download-nlp-models" in sys.argv:
+        # Remove the flag so it doesn't leak anywhere else
+        sys.argv = [a for a in sys.argv if a != "--download-nlp-models"]
+        download_optional_models()
     app = create_app()
     app.run(debug=True)

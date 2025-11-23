@@ -1,4 +1,4 @@
-#!venv/bin/python3
+#!/usr/bin/env python3
 
 """Command-line interface for text sanitization.
 
@@ -9,83 +9,272 @@ including direct input, files, or stdin.
 Examples:
     Process text directly:
         $ sanitize-text -t "John lives in Amsterdam"
-    
+
     Process a file:
         $ sanitize-text -i input.txt -o output.txt
-    
+
     Use specific detectors:
         $ sanitize-text -i input.txt -d "email url name"
-    
+
     Process Dutch text:
         $ sanitize-text -i input.txt -l nl_NL
 """
 
-import os
 import sys
-import click
-import nltk
-from typing import Optional
-from halo import Halo
-from ..core.scrubber import scrub_text, get_available_detectors
 
-# Download required NLTK data
-try:
-    nltk.download('punkt', quiet=True)
-    nltk.download('averaged_perceptron_tagger', quiet=True)
-except Exception as e:
-    click.echo(f"Warning: Could not download NLTK data: {str(e)}", err=True)
+import click
+from halo import Halo
+
+from sanitize_text.cli.io import (
+    infer_output_format,
+    maybe_cleanup,
+    read_input_source,
+    write_output,
+)
+from sanitize_text.core.scrubber import (
+    get_available_detectors,
+    get_generic_detector_descriptions,
+    scrub_text,
+)
+from sanitize_text.utils.nlp_resources import download_optional_models
 
 # Define custom context settings
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+
+
+def _print_detectors() -> None:
+    """Print available detector descriptions to stdout.
+
+    Outputs both the generic detector catalogue and per-locale detectors for
+    human reference.
+    """
+    generic_detectors = get_generic_detector_descriptions()
+    locale_detectors = get_available_detectors()
+
+    click.echo("Available detectors:\n")
+    click.echo("Generic detectors (available for all locales):")
+    for detector, description in sorted(generic_detectors.items()):
+        click.echo(f"  - {detector:<15} {description}")
+    click.echo()
+
+    click.echo("Locale-specific detectors:")
+    for loc, detector_dict in sorted(locale_detectors.items()):
+        click.echo(f"\n{loc}:")
+        for detector, description in sorted(detector_dict.items()):
+            click.echo(f"  - {detector:<15} {description}")
+    click.echo()
+
+
+def _run_scrub(
+    *,
+    input_text: str,
+    locale: str | None,
+    detectors: str | None,
+    custom: str | None,
+    cleanup: bool,
+    verbose: bool,
+) -> str:
+    """Return scrubbed text for the requested configuration.
+
+    Args:
+        input_text: Raw text supplied by the user.
+        locale: Optional locale identifier restricting processing.
+        detectors: Whitespace-separated detector names from the CLI.
+        custom: Optional custom detector text configured by the user.
+        cleanup: Whether to normalize the final text with cleanup helpers.
+        verbose: Whether to emit detector progress information.
+
+    Returns:
+        str: Final scrubbed text (including optional cleanup processing).
+    """
+    selected_detectors = detectors.split() if detectors else None
+    outcome = scrub_text(
+        input_text,
+        locale,
+        selected_detectors,
+        custom_text=custom,
+        verbose=verbose,
+    )
+    locales_to_process = [locale] if locale else ["en_US", "nl_NL"]
+
+    formatted_sections = [
+        f"Results for {loc}:\n{outcome.texts[loc]}"
+        for loc in locales_to_process
+        if loc in outcome.texts
+    ]
+    scrubbed_text = "\n\n".join(formatted_sections)
+    scrubbed_text = maybe_cleanup(scrubbed_text, cleanup)
+
+    failed_locales = [loc for loc in locales_to_process if loc not in outcome.texts]
+    failure_messages = {
+        failed: outcome.errors.get(failed, "Unknown error") for failed in failed_locales
+    }
+    if not verbose:
+        for failed, message in failure_messages.items():
+            click.echo(f"Warning: Processing failed for locale {failed}: {message}", err=True)
+
+    if verbose:
+        from sanitize_text.core.scrubber import collect_filth
+
+        for loc in locales_to_process:
+            detectors_for_locale = outcome.detectors.get(loc)
+            if loc in outcome.texts:
+                click.echo(f"\n[Processing locale: {loc}]")
+                if detectors_for_locale:
+                    click.echo(f"[Active detectors: {', '.join(detectors_for_locale)}]")
+                click.echo(f"[Scanning text ({len(input_text)} characters)...]")
+                click.echo(f"[Completed processing for {loc}]")
+            else:
+                message = failure_messages.get(loc, "Unknown error")
+                click.echo(f"\n[Processing locale: {loc}]")
+                click.echo(
+                    f"[Failed processing locale {loc}: {message}]",
+                    err=True,
+                )
+
+        filth_map = collect_filth(
+            input_text,
+            locale,
+            selected_detectors,
+            custom_text=custom,
+        )
+        for loc, filths in filth_map.items():
+            click.echo(f"\nFound PII for {loc}:")
+            for f in filths:
+                replacement = getattr(f, "replacement_string", "")
+                display_type = getattr(f, "type", "unknown")
+                if (
+                    display_type == "unknown"
+                    and isinstance(replacement, str)
+                    and replacement.startswith("URL-")
+                ):
+                    display_type = "url"
+                mapping = f"  - {display_type}: '{f.text}' -> '{replacement}'"
+                click.echo(mapping)
+    return scrubbed_text
+
 
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.option(
-    "--text", "-t",
+    "--text",
+    "-t",
     type=str,
     help="Text to scrub for PII. Use this for direct text input.",
-    metavar="<text>"
+    metavar="<text>",
 )
 @click.option(
-    "--input", "-i",
+    "--input",
+    "-i",
     type=click.Path(exists=True),
     help="Path to input file containing text to scrub.",
-    metavar="<file>"
+    metavar="<file>",
 )
 @click.option(
-    "--output", "-o",
+    "--output",
+    "-o",
     type=click.Path(writable=True),
     help="Path to output file for scrubbed text. Defaults to ./output/scrubbed.txt",
-    metavar="<file>"
+    metavar="<file>",
 )
 @click.option(
-    "--append", "-a",
+    "--output-format",
+    type=click.Choice(["txt", "md", "docx", "pdf"]),
+    help=("Explicit output format. Otherwise inferred from -o extension (txt/md/docx/pdf)."),
+)
+@click.option(
+    "--pdf-mode",
+    type=click.Choice(["pre", "para"]),
+    default="pre",
+    show_default=True,
+    help=("PDF layout: 'pre' preserves line breaks, 'para' wraps into paragraphs."),
+)
+@click.option(
+    "--pdf-font",
+    type=click.Path(exists=True, dir_okay=False),
+    help="Path to a TTF font to embed for Unicode support (PDF only).",
+)
+@click.option(
+    "--font-size",
+    type=int,
+    default=11,
+    show_default=True,
+    help="Font size for PDF output.",
+)
+@click.option(
+    "--pdf-backend",
+    type=click.Choice(["pymupdf4llm", "markitdown"]),
+    default="pymupdf4llm",
+    show_default=True,
+    help="Backend to use for PDF input pre-conversion.",
+)
+@click.option(
+    "--verbose",
+    "-v",
     is_flag=True,
-    help="Use output file as input when it exists, ignoring --input."
+    help="Show mapping of found PII and their replacements.",
 )
 @click.option(
-    "--locale", "-l",
-    type=click.Choice(['nl_NL', 'en_US']),
+    "--append",
+    "-a",
+    is_flag=True,
+    help="Use output file as input when it exists, ignoring --input.",
+)
+@click.option(
+    "--locale",
+    "-l",
+    type=click.Choice(["nl_NL", "en_US"]),
     help="Locale for text processing. Processes both if not specified.",
-    metavar="<locale>"
+    metavar="<locale>",
 )
 @click.option(
-    "--detectors", "-d",
+    "--detectors",
+    "-d",
     help="Space-separated list of detectors to use (e.g., 'url name email').",
-    metavar="<detectors>"
+    metavar="<detectors>",
 )
 @click.option(
-    "--list-detectors", "-ld",
+    "--custom",
+    "-c",
+    help="Custom text to detect and replace with a unique identifier.",
+    metavar="<text>",
+)
+@click.option(
+    "--list-detectors",
+    "-ld",
     is_flag=True,
-    help="Show available detectors and exit."
+    help="Show available detectors and exit.",
+)
+@click.option(
+    "--cleanup/--no-cleanup",
+    default=True,
+    show_default=True,
+    help=(
+        "Apply a conservative cleanup pass to final output "
+        "(dedupe lines, remove UNKNOWN placeholders, ensure trailing newline)."
+    ),
+)
+@click.option(
+    "--download-nlp-models",
+    is_flag=True,
+    help="Download optional NLP resources (NLTK corpora and spaCy small models) before running.",
 )
 def main(
-    text: Optional[str],
-    input: Optional[str],
-    output: Optional[str],
-    locale: Optional[str],
-    detectors: Optional[str],
+    text: str | None,
+    input: str | None,
+    output: str | None,
+    locale: str | None,
+    detectors: str | None,
+    custom: str | None,
     list_detectors: bool,
-    append: bool
+    verbose: bool,
+    append: bool,
+    output_format: str | None,
+    pdf_mode: str,
+    pdf_font: str | None,
+    font_size: int,
+    pdf_backend: str,
+    cleanup: bool,
+    download_nlp_models: bool,
 ) -> None:
     """Remove personally identifiable information (PII) from text.
 
@@ -95,109 +284,126 @@ def main(
     names, organizations, and locations.
 
     \b
-    Input Sources (in order of precedence):
-    1. --text: Direct text input
-    2. --input: Text file
-    3. --append: Existing output file
-    4. stdin: Piped input
-    
+    Input sources (in order of precedence):
+    1. ``--text``: Direct text input.
+    2. ``--input``: Text file.
+    3. ``--append``: Existing output file.
+    4. stdin: Piped input.
+
     \b
-    Detector Types:
-    - Generic: email, phone, url, private_ip, public_ip
-    - Dutch (nl_NL): location, organization, name
-    - English (en_US): location, organization, name, date_of_birth
+    Detector types:
+    - Generic: ``email``, ``phone``, ``url``, ``private_ip``, ``public_ip``.
+    - Dutch (``nl_NL``): ``location``, ``organization``, ``name``.
+    - English (``en_US``): ``location``, ``organization``, ``name``, ``date_of_birth``.
 
     \f
     Args:
-        text: Direct text input to process
-        input: Path to input file
-        output: Path to output file
-        locale: Locale code for processing
-        detectors: Space-separated list of detectors
-        list_detectors: Whether to list available detectors
-        append: Whether to use output file as input
-    """
-    # If --list-detectors is used, show available detectors and exit
+        text: Direct text input to process.
+        input: Path to input file.
+        output: Path to output file.
+        locale: Locale code for processing.
+        detectors: Space-separated list of detectors.
+        list_detectors: Whether to list available detectors.
+        append: Whether to use output file as input.
+    """  # noqa: D301  # non-raw docstring required for Click \b/\f
+    # If --list-detectors flag is used, show detectors and exit (back-compat)
     if list_detectors:
-        detectors_by_locale = get_available_detectors()
-        generic_detectors = {
-            'email': 'Detect email addresses',
-            'phone': 'Detect phone numbers',
-            'url': 'Detect URLs',
-            'private_ip': 'Detect private IP addresses',
-            'public_ip': 'Detect public IP addresses'
-        }
-        
-        click.echo("Available detectors:\n")
-        click.echo("Generic detectors (available for all locales):")
-        for detector, description in generic_detectors.items():
-            click.echo(f"  - {detector:<15} {description}")
-        click.echo()
-        
-        click.echo("Locale-specific detectors:")
-        for loc, detector_dict in detectors_by_locale.items():
-            click.echo(f"\n{loc}:")
-            for detector, description in detector_dict.items():
-                click.echo(f"  - {detector:<15} {description}")
-        click.echo()
+        _print_detectors()
         return
 
-    # Validate append mode requirements
-    if append and not output:
-        click.echo(
-            "Error: --append/-a requires --output/-o to be specified.",
-            err=True
+    # Optional: download NLP resources
+    if download_nlp_models:
+        if verbose:
+            click.echo(
+                "[Downloading optional NLP resources (spaCy models, NLTK corpora)...]",
+            )
+        download_optional_models()
+
+    # Determine input text via helper
+    if verbose:
+        source_desc = "stdin"
+        if text is not None:
+            source_desc = "inline text"
+        elif input is not None:
+            source_desc = f"input file {input}"
+        elif append and output:
+            source_desc = f"append mode using {output}"
+        click.echo(f"[Resolving input from {source_desc} (pdf_backend={pdf_backend})]")
+
+    try:
+        input_text = read_input_source(
+            text=text,
+            input_path=input,
+            append=append,
+            output_path=output,
+            pdf_backend=pdf_backend,
         )
+    except Exception as exc:
+        click.echo(f"Error: {exc}", err=True)
         sys.exit(1)
 
-    # Determine input text
-    if append and output and os.path.exists(output):
-        with open(output, "r") as output_file:
-            input_text = output_file.read()
-    elif input:
-        with open(input, "r") as input_file:
-            input_text = input_file.read()
-    elif text:
-        input_text = text
-    elif not sys.stdin.isatty():
-        input_text = sys.stdin.read()
-    else:
-        click.echo(
-            "Error: No input provided. Use --text, --input, or pipe input.",
-            err=True
-        )
-        sys.exit(1)
+    if verbose:
+        click.echo(f"[Input resolved: {len(input_text)} characters]")
 
-    # Set up spinner
-    spinner = Halo(text="Scrubbing PII", spinner="dots")
-    spinner.start()
+    # Set up spinner (only if not verbose)
+    spinner = None
+    if not verbose:
+        spinner = Halo(text="Scrubbing PII", spinner="dots")
+        spinner.start()
+
+    if verbose:
+        target_locales = locale if locale is not None else "en_US and nl_NL"
+        click.echo(f"[Starting scrub for locale(s): {target_locales}]")
+        if detectors:
+            click.echo(f"[Requested detectors: {detectors}]")
+        if custom:
+            click.echo("[Custom text configured for detection]")
 
     try:
         # Process text with selected detectors
-        selected_detectors = detectors.split() if detectors else None
-        scrubbed_texts = scrub_text(input_text, locale, selected_detectors)
-        scrubbed_text = "\n\n".join(scrubbed_texts)
+        scrubbed_text = _run_scrub(
+            input_text=input_text,
+            locale=locale,
+            detectors=detectors,
+            custom=custom,
+            cleanup=cleanup,
+            verbose=verbose,
+        )
     except Exception as e:
-        spinner.fail("Scrubbing failed")
+        if spinner:
+            spinner.fail("Scrubbing failed")
         click.echo(f"Error: {str(e)}", err=True)
         sys.exit(1)
     else:
-        spinner.succeed("Scrubbing completed")
+        if spinner:
+            spinner.succeed("Scrubbing completed")
+        if verbose:
+            click.echo("[Scrubbing completed]")
 
     # Handle output
-    if text:
-        # Print scrubbed text to terminal when --text is used
+    if text and output is None and output_format is None:
+        if verbose:
+            click.echo("[Writing scrubbed text to stdout]")
         click.echo(scrubbed_text)
     else:
-        if output is None:
-            # Use default output directory and file
-            output_dir = os.path.join(os.getcwd(), "output")
-            os.makedirs(output_dir, exist_ok=True)
-            output = os.path.join(output_dir, "scrubbed.txt")
-        
-        with open(output, "w") as output_file:
-            output_file.write(scrubbed_text)
-        click.echo(f"Scrubbed text saved to {output}")
+        fmt = infer_output_format(output, output_format)
+        if verbose:
+            click.echo(f"[Writing output using format={fmt}]")
+        try:
+            out_path = write_output(
+                text=scrubbed_text,
+                output=output,
+                fmt=fmt,
+                pdf_mode=pdf_mode,
+                pdf_font=pdf_font,
+                font_size=font_size,
+            )
+        except Exception as exc:  # pragma: no cover
+            click.echo(f"Error writing output: {exc}", err=True)
+            sys.exit(1)
+
+        click.echo(f"Scrubbed text saved to {out_path}")
+
 
 if __name__ == "__main__":
-    main() 
+    main()
