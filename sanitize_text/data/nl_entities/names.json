@@ -936,10 +936,6 @@
         "filth_type": "name"
     },
     {
-        "match": "Elke",
-        "filth_type": "name"
-    },
-    {
         "match": "Ella",
         "filth_type": "name"
     },
@@ -985,10 +981,6 @@
     },
     {
         "match": "Enzo",
-        "filth_type": "name"
-    },
-    {
-        "match": "Eren",
         "filth_type": "name"
     },
     {
