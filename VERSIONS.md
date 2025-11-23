@@ -2,11 +2,41 @@
 
 ## ToC
 
-- [v1.2.0 (Current)](#v120-current---22-11-2025)
+- [v1.3.0 (Current)](#v130-current---23-11-2025)
+- [v1.2.0](#v120---22-11-2025)
 - [v1.1.0](#v110---22-11-2025)
 - [v1.0.0](#v100---21-11-2025)
 
-## **v1.2.0** (Current) - *22-11-2025*
+## **v1.3.0** (Current) - *23-11-2025*
+
+### ✨ **Brief Description**
+
+Minor release adding richer verbose logging for CLI/WebUI scrubbing flows, plus performance and quality improvements to JSON-backed entity detectors and Dutch name data.
+
+### ✨ **New Features in v1.3.0**
+
+- **Enhanced**: CLI `sanitize-text` now exposes a single entrypoint with extended `-v/--verbose` logging for input resolution, locale selection, detector configuration, and output writing.
+- **Enhanced**: WebUI gains optional verbose logging of scrubbing summaries to aid debugging and observability.
+
+### 🐛 **Bug Fixes in v1.3.0**
+
+- **Fixed**: Reduced false positives in Dutch name detection by removing ambiguous common words from `names.json`.
+  - **Issue**: Frequent words like "Elke" and "Eren" were incorrectly flagged as person names.
+  - **Root Cause**: These tokens lived in the static Dutch names list despite being common non-PII words.
+  - **Solution**: Removed the problematic entries from the names dataset.
+
+### 🔧 **Improvements in v1.3.0**
+
+- **Improved**: JSON-backed entity detectors now collect all match candidates first and only filter overlaps afterward, simplifying the matching logic and paving the way for better performance.
+- **Updated**: Markdownlint configuration and docs kept in sync with the evolved CLI/WebUI flows.
+
+### 📝 **Key Commits in v1.3.0**
+
+`bc74868`, `6677897`, `39cdf4d`, `87c6685`, `be3289b`
+
+---
+
+## **v1.2.0** - *22-11-2025*
 
 ### ✨ **Brief Description**
 
