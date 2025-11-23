@@ -7,7 +7,16 @@ import os
 import tempfile
 from pathlib import Path
 
-from flask import Flask, Response, current_app, jsonify, render_template, request, send_file
+from flask import (
+    Flask,
+    Response,
+    after_this_request,
+    current_app,
+    jsonify,
+    render_template,
+    request,
+    send_file,
+)
 
 from sanitize_text.core.scrubber import (
     MultiLocaleResult,
@@ -426,6 +435,15 @@ def init_routes(app: Flask) -> Flask:
             "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "pdf": "application/pdf",
         }
+
+        @after_this_request
+        def remove_export_file(response: Response) -> Response:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+            return response
+
         return send_file(
             str(tmp_path),
             mimetype=mimetypes.get(output_format, "application/octet-stream"),
@@ -532,6 +550,21 @@ def init_routes(app: Flask) -> Flask:
             "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "pdf": "application/pdf",
         }
+
+        @after_this_request
+        def remove_download_files(response: Response) -> Response:
+            try:
+                if out_path.exists():
+                    os.unlink(out_path)
+            except OSError:
+                pass
+
+            if pdf_font_path and Path(pdf_font_path).exists():
+                try:
+                    os.unlink(pdf_font_path)
+                except OSError:
+                    pass
+            return response
 
         response = send_file(
             str(out_path),
