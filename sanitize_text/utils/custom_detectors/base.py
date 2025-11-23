@@ -242,10 +242,7 @@ class JSONEntityDetector(Detector):
 
         for entity_lower in self._multi_word_entities:
             # Already matched via automaton, skip this expensive fallback
-            if any(
-                entity_lower == text[s:e].lower()
-                for s, e in seen_spans
-            ):
+            if any(entity_lower == text[s:e].lower() for s, e in seen_spans):
                 continue
 
             norm_entity = _normalize_for_entity(entity_lower)
