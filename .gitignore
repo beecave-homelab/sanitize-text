@@ -22,9 +22,13 @@
 !MANIFEST.in
 !pyproject.toml
 !AGENTS.md
+!input/
 !input/.gitkeep
+!output/
 !output/.gitkeep
 !.markdownlint.json
+!.github/
+!.github/workflows/
 !.github/workflows/build-docker-on-main.yaml
 !.github/workflows/pr-ci.yaml
 
