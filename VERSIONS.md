@@ -2,14 +2,65 @@
 
 ## ToC
 
-- [v1.3.0 (Current)](#v130-current---23-11-2025)
+- [v1.4.1 (Current)](#v141-current---24-11-2025)
+- [v1.4.0](#v140---23-11-2025)
+- [v1.3.0](#v130---23-11-2025)
 - [v1.2.0](#v120---22-11-2025)
 - [v1.1.0](#v110---22-11-2025)
 - [v1.0.0](#v100---21-11-2025)
 
-## **v1.3.0** (Current) - *23-11-2025*
+## **v1.4.1** (Current) - *24-11-2025*
+
+### 🐛 **Brief Description**
+
+Patch release focusing on Docker and CI infrastructure: adds a Docker build workflow for `main` and pull requests, updates the Dockerfile with a clearer dev environment configuration, and tightens repository ignore rules.
+
+### ✨ **New Features in v1.4.1**
+
+- **Added**: GitHub Actions Docker build workflow for the `main` branch and pull requests, ensuring images are built and validated automatically.
+- **Enhanced**: Dockerfile and development compose configuration to better support local development and iterative testing.
+
+### 🔧 **Improvements in v1.4.1**
+
+- **Improved**: `.gitignore` and `.githubignore` rules to exclude CI artifacts and workflow-specific files from version control noise.
+
+### 📝 **Key Commits in v1.4.1**
+
+`b2ded6f`, `6f4f538`, `bbf0901`, `870bc2c`
+
+---
+
+## **v1.4.0** - *23-11-2025*
 
 ### ✨ **Brief Description**
+
+Feature release improving output formatting by removing locale headers from CLI/WebUI results, adding GitHub Container Registry metadata for Docker images, and tightening temporary file cleanup in the web routes.
+
+### ✨ **New Features in v1.4.0**
+
+- **Added**: GitHub Container Registry (GHCR) metadata to Docker configuration for better image publishing and discovery.
+
+### 🐛 **Bug Fixes in v1.4.0**
+
+- **Fixed**: Ensured temporary export/download files are always scheduled for deletion using `after_this_request` hooks.
+  - **Issue**: Some temporary files created during WebUI export/download flows could persist longer than necessary.
+  - **Root Cause**: Cleanup logic did not consistently register `after_this_request` callbacks for all code paths.
+  - **Solution**: Added dedicated `after_this_request` cleanup hooks in `sanitize_text.webui.routes`.
+
+### 🔧 **Improvements in v1.4.0**
+
+- **Improved**: Removed locale header prefixes from scrubbed output in CLI/WebUI to produce cleaner, copy-paste-friendly results.
+- **Refactored**: Simplified helper logic around multi-locale formatting to better separate aggregation from presentation.
+
+### 📝 **Key Commits in v1.4.0**
+
+`da6f413`, `e62db35`, `3fdfb9d`, `174b500`, `3233bb2`
+
+---
+
+## **v1.3.0** - *23-11-2025*
+
+### ✨ **Brief Description (v1.3.0)**
 
 Minor release adding richer verbose logging for CLI/WebUI scrubbing flows, plus performance and quality improvements to JSON-backed entity detectors and Dutch name data.
 
