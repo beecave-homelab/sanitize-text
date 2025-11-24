@@ -9,6 +9,7 @@
 !project-overview.md
 !requirements.txt
 !requirements.dev.txt
+!requirements.all.txt
 !run.py
 !sanitize-cli.py
 !LICENSE
@@ -16,6 +17,7 @@
 !docker-compose.yaml
 !docker-compose.dev.yaml
 !Dockerfile
+!Dockerfile.dev
 !setup.py
 !MANIFEST.in
 !pyproject.toml
