@@ -25,6 +25,8 @@
 !input/.gitkeep
 !output/.gitkeep
 !.markdownlint.json
+!.github/workflows/build-docker-on-main.yaml
+!.github/workflows/pr-ci.yaml
 
 # Include all files in these directories
 !nl_entities/
