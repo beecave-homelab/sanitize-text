@@ -9,6 +9,7 @@
 !project-overview.md
 !requirements.txt
 !requirements.dev.txt
+!requirements.all.txt
 !run.py
 !sanitize-cli.py
 !LICENSE
@@ -16,13 +17,20 @@
 !docker-compose.yaml
 !docker-compose.dev.yaml
 !Dockerfile
+!Dockerfile.dev
 !setup.py
 !MANIFEST.in
 !pyproject.toml
 !AGENTS.md
+!input/
 !input/.gitkeep
+!output/
 !output/.gitkeep
 !.markdownlint.json
+!.github/
+!.github/workflows/
+!.github/workflows/build-docker-on-main.yaml
+!.github/workflows/pr-ci.yaml
 
 # Include all files in these directories
 !nl_entities/

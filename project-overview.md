@@ -10,7 +10,7 @@ generated: 2025-11-21T12:43:00+01:00
 sanitize-text detects and removes personally identifiable information (PII) from text and common document formats for Dutch (`nl_NL`) and English (`en_US`), via a shared scrubbing core, a Click-based CLI, and a Flask web UI.
 
 [![Language](https://img.shields.io/badge/Python-3.10--3.12-blue)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/Version-1.3.0-brightgreen)](#version-summary)
+[![Version](https://img.shields.io/badge/Version-1.4.1-brightgreen)](#version-summary)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ## Table of Contents
@@ -40,10 +40,20 @@ pdm run ruff check .
 pdm run pytest -q
 ```
 
+> **Dependency management**: Do not edit `requirements.txt`, `requirements.dev.txt`, or `requirements.all.txt` manually. Instead, add or update dependencies in [`pyproject.toml`](pyproject.toml) (or via `pdm add ...`), then regenerate the requirement files with:
+
+```bash
+pdm export --pyproject --no-hashes --prod -o requirements.txt
+pdm export --pyproject --no-hashes --dev -o requirements.dev.txt
+pdm export --pyproject --no-hashes -G :all -o requirements.all.txt
+```
+
 ## Version Summary
 
 | Version | Date | Type | Key Changes |
 |---------|------|------|-------------|
+| 1.4.1 | 24-11-2025 | 🐛 | Docker build workflow for main/PRs, updated Dockerfile and dev environment, improved .gitignore hygiene. |
+| 1.4.0 | 23-11-2025 | ✨ | Removed locale headers from scrubbed output, added GHCR metadata, and improved temp file cleanup. |
 | 1.3.0 | 23-11-2025 | ✨ | CLI/WebUI verbose logging improvements and entity detector refactor. |
 | 1.2.0 | 22-11-2025 | 🐛 | Configurable WebUI CLI options, Click-based integration tests, and markdownlint/config fixes. |
 | 1.1.0 | 22-11-2025 | ✨ | SOLID-aligned refactors, shared multi-locale helper, WebUI logging, and documentation updates. |
@@ -146,9 +156,9 @@ flowchart LR
 
 ## Docker
 
-- [`Dockerfile`](Dockerfile) builds a Python 3.12-slim image, installs the package with `pip install .`, and runs Gunicorn on port 8000.
-- [`docker-compose.yaml`](docker-compose.yaml) defines a `webui` service for production-like deployment, mapping `8000:8000`.
-- [`docker-compose.dev.yaml`](docker-compose.dev.yaml) wires a development container with source volume mounts and Flask `--reload`.
+- [`Dockerfile`](Dockerfile) builds a Python 3.12-slim image, installs the package with `pip install .`, and runs Gunicorn on port 8080.
+- [`docker-compose.yaml`](docker-compose.yaml) defines a `webui` service for production-like deployment, mapping `8080:8080`.
+- [`docker-compose.dev.yaml`](docker-compose.dev.yaml) wires a development container with source volume mounts and Flask `--reload`, exposing the dev WebUI on port 8081 (`8081:8081`).
 - Both compose files set `FLASK_APP=sanitize_text.webui:create_app` and `PYTHONUNBUFFERED=1`; dev mode also enables `FLASK_ENV=development` and `FLASK_DEBUG=1`.
 
 ## Tests
