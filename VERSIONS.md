@@ -89,7 +89,7 @@ Minor release adding richer verbose logging for CLI/WebUI scrubbing flows, plus 
 
 ## **v1.2.0** - *22-11-2025*
 
-### ✨ **Brief Description**
+### ✨ **Brief Description (v1.2.0)**
 
 Patch release delivering configurable WebUI CLI options, matching tests, updated documentation, and lint configuration fixes.
 
@@ -140,7 +140,7 @@ Minor release focusing on SOLID-aligned refactors, a shared multi-locale scrubbi
 
 ## **v1.0.0** - *21-11-2025*
 
-### **Brief Description**
+### **Brief Description (v1.0.0)**
 
 First stable release of `sanitize-text` with a shared scrubbing core, Click-based CLI, Flask WebUI, and support for multiple document formats.
 

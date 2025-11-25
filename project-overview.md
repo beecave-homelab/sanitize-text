@@ -156,9 +156,9 @@ flowchart LR
 
 ## Docker
 
-- [`Dockerfile`](Dockerfile) builds a Python 3.12-slim image, installs the package with `pip install .`, and runs Gunicorn on port 8000.
-- [`docker-compose.yaml`](docker-compose.yaml) defines a `webui` service for production-like deployment, mapping `8000:8000`.
-- [`docker-compose.dev.yaml`](docker-compose.dev.yaml) wires a development container with source volume mounts and Flask `--reload`.
+- [`Dockerfile`](Dockerfile) builds a Python 3.12-slim image, installs the package with `pip install .`, and runs Gunicorn on port 8080.
+- [`docker-compose.yaml`](docker-compose.yaml) defines a `webui` service for production-like deployment, mapping `8080:8080`.
+- [`docker-compose.dev.yaml`](docker-compose.dev.yaml) wires a development container with source volume mounts and Flask `--reload`, exposing the dev WebUI on port 8081 (`8081:8081`).
 - Both compose files set `FLASK_APP=sanitize_text.webui:create_app` and `PYTHONUNBUFFERED=1`; dev mode also enables `FLASK_ENV=development` and `FLASK_DEBUG=1`.
 
 ## Tests

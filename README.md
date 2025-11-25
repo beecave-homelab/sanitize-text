@@ -113,7 +113,7 @@ To run the Web UI in a container without managing Python environments locally:
 docker compose up
 ```
 
-This builds the image from the provided `Dockerfile` and starts Gunicorn on `http://localhost:8000`.
+This builds the image from the provided `Dockerfile` and starts Gunicorn on `http://localhost:8080`.
 
 For a development Web UI with live reload mounted from your working tree:
 
@@ -121,7 +121,7 @@ For a development Web UI with live reload mounted from your working tree:
 docker compose -f docker-compose.dev.yaml up
 ```
 
-This runs `flask run --reload` in a container, also exposed on `http://localhost:8000`.
+This runs `flask run --reload` in a container, exposed on `http://localhost:8081`.
 
 ## Configuration
 
@@ -213,7 +213,7 @@ Containerized Web UI:
 # Production-like Web UI on http://localhost:8000
 docker compose up
 
-# Development Web UI with live reload on http://localhost:8000
+# Development Web UI with live reload on http://localhost:8081
 docker compose -f docker-compose.dev.yaml up
 ```
 
