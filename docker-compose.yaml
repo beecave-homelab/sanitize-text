@@ -1,8 +1,5 @@
 services:
   webui:
-    build:
-      context: .
-      dockerfile: Dockerfile
     container_name: sanitize-text-webui
     image: ghcr.io/beecave-homelab/sanitize-text:main
     ports:
