@@ -24,8 +24,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: beecave-homelab
+          password: ${{ secrets.GHCR_PAT }}
 
       - name: Build and push images with docker compose
         run: |
