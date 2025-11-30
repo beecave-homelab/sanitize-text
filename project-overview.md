@@ -10,7 +10,7 @@ generated: 2025-11-21T12:43:00+01:00
 sanitize-text detects and removes personally identifiable information (PII) from text and common document formats for Dutch (`nl_NL`) and English (`en_US`), via a shared scrubbing core, a Click-based CLI, and a Flask web UI.
 
 [![Language](https://img.shields.io/badge/Python-3.10--3.12-blue)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/Version-1.4.1-brightgreen)](#version-summary)
+[![Version](https://img.shields.io/badge/Version-1.4.2-brightgreen)](#version-summary)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ## Table of Contents
@@ -52,6 +52,7 @@ pdm export --pyproject --no-hashes -G :all -o requirements.all.txt
 
 | Version | Date | Type | Key Changes |
 |---------|------|------|-------------|
+| 1.4.2 | 30-11-2025 | 🐛 | Docker image fixes (ffmpeg), corrected OCI labels, compose build context tweaks, and PR CI for the dev branch. |
 | 1.4.1 | 24-11-2025 | 🐛 | Docker build workflow for main/PRs, updated Dockerfile and dev environment, improved .gitignore hygiene. |
 | 1.4.0 | 23-11-2025 | ✨ | Removed locale headers from scrubbed output, added GHCR metadata, and improved temp file cleanup. |
 | 1.3.0 | 23-11-2025 | ✨ | CLI/WebUI verbose logging improvements and entity detector refactor. |
