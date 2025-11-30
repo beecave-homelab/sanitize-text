@@ -149,7 +149,7 @@ flowchart LR
 
 - **App factory**: [`sanitize_text/webui/run.py`](sanitize_text/webui/run.py) defines `create_app()` and registers routes via `routes.init_routes(app)`.
 - **Entry scripts**: [`sanitize_text/webui/main.py`](sanitize_text/webui/main.py) exposes a Click-based `sanitize-text-webui` console command for local development (configurable `--host`, `--port`, `--debug/--no-debug`, and `--download-nlp-models/--no-download-nlp-models`), while [`sanitize_text/webui/__main__.py`](sanitize_text/webui/__main__.py) supports `python -m sanitize_text.webui`.
-- **Templates & assets**: HTML templates live under [`sanitize_text/webui/templates/`](sanitize_text/webui/templates), with JS/CSS under [`sanitize_text/webui/static/`](sanitize_text/webui/static).
+- **Templates & assets**: HTML templates live under [`sanitize_text/webui/templates/`](sanitize_text/webui/templates), with JS/CSS and the favicon SVG under [`sanitize_text/webui/static/`](sanitize_text/webui/static) (see `sanitize_text/webui/static/favicon.svg`).
 - **Features**: detector selection, locale toggles, custom text, cleanup switch, verbose filth inspection, and CLI command preview.
 - **File handling**: `/process-file` and `/download-file` save uploads to temp files, convert via `webui.helpers.read_uploaded_file_to_text` (backed by the shared `utils.io_helpers.read_file_to_text` and `preconvert` module), scrub, then stream JSON or artifacts.
 - Development: `python -m sanitize_text.webui` or `docker-compose -f docker-compose.dev.yaml up`.
