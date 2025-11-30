@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sanitize Text - WebUI</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='flavicon.svg') }}">
+    <link rel="alternate icon" type="image/png" href="{{ url_for('static', filename='flavicon.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <header class="app-header">
         <div class="brand">
-            <h1>Sanitize Text <span>WebUI</span></h1>
+            <h1>
+                <img src="{{ url_for('static', filename='favicon.svg') }}" alt="Sanitize Text" style="width: 24px; height: 24px; border-radius: 6px;" />
+                Sanitize Text <span>WebUI</span>
+            </h1>
         </div>
         <button id="theme-toggle" class="theme-toggle" title="Toggle Dark Mode">🌙</button>
     </header>
