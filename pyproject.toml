@@ -92,6 +92,9 @@ fix = "ruff check --fix ."
 test = "pytest -q"
 test-cov = "pytest --cov=. --cov-report=term-missing:skip-covered --cov-report=xml"
 
+start = "gunicorn -b 0.0.0.0:8080 'sanitize_text.webui.run:create_app()'"
+start-dev = "flask --app sanitize_text.webui.run:create_app --debug run --host=0.0.0.0 --port=8081"
+
 sanitize_text.cli = { call = "sanitize_text.cli.main:main" }
 sanitize_text.webui = { call = "sanitize_text.webui.main:main" }
 sanitize_text.add_entity = { call = "sanitize_text.add_entity.main:main" }
