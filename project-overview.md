@@ -52,7 +52,7 @@ pdm export --pyproject --no-hashes -G :all -o requirements.all.txt
 
 | Version | Date | Type | Key Changes |
 |---------|------|------|-------------|
-| 1.4.2 | 30-11-2025 | 🐛 | Docker image fixes (ffmpeg), corrected OCI labels, compose build context tweaks, and PR CI for the dev branch. |
+| 1.4.2 | 30-11-2025 | 🐛 | Docker image fixes (ffmpeg), corrected OCI labels, and PR CI for the dev branch. |
 | 1.4.1 | 24-11-2025 | 🐛 | Docker build workflow for main/PRs, updated Dockerfile and dev environment, improved .gitignore hygiene. |
 | 1.4.0 | 23-11-2025 | ✨ | Removed locale headers from scrubbed output, added GHCR metadata, and improved temp file cleanup. |
 | 1.3.0 | 23-11-2025 | ✨ | CLI/WebUI verbose logging improvements and entity detector refactor. |

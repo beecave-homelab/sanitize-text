@@ -14,7 +14,7 @@
 
 ### 🐛 **Brief Description (v1.4.2)**
 
-Patch release hardening Docker images and CI by fixing multimedia dependencies, correcting OCI metadata, and tightening compose configuration for development and PR workflows.
+Patch release focused on Docker image internals and PR CI: adds ffmpeg to images, corrects OCI metadata, and ensures pull request checks also run on the dev branch.
 
 ### 🐛 **Bug Fixes in v1.4.2**
 
@@ -27,11 +27,6 @@ Patch release hardening Docker images and CI by fixing multimedia dependencies, 
   - **Issue**: Image metadata for the source repository did not fully comply with OCI labelling recommendations.
   - **Root Cause**: The label key/value pair was mis-specified in the Dockerfile.
   - **Solution**: Corrected the label syntax to match the expected OCI format.
-
-- **Fixed**: Inconsistent Docker compose build context for the WebUI service.
-  - **Issue**: Earlier tweaks to the compose configuration temporarily regressed the build context, risking unexpected build behaviour.
-  - **Root Cause**: The `docker-compose.yaml` build context path was removed and needed to be reintroduced correctly.
-  - **Solution**: Restored and simplified the build context definition for the compose service.
 
 ### 🔧 **Improvements in v1.4.2**
 
