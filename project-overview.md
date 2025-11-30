@@ -10,7 +10,7 @@ generated: 2025-11-21T12:43:00+01:00
 sanitize-text detects and removes personally identifiable information (PII) from text and common document formats for Dutch (`nl_NL`) and English (`en_US`), via a shared scrubbing core, a Click-based CLI, and a Flask web UI.
 
 [![Language](https://img.shields.io/badge/Python-3.10--3.12-blue)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/Version-1.4.2-brightgreen)](#version-summary)
+[![Version](https://img.shields.io/badge/Version-1.5.0-brightgreen)](#version-summary)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ## Table of Contents
@@ -52,7 +52,8 @@ pdm export --pyproject --no-hashes -G :all -o requirements.all.txt
 
 | Version | Date | Type | Key Changes |
 |---------|------|------|-------------|
-| 1.4.2 | 30-11-2025 | 🐛 | Docker image fixes (ffmpeg), corrected OCI labels, compose build context tweaks, and PR CI for the dev branch. |
+| 1.5.0 | 30-11-2025 | ✨ | WebUI favicon and branding tweaks, plus new PDM start scripts for Gunicorn/Flask dev server. |
+| 1.4.2 | 30-11-2025 | 🐛 | Docker image fixes (ffmpeg), corrected OCI labels, and PR CI for the dev branch. |
 | 1.4.1 | 24-11-2025 | 🐛 | Docker build workflow for main/PRs, updated Dockerfile and dev environment, improved .gitignore hygiene. |
 | 1.4.0 | 23-11-2025 | ✨ | Removed locale headers from scrubbed output, added GHCR metadata, and improved temp file cleanup. |
 | 1.3.0 | 23-11-2025 | ✨ | CLI/WebUI verbose logging improvements and entity detector refactor. |
@@ -149,7 +150,7 @@ flowchart LR
 
 - **App factory**: [`sanitize_text/webui/run.py`](sanitize_text/webui/run.py) defines `create_app()` and registers routes via `routes.init_routes(app)`.
 - **Entry scripts**: [`sanitize_text/webui/main.py`](sanitize_text/webui/main.py) exposes a Click-based `sanitize-text-webui` console command for local development (configurable `--host`, `--port`, `--debug/--no-debug`, and `--download-nlp-models/--no-download-nlp-models`), while [`sanitize_text/webui/__main__.py`](sanitize_text/webui/__main__.py) supports `python -m sanitize_text.webui`.
-- **Templates & assets**: HTML templates live under [`sanitize_text/webui/templates/`](sanitize_text/webui/templates), with JS/CSS under [`sanitize_text/webui/static/`](sanitize_text/webui/static).
+- **Templates & assets**: HTML templates live under [`sanitize_text/webui/templates/`](sanitize_text/webui/templates), with JS/CSS and the favicon SVG under [`sanitize_text/webui/static/`](sanitize_text/webui/static) (see `sanitize_text/webui/static/favicon.svg`).
 - **Features**: detector selection, locale toggles, custom text, cleanup switch, verbose filth inspection, and CLI command preview.
 - **File handling**: `/process-file` and `/download-file` save uploads to temp files, convert via `webui.helpers.read_uploaded_file_to_text` (backed by the shared `utils.io_helpers.read_file_to_text` and `preconvert` module), scrub, then stream JSON or artifacts.
 - Development: `python -m sanitize_text.webui` or `docker-compose -f docker-compose.dev.yaml up`.

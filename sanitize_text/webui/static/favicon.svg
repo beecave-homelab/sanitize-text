@@ -1,0 +1,61 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 64 64"
+  role="img"
+  aria-labelledby="title desc"
+>
+  <title id="title">Sanitize Text Icon</title>
+  <desc id="desc">Icon with text lines and a cleaning highlight representing text sanitization</desc>
+
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+
+    <!-- Accent gradient for scrub highlight -->
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#22c55e" />
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect
+    x="4"
+    y="4"
+    width="56"
+    height="56"
+    rx="14"
+    ry="14"
+    fill="url(#bgGradient)"
+  />
+
+  <!-- "Text" lines -->
+  <g stroke-linecap="round" stroke-width="3.5">
+    <!-- Top line -->
+    <line x1="18" y1="22" x2="46" y2="22" stroke="#e5e7eb" />
+    <!-- Middle line (partially hidden by scrub bar) -->
+    <line x1="18" y1="32" x2="46" y2="32" stroke="#4b5563" />
+    <!-- Bottom line -->
+    <line x1="18" y1="42" x2="38" y2="42" stroke="#9ca3af" />
+  </g>
+
+  <!-- Scrubbing highlight bar -->
+  <rect
+    x="22"
+    y="28"
+    width="22"
+    height="8"
+    rx="4"
+    ry="4"
+    fill="url(#accentGradient)"
+  />
+
+  <!-- Sparkle (cleaning effect) -->
+  <g fill="#f9fafb">
+    <polygon points="46,18 47.3,20.7 50,22 47.3,23.3 46,26 44.7,23.3 42,22 44.7,20.7" />
+    <circle cx="50" cy="28" r="1.4" />
+  </g>
+</svg>

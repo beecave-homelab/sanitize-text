@@ -2,7 +2,8 @@
 
 ## ToC
 
-- [v1.4.2 (Current)](#v142-current---30-11-2025)
+- [v1.5.0 (Current)](#v150-current---30-11-2025)
+- [v1.4.2](#v142---30-11-2025)
 - [v1.4.1](#v141---24-11-2025)
 - [v1.4.0](#v140---23-11-2025)
 - [v1.3.0](#v130---23-11-2025)
@@ -10,11 +11,32 @@
 - [v1.1.0](#v110---22-11-2025)
 - [v1.0.0](#v100---21-11-2025)
 
-## **v1.4.2** (Current) - *30-11-2025*
+## **v1.5.0** (Current) - *30-11-2025*
+
+### ✨ **Brief Description (v1.5.0)**
+
+Minor release adding a dedicated WebUI favicon and branding tweaks, plus new PDM start scripts for running the Gunicorn production server and Flask development server.
+
+### ✨ **New Features in v1.5.0**
+
+- **Added**: WebUI favicon (`sanitize_text/webui/static/favicon.svg`) and header icon to improve visual identity and UX of the web interface.
+
+### 🔧 **Improvements in v1.5.0**
+
+- **Improved**: Added `pdm run start` (Gunicorn) and `pdm run start-dev` (Flask dev server) scripts in `pyproject.toml` to standardize local and production-like WebUI startup commands.
+- **Updated**: Documentation (`project-overview.md`) to reference the favicon static asset for future maintainers.
+
+### 📝 **Key Commits in v1.5.0**
+
+`92f86de`, `73d898d`, `b26989a`
+
+---
+
+## **v1.4.2** - *30-11-2025*
 
 ### 🐛 **Brief Description (v1.4.2)**
 
-Patch release hardening Docker images and CI by fixing multimedia dependencies, correcting OCI metadata, and tightening compose configuration for development and PR workflows.
+Patch release focused on Docker image internals and PR CI: adds ffmpeg to images, corrects OCI metadata, and ensures pull request checks also run on the dev branch.
 
 ### 🐛 **Bug Fixes in v1.4.2**
 
@@ -27,11 +49,6 @@ Patch release hardening Docker images and CI by fixing multimedia dependencies, 
   - **Issue**: Image metadata for the source repository did not fully comply with OCI labelling recommendations.
   - **Root Cause**: The label key/value pair was mis-specified in the Dockerfile.
   - **Solution**: Corrected the label syntax to match the expected OCI format.
-
-- **Fixed**: Inconsistent Docker compose build context for the WebUI service.
-  - **Issue**: Earlier tweaks to the compose configuration temporarily regressed the build context, risking unexpected build behaviour.
-  - **Root Cause**: The `docker-compose.yaml` build context path was removed and needed to be reintroduced correctly.
-  - **Solution**: Restored and simplified the build context definition for the compose service.
 
 ### 🔧 **Improvements in v1.4.2**
 
