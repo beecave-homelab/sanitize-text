@@ -5,7 +5,7 @@ sanitize-text detects and removes personally identifiable information (PII) from
 ## Badges
 
 ![Python](https://img.shields.io/badge/Python-3.10--3.12-blue)
-![Version](https://img.shields.io/badge/version-1.4.1-brightgreen)
+![Version](https://img.shields.io/badge/version-1.4.2-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-yellow)
 
 ## Table of Contents

@@ -2,14 +2,48 @@
 
 ## ToC
 
-- [v1.4.1 (Current)](#v141-current---24-11-2025)
+- [v1.4.2 (Current)](#v142-current---30-11-2025)
+- [v1.4.1](#v141---24-11-2025)
 - [v1.4.0](#v140---23-11-2025)
 - [v1.3.0](#v130---23-11-2025)
 - [v1.2.0](#v120---22-11-2025)
 - [v1.1.0](#v110---22-11-2025)
 - [v1.0.0](#v100---21-11-2025)
 
-## **v1.4.1** (Current) - *24-11-2025*
+## **v1.4.2** (Current) - *30-11-2025*
+
+### 🐛 **Brief Description (v1.4.2)**
+
+Patch release hardening Docker images and CI by fixing multimedia dependencies, correcting OCI metadata, and tightening compose configuration for development and PR workflows.
+
+### 🐛 **Bug Fixes in v1.4.2**
+
+- **Fixed**: Missing `ffmpeg` dependency in Docker images for media-related workloads.
+  - **Issue**: Some document conversion and multimedia pipelines required `ffmpeg`, but the base images did not include it, leading to runtime errors inside containers.
+  - **Root Cause**: Both `Dockerfile` and `Dockerfile.dev` omitted installation of the `ffmpeg` package.
+  - **Solution**: Added explicit `ffmpeg` installation to the production and development Dockerfiles.
+
+- **Fixed**: Incorrect OCI `org.opencontainers.image.source` label syntax in Docker images.
+  - **Issue**: Image metadata for the source repository did not fully comply with OCI labelling recommendations.
+  - **Root Cause**: The label key/value pair was mis-specified in the Dockerfile.
+  - **Solution**: Corrected the label syntax to match the expected OCI format.
+
+- **Fixed**: Inconsistent Docker compose build context for the WebUI service.
+  - **Issue**: Earlier tweaks to the compose configuration temporarily regressed the build context, risking unexpected build behaviour.
+  - **Root Cause**: The `docker-compose.yaml` build context path was removed and needed to be reintroduced correctly.
+  - **Solution**: Restored and simplified the build context definition for the compose service.
+
+### 🔧 **Improvements in v1.4.2**
+
+- **Improved**: Pull request CI workflow configuration now also targets the `dev` branch, ensuring Docker and test workflows are exercised earlier in the development cycle.
+
+### 📝 **Key Commits in v1.4.2**
+
+`b1bd44d`, `e084959`, `d8dca11`, `fc6e424`, `79cb486`
+
+---
+
+## **v1.4.1** - *24-11-2025*
 
 ### 🐛 **Brief Description**
 
