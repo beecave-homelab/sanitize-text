@@ -9,8 +9,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
-import click
 import pytest
+from click.testing import CliRunner
 
 from sanitize_text.add_entity.main import EntityManager
 from sanitize_text.add_entity.main import main as add_entity_cli
@@ -123,7 +123,7 @@ def test_add_entity_save_failure_path(tmp_path: Path, capsys: pytest.CaptureFixt
 
 def test_add_entity_cli_help_shown_when_no_args(capsys: pytest.CaptureFixture[str]) -> None:
     """Click CLI prints help when invoked with no options."""
-    runner = click.testing.CliRunner()
+    runner = CliRunner()
     result = runner.invoke(add_entity_cli, [])
     assert result.exit_code == 0
     assert "Add new entities to sanitization lists." in result.output
@@ -154,3 +154,31 @@ def test_add_entity_init_reexports_main_identity() -> None:
     from sanitize_text.add_entity.main import main as module_main  # type: ignore
 
     assert exported_main is module_main
+
+
+def test_add_entity_application_option(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--application/-a option adds application to applications.json."""
+    apps_file = tmp_path / "applications.json"
+    apps_file.write_text("[]", encoding="utf-8")
+
+    mgr = EntityManager()
+    mgr.files["application"] = apps_file
+
+    ok = mgr.add_entity("application", "MyApp")
+    assert ok is True
+    out = capsys.readouterr().out
+    assert "Successfully added application 'MyApp'" in out
+
+    data = json.loads(apps_file.read_text(encoding="utf-8"))
+    assert data == [{"match": "MyApp", "filth_type": "application"}]
+
+
+def test_add_entity_application_cli_option() -> None:
+    """CLI accepts --application and -a flags."""
+    runner = CliRunner()
+    result = runner.invoke(add_entity_cli, ["--help"])
+    assert "--application" in result.output
+    assert "-a" in result.output
