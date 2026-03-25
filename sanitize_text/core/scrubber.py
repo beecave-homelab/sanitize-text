@@ -177,6 +177,12 @@ def _build_dutch_name(_: DetectorContext) -> scrubadub.detectors.Detector:
     return DutchNameDetector()
 
 
+def _build_dutch_application(_: DetectorContext) -> scrubadub.detectors.Detector:
+    from sanitize_text.utils.custom_detectors import DutchApplicationDetector
+
+    return DutchApplicationDetector()
+
+
 def _build_english_location(_: DetectorContext) -> scrubadub.detectors.Detector:
     from sanitize_text.utils.custom_detectors import EnglishLocationDetector
 
@@ -274,6 +280,11 @@ LOCALE_DETECTORS: dict[str, list[DetectorSpec]] = {
             name="name",
             description="Detect Dutch person names",
             factory=_build_dutch_name,
+        ),
+        DetectorSpec(
+            name="application",
+            description="Detect application names",
+            factory=_build_dutch_application,
         ),
         DetectorSpec(
             name="spacy_entities",

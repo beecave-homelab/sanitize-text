@@ -46,6 +46,7 @@ class EntityManager:
             "city": self.base_path / "cities.json",
             "name": self.base_path / "names.json",
             "organization": self.base_path / "organizations.json",
+            "application": self.base_path / "applications.json",
         }
         # Allow injectable output functions so the domain logic does not depend
         # directly on Click. Defaults preserve existing CLI behavior.
@@ -105,7 +106,7 @@ class EntityManager:
         """Add a new entity to the specified entity type file.
 
         Args:
-            entity_type: Type of entity ('city', 'name', or 'organization')
+            entity_type: Type of entity ('city', 'name', 'organization', or 'application')
             value: The entity value to add
 
         Returns:
@@ -162,7 +163,19 @@ class EntityManager:
     help="Add a new organization to the sanitization list.",
     metavar="<organization>",
 )
-def main(city: str | None, name: str | None, organization: str | None) -> None:
+@click.option(
+    "--application",
+    "-a",
+    type=str,
+    help="Add a new application to the sanitization list.",
+    metavar="<application>",
+)
+def main(
+    city: str | None,
+    name: str | None,
+    organization: str | None,
+    application: str | None,
+) -> None:
     r"""Add new entities to sanitization lists.
 
     This tool manages the addition of new entities to the sanitization lists used
@@ -174,16 +187,18 @@ def main(city: str | None, name: str | None, organization: str | None) -> None:
     - Cities: Geographic locations
     - Names: Person names
     - Organizations: Company and institution names
+    - Applications: Software application names
 
     \f
     Args:
         city: City name to add
         name: Person name to add
         organization: Organization name to add
+        application: Application name to add
     """
     entity_manager = EntityManager()
 
-    if not any([city, name, organization]):
+    if not any([city, name, organization, application]):
         ctx = click.get_current_context()
         click.echo(ctx.get_help())
         return
@@ -194,6 +209,8 @@ def main(city: str | None, name: str | None, organization: str | None) -> None:
         entity_manager.add_entity("name", name)
     if organization:
         entity_manager.add_entity("organization", organization)
+    if application:
+        entity_manager.add_entity("application", application)
 
 
 if __name__ == "__main__":

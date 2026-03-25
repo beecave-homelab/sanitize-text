@@ -4,6 +4,7 @@ from scrubadub.detectors import register_detector
 
 from sanitize_text.utils.custom_detectors.base import DutchEntityDetector
 from sanitize_text.utils.filth import (
+    ApplicationFilth,
     LocationFilth,
     NameFilth,
     OrganizationFilth,
@@ -35,3 +36,12 @@ class DutchNameDetector(DutchEntityDetector):
     name = "name"
     filth_cls = NameFilth
     json_file = "names.json"
+
+
+@register_detector
+class DutchApplicationDetector(DutchEntityDetector):
+    """Detector for Dutch application names."""
+
+    name = "application"
+    filth_cls = ApplicationFilth
+    json_file = "applications.json"

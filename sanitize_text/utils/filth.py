@@ -25,6 +25,12 @@ class NameFilth(Filth):
     type = "name"
 
 
+class ApplicationFilth(Filth):
+    """Filth for application names."""
+
+    type = "application"
+
+
 class PrivateIPFilth(Filth):
     """Filth subclass for private IP addresses.
 
