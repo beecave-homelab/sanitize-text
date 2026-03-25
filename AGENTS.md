@@ -1,23 +1,50 @@
-# AGENTS.md — Coding Rules (Ruff + Pytest + SOLID)
+# AGENTS.md — sanitize-text Agent Manual
 
-This repository uses **Ruff** as the single source of truth for linting/formatting and **Pytest** (with **pytest-cov**) for tests & coverage. CI fails when these rules are violated.
+This document is the authoritative working agreement for AI agents and contributors in this
+repository. It combines style rules with **sanitize-text-specific architecture and workflow
+contracts** so edits remain coherent across CLI, WebUI, core scrubber logic, detectors, and tests.
 
-Run locally before committing:
+When in doubt, prefer **correctness → safety → backward compatibility → clarity → brevity**.
+
+## Fast local validation
 
 ```bash
-# Lint & format (Ruff)
+# Lint/format
 pdm run ruff check --fix .
 pdm run ruff format .
 
-# Tests & coverage (adjust --cov target if needed)
+# Unit tests
 pdm run pytest --maxfail=1 -q
+
+# Coverage
 pdm run pytest --cov=. --cov-report=term-missing:skip-covered --cov-report=xml
 ```
 
-When in doubt, prefer **correctness → clarity → consistency → brevity** (in that order).
+## Operational commands (repo-specific)
+
+```bash
+# Install
+pdm install
+
+# CLI
+pdm run sanitize-text --help
+
+# WebUI (dev)
+pdm run sanitize_text.webui --help
+pdm run start-dev
+
+# Add Dutch entities
+pdm run sanitize_text.add_entity --help
+
+# Docker
+docker compose up
+docker compose -f docker-compose.dev.yaml up
+```
 
 ## Table of Contents
 
+- [0) sanitize-text architecture contracts](#0-sanitize-text-architecture-contracts)
+- [0.7) Agent task playbooks](#07-agent-task-playbooks)
 - [1) Correctness (Ruff F - Pyflakes)](#1-correctness-ruff-f---pyflakes)
 - [2) PEP 8 surface rules (Ruff E, W - pycodestyle)](#2-pep-8-surface-rules-ruff-e-w---pycodestyle)
 - [3) Naming conventions (Ruff N - pep8-naming)](#3-naming-conventions-ruff-n---pep8-naming)
@@ -33,10 +60,113 @@ When in doubt, prefer **correctness → clarity → consistency → brevity** (i
 - [13) Pre-commit (recommended)](#13-pre-commit-recommended)
 - [14) CI expectations](#14-ci-expectations)
 - [15) SOLID design principles — Explanation & Integration](#15-solid-design-principles--explanation--integration)
-- [16) Configuration management — environment variables & constants](#16-configuration-management--environment-variables--constants)
+- [16) Dependency and configuration management](#16-dependency-and-configuration-management)
+- [17) Boundaries for safe changes](#17-boundaries-for-safe-changes)
 - [Final note](#final-note)
 
----
+______________________________________________________________________
+
+## 0) sanitize-text architecture contracts
+
+These are **project-level contracts**. Preserve them unless the change is explicitly requested.
+
+### 0.1 Canonical package boundaries
+
+- `sanitize_text/core/scrubber.py`: detector catalogue, scrubber composition, multi-locale orchestration.
+- `sanitize_text/cli/main.py` + `sanitize_text/cli/io.py`: Click UX + IO resolution/output writing.
+- `sanitize_text/webui/routes.py` + `sanitize_text/webui/helpers.py`: Flask endpoints and request shaping.
+- `sanitize_text/output.py`: writer dispatch (`txt`/`md`/`docx`/`pdf`) through `get_writer()`.
+- `sanitize_text/utils/custom_detectors/`: custom detector implementations.
+- `sanitize_text/data/nl_entities/*.json` + `sanitize_text/data/en_entities/*.json`: detector data.
+- `sanitize_text/add_entity/main.py`: JSON entity management CLI for Dutch entity stores.
+
+### 0.2 Runtime behavior that must stay stable
+
+- `locale=None` means process **both** `en_US` and `nl_NL`.
+- CLI `_run_scrub()` defaults to **`nl_NL` output priority** when no locale is specified.
+- WebUI and CLI must continue sharing the same core scrub logic (`run_multi_locale_scrub` / `scrub_text`).
+- `--cleanup` defaults to enabled, and cleanup is the final stage before writing output.
+- Output format inference remains centralized in `sanitize_text/cli/io.py::infer_output_format`.
+- Writers remain resolved via `sanitize_text/output.py::get_writer`.
+
+### 0.3 Extension points (preferred)
+
+- **Add a detector**:
+
+  1. Implement detector in `sanitize_text/utils/custom_detectors/`.
+  2. Add factory + `DetectorSpec` in `sanitize_text/core/scrubber.py`.
+  3. Register in `GENERIC_DETECTORS` or `LOCALE_DETECTORS`.
+  4. Add/adjust tests in `tests/test_core_scrubber.py` and detector-focused tests.
+
+- **Add an output format**:
+
+  1. Implement writer in `sanitize_text/output.py`.
+  2. Register in `_WRITERS` + update `get_writer()` behavior.
+  3. Update `infer_output_format()` in `sanitize_text/cli/io.py`.
+  4. Update CLI option choices and WebUI export/download MIME mapping if needed.
+  5. Add tests in `tests/test_output_*.py`, CLI, and WebUI endpoint tests.
+
+- **Add WebUI request option**:
+
+  1. Parse and validate in `sanitize_text/webui/routes.py`.
+  2. Keep helper logic in `sanitize_text/webui/helpers.py` where reusable.
+  3. If the option maps to CLI semantics, update `/cli-preview` builder parity.
+  4. Add endpoint tests in `tests/test_webui_routes_endpoints.py` and helper tests.
+
+### 0.4 API/UX parity requirements
+
+- WebUI and CLI should expose equivalent core scrubbing capabilities unless explicitly scoped otherwise.
+- Avoid adding behavior to only one interface when it belongs in shared core logic.
+- Prefer shared helpers over duplicating normalization or detector selection logic.
+
+### 0.5 Two app-factory modules exist
+
+- `sanitize_text/webui/run.py` is the deployment/script target (`gunicorn`, compose, scripts).
+- `sanitize_text/webui/__init__.py` also provides `create_app()` and is used in tests/import paths.
+- If app creation behavior changes, keep both modules aligned or consolidate carefully with tests updated.
+
+### 0.6 Experimental scripts boundary
+
+- Files under `scripts/` are helper utilities for data extraction/training and are **not** part of the main runtime contract.
+- Prefer changes in `sanitize_text/` for production behavior; only touch `scripts/` when the user request is explicitly about tooling/data prep.
+
+### 0.7 Agent task playbooks
+
+Use these short workflows first; they encode the repo’s happy path.
+
+- **Add detector**:
+
+  1. Add detector class in `sanitize_text/utils/custom_detectors/`.
+  2. Register `DetectorSpec` in `sanitize_text/core/scrubber.py`.
+  3. Add tests in `tests/test_core_scrubber.py` and detector-specific tests.
+  4. Run `pdm run pytest tests/test_core_scrubber.py -q`.
+
+- **Change CLI option/behavior**:
+
+  1. Update `sanitize_text/cli/main.py` (option wiring + command UX).
+  2. Keep IO/format logic in `sanitize_text/cli/io.py`.
+  3. Keep core logic in `sanitize_text/core/scrubber.py` (not in Click handlers).
+  4. Run `pdm run pytest tests/test_cli_main.py tests/test_cli_io.py -q`.
+
+- **Change WebUI request/endpoint behavior**:
+
+  1. Parse/validate in `sanitize_text/webui/routes.py`.
+  2. Move reusable shaping/normalization to `sanitize_text/webui/helpers.py`.
+  3. Keep parity with CLI semantics (`/cli-preview`, detector/locale behavior).
+  4. Run `pdm run pytest tests/test_webui_routes_endpoints.py tests/test_webui_routes_helpers.py -q`.
+
+- **Change output format/writer behavior**:
+
+  1. Update writer logic in `sanitize_text/output.py` (`_WRITERS`, `get_writer`).
+  2. Keep format inference in `sanitize_text/cli/io.py::infer_output_format`.
+  3. Update WebUI MIME/format handling if affected.
+  4. Run `pdm run pytest tests/test_output_writers.py tests/test_output_pdf_docx.py tests/test_output_more.py -q`.
+
+- **Update Dutch entity data flow**:
+
+  1. Preserve `{ "match", "filth_type" }` JSON schema and sorted order.
+  2. Prefer `sanitize_text/add_entity/main.py` path over ad-hoc writes.
+  3. Verify with `pdm run pytest tests/test_add_entity.py tests/test_application_detector.py -q`.
 
 ## 1) Correctness (Ruff F - Pyflakes)
 
@@ -52,9 +182,9 @@ When in doubt, prefer **correctness → clarity → consistency → brevity** (i
 - Remove dead code and unused symbols.
 - Keep imports minimal and explicit.
 - Use local scopes (comprehensions, context managers) where appropriate.
-- Do **not** read configuration from `os.environ` directly outside the dedicated constants module (see section 16).
+- Keep CLI defaults deterministic; do not introduce hidden runtime config for core scrub flows.
 
----
+______________________________________________________________________
 
 ## 2) PEP 8 surface rules (Ruff E, W - pycodestyle)
 
@@ -70,7 +200,7 @@ When in doubt, prefer **correctness → clarity → consistency → brevity** (i
 - Break long expressions cleanly (after operators, around commas).
 - End files with exactly one trailing newline.
 
----
+______________________________________________________________________
 
 ## 3) Naming conventions (Ruff N - pep8-naming)
 
@@ -85,7 +215,7 @@ When in doubt, prefer **correctness → clarity → consistency → brevity** (i
 
 - Avoid camelCase unless mirroring a third-party API; if unavoidable, use a targeted pragma for that line only.
 
----
+______________________________________________________________________
 
 ## 4) Imports: order & style (Ruff I - isort rules)
 
@@ -105,19 +235,15 @@ When in doubt, prefer **correctness → clarity → consistency → brevity** (i
 ```python
 from __future__ import annotations
 
-import dataclasses
-import pathlib
+from pathlib import Path
 
-import httpx
-import pydantic
+from scrubadub.detectors.email import EmailDetector
 
-from yourpkg.core import config
-from yourpkg.utils.paths import ensure_dir
+from sanitize_text.utils.cleanup import cleanup_output
+from sanitize_text.utils.io_helpers import read_file_to_text
 ```
 
-*(Replace `yourpkg` with your top-level package. In app-only repos, keep first-party imports minimal.)*
-
----
+______________________________________________________________________
 
 ## 5) Docstrings — content & style (Ruff D + DOC)
 
@@ -166,7 +292,7 @@ class ResourceManager:
     """
 ```
 
----
+______________________________________________________________________
 
 ## 6) Import hygiene (Ruff TID - flake8-tidy-imports)
 
@@ -185,7 +311,7 @@ except ModuleNotFoundError:  # pragma: no cover
     rich = None  # type: ignore[assignment]
 ```
 
----
+______________________________________________________________________
 
 ## 7) Modern Python upgrades (Ruff UP - pyupgrade)
 
@@ -202,7 +328,7 @@ except ModuleNotFoundError:  # pragma: no cover
 - Use assignment expressions (`:=`) sparingly and only when clearer.
 - Prefer `is None`/`is not None`.
 
----
+______________________________________________________________________
 
 ## 8) Future annotations (Ruff FA - flake8-future-annotations)
 
@@ -216,7 +342,7 @@ except ModuleNotFoundError:  # pragma: no cover
 
 - Targeting **Python ≥ 3.11**: you may omit it; align the `FA` rule in Ruff config.
 
----
+______________________________________________________________________
 
 ## 9) Local ignores (only when justified)
 
@@ -230,7 +356,7 @@ value = compute()  # noqa: F401  # used by plugin loader via reflection
 
 For docstring mismatches caused by third-party constraints, use a targeted `# noqa: D…, DOC…` with a brief reason.
 
----
+______________________________________________________________________
 
 ## 10) Tests & examples (Pytest + Coverage)
 
@@ -239,6 +365,16 @@ For docstring mismatches caused by third-party constraints, use a targeted `# no
 - Tests follow the same rules as production code.
 - Naming: `test_<unit_under_test>__<expected_behavior>()`.
 - Keep tests deterministic; avoid hidden network/filesystem dependencies without fixtures.
+
+### Repo test targeting map
+
+- Core detector orchestration: `tests/test_core_scrubber.py`.
+- CLI behavior and option wiring: `tests/test_cli_main.py`, `tests/test_cli_io.py`, `tests/test_cli_verbose.py`.
+- WebUI route/helper behavior: `tests/test_webui_routes_endpoints.py`, `tests/test_webui_routes_helpers.py`, `tests/test_webui_run.py`, `tests/test_webui_main.py`.
+- Output writers and PDF/DOCX specifics: `tests/test_output_writers.py`, `tests/test_output_pdf_docx.py`, `tests/test_output_more.py`.
+- Custom detectors and filth processing: `tests/test_custom_detectors_*.py`, `tests/test_filth.py`, `tests/test_post_processors.py`.
+
+Start with the smallest relevant test file, then broaden to full `pytest` only after targeted tests pass.
 
 ### Minimal Example — Tests
 
@@ -267,7 +403,7 @@ pdm run pytest --cov=. --cov-report=term-missing:skip-covered --cov-report=xml
 - Guideline: **≥ 85%** line coverage, with critical paths covered.
 - Make CI fail below the threshold (see “CI expectations”).
 
----
+______________________________________________________________________
 
 ## 11) Commit discipline
 
@@ -277,7 +413,7 @@ Run Ruff and tests **before** committing. Keep commits small and focused.
 
 Use your project’s conventional commit format.
 
----
+______________________________________________________________________
 
 ## 12) Quick DO / DON’T
 
@@ -296,7 +432,7 @@ Use your project’s conventional commit format.
 - Leave parameters undocumented in public functions.
 - Add broad `noqa`—always keep ignores narrow and justified.
 
----
+______________________________________________________________________
 
 ## 13) Pre-commit (recommended)
 
@@ -313,26 +449,32 @@ repos:
       - id: ruff-format
 ```
 
----
+______________________________________________________________________
 
 ## 14) CI expectations
 
 ### Commands — CI
 
 ```bash
-# Lint & format
+# Current PR workflow behavior (.github/workflows/pr-ci.yaml)
+pdm install -G lint,test,spacy
+pdm run lint --fix
+pdm run format
+pdm run test
+pdm run test-cov
+
+# Recommended local pre-push (stricter)
 pdm run ruff check .
 pdm run ruff format --check .
-
-# Tests & coverage
-pdm run pytest --cov=. --cov-report=term-missing:skip-covered --cov-report=xml --maxfail=1
+pdm run pytest --maxfail=1 -q
+pdm run pytest --cov=. --cov-report=term-missing:skip-covered --cov-report=xml
 ```
 
 ### Policy — CI Coverage
 
-Enforce a minimum coverage threshold (example: 85%). Fail the pipeline if below.
+Keep coverage around or above the current project baseline; add tests for new branches and extension points.
 
----
+______________________________________________________________________
 
 ## 15) SOLID design principles — Explanation & Integration
 
@@ -443,102 +585,70 @@ class Uploader:
 - **ISP**: Prefer small protocols; accept only what you need.
 - **DIP**: Depend on abstractions; inject dependencies (avoid hard-coded singletons/globals).
 
----
+______________________________________________________________________
 
-## 16) Configuration management — environment variables & constants
+## 16) Dependency and configuration management
 
-These rules standardize how environment variables are loaded and accessed across the codebase. They prevent config sprawl, enable testing, and align with **SRP** and **DIP**.
+### 16.1 Dependency source of truth
 
-### 16.1 Single loading point
+- `pyproject.toml` is the canonical dependency definition.
 
-- Environment variables are parsed **exactly once** at application start.
-- The loader function is `load_project_env()` located at `<package>/utils/env_loader.py`.
+- Do **not** hand-edit `requirements.txt`, `requirements.dev.txt`, or `requirements.all.txt` for dependency changes.
 
-### 16.2 Central import location
-
-- `load_project_env()` **MUST** be invoked **only** inside `<package>/utils/constant.py`.
-- No other file may import `env_loader` or call `load_project_env()` directly.
-
-### 16.3 Constant exposure
-
-- After loading, `<package>/utils/constant.py` exposes project-wide configuration constants (e.g., `DEFAULT_CHUNK_LEN_SEC`, `DEFAULT_BATCH_SIZE`).
-- All other modules (e.g., `<package>/app.py`, `<package>/transcribe.py`) **must import from** `<package>.utils.constant` instead of reading `os.environ` or `.env`.
-
-### 16.4 Adding new variables
-
-- Define a sensible default in `<package>/utils/constant.py` using `os.getenv("VAR_NAME", "default")` or typed parsing logic.
-- Document every variable in `.env.example` with a short description and default.
-
-### 16.5 Enforcement policy
-
-- Pull requests that add direct `os.environ[...]` access or import `env_loader` outside `utils/constant.py` **must be rejected**.
-- Suggested CI guardrail (example grep check):
+- After dependency updates, regenerate requirement exports:
 
   ```bash
-  # deny direct env reads outside constants module
-  ! git grep -nE 'os\\.environ\\[|os\\.getenv\\(' -- ':!<package>/utils/constant.py' ':!**/tests/**'
+  pdm export --pyproject --no-hashes --prod -o requirements.txt
+  pdm export --pyproject --no-hashes --dev -o requirements.dev.txt
+  pdm export --pyproject --no-hashes -G :all -o requirements.all.txt
   ```
 
-### 16.6 Example layout (illustrative)
+### 16.2 Runtime configuration in this repo
 
-```python
-# <package>/utils/env_loader.py
-from __future__ import annotations
-import os
+- CLI/core scrubbing does **not** require project-specific environment variables.
+- WebUI container/dev runtime may use Flask environment variables (`FLASK_APP`, `FLASK_ENV`, `FLASK_DEBUG`, `PYTHONUNBUFFERED`) as wired by compose files.
+- Keep app behavior primarily controlled by explicit CLI/WebUI options, not hidden env toggles.
 
-def load_project_env() -> dict[str, str]:
-    # Parse once: could expand to load .env, validate, coerce types, etc.
-    return dict(os.environ)  # Keep simple; real code may normalize keys/types
-```
+### 16.3 Optional model downloads and network sensitivity
 
-```python
-# <package>/utils/constant.py
-from __future__ import annotations
-import os
-from .env_loader import load_project_env
+- NLP model download is opt-in in CLI (`--download-nlp-models`) and optional in WebUI startup flags.
+- Treat model download as a networked side effect; do not make it implicit in core scrubber functions.
+- Keep tests isolated from network by monkeypatching `download_optional_models` and related helpers.
 
-# Load once (single source of truth)
-_ENV = load_project_env()
+### 16.4 Packaging and version alignment
 
-# Exposed constants (typed, with sensible defaults)
-DEFAULT_CHUNK_LEN_SEC: int = int(_ENV.get("DEFAULT_CHUNK_LEN_SEC", "30"))
-DEFAULT_BATCH_SIZE: int = int(_ENV.get("DEFAULT_BATCH_SIZE", "8"))
-APP_ENV: str = _ENV.get("APP_ENV", "development")
-```
+- Entry points must stay aligned with `pyproject.toml` scripts:
+  - `sanitize-text = sanitize_text.cli.main:main`
+  - `sanitize-text-webui = sanitize_text.webui.main:main`
+- If behavior changes in user-facing commands, update `README.md`, tests, and command help text together.
 
-```python
-# <package>/app.py  (or any other module)
-from __future__ import annotations
-from <package>.utils.constant import DEFAULT_BATCH_SIZE
+______________________________________________________________________
 
-def run() -> None:
-    # Use constants; do not read os.environ here
-    ...
-```
+## 17) Boundaries for safe changes
 
-### 16.7 Testing guidance for configuration
+### ✅ Always
 
-- Unit tests may override constants via monkeypatching the **constants module attributes**, not the environment loader:
+- Keep core logic in reusable modules (`core`, `cli/io`, `webui/helpers`) and keep shell/UI layers thin.
+- Add or update tests when behavior changes, especially for locale orchestration and detector selection.
+- Preserve backward-compatible CLI/WebUI options unless a breaking change is explicitly requested.
+- Reuse existing extension points (`DetectorSpec`, `get_writer`, `read_file_to_text`, route helpers).
 
-  ```python
-  def test_behavior_with_small_batch(monkeypatch):
-      import <package>.utils.constant as C
-      monkeypatch.setattr(C, "DEFAULT_BATCH_SIZE", 2, raising=True)
-      ...
-  ```
+### ⚠️ Ask first
 
-- For integration tests that need environment variations, set env **before** importing the constants module to ensure one-time load semantics:
+- Changing default locale behavior or output precedence in CLI.
+- Changing detector default enablement (`enabled_by_default`) or detector ordering.
+- Introducing new external services, telemetry, or network dependencies.
+- Large rewrites across both app factories (`webui/run.py` and `webui/__init__.py`).
 
-  ```python
-  import importlib, os
-  os.environ["DEFAULT_BATCH_SIZE"] = "4"
-  import <package>.utils.constant as C
-  importlib.reload(C)  # if necessary in the same process
-  ```
+### 🚫 Never
 
-- Document any new variables in `.env.example` and ensure coverage includes both defaulted and overridden paths.
+- Bypass `core/scrubber.py` by duplicating scrub logic in CLI or WebUI routes.
+- Add a detector only in UI code without registering it in the core catalogue.
+- Break output format routing by writing files directly from random modules instead of `get_writer()`.
+- Modify locale entity JSON files with ad-hoc structure changes; preserve the `{ "match", "filth_type" }` schema and sorted order expected by `add_entity`.
+- Commit changes that skip lint/test validation when the edited area has existing tests.
 
----
+______________________________________________________________________
 
 ## Final note
 
