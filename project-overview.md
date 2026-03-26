@@ -11,7 +11,7 @@ generated: 2025-11-21T12:43:00+01:00
 sanitize-text detects and removes personally identifiable information (PII) from text and common document formats for Dutch (`nl_NL`) and English (`en_US`), via a shared scrubbing core, a Click-based CLI, and a Flask web UI.
 
 [![Language](https://img.shields.io/badge/Python-3.10--3.12-blue)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/Version-1.5.0-brightgreen)](#version-summary)
+[![Version](https://img.shields.io/badge/Version-1.6.0-brightgreen)](#version-summary)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ## Table of Contents

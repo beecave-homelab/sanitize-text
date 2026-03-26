@@ -2,7 +2,8 @@
 
 ## ToC
 
-- [v1.5.0 (Current)](#v150-current---30-11-2025)
+- [v1.6.0 (Current)](#v160-current---25-03-2026)
+- [v1.5.0](#v150---30-11-2025)
 - [v1.4.2](#v142---30-11-2025)
 - [v1.4.1](#v141---24-11-2025)
 - [v1.4.0](#v140---23-11-2025)
@@ -11,7 +12,31 @@
 - [v1.1.0](#v110---22-11-2025)
 - [v1.0.0](#v100---21-11-2025)
 
-## **v1.5.0** (Current) - *30-11-2025*
+## **v1.6.0** (Current) - *25-03-2026*
+
+### ✨ **Brief Description (v1.6.0)**
+
+Minor release introducing enhanced application detection capabilities, Dutch application entity data, and comprehensive test coverage for the new detector.
+
+### ✨ **New Features in v1.6.0**
+
+- **Added**: Application name detection via `ApplicationDetector` in Dutch text, identifying software applications, systems, and tools.
+- **Added**: JSON-backed entity storage for Dutch applications at `sanitize_text/data/nl_entities/applications.json` with curated mappings (e.g., "AFAS" → `application`).
+- **Added**: Dedicated test suite `tests/test_application_detector.py` with full coverage for application detection edge cases.
+
+### 🔧 **Improvements in v1.6.0**
+
+- **Improved**: Core scrubber enhanced to support the new application detector alongside existing entity types.
+- **Updated**: AGENTS.md documentation with detailed architecture contracts and agent task playbooks.
+- **Updated**: Project documentation aligned with current codebase structure and detector patterns.
+
+### 📝 **Key Commits in v1.6.0**
+
+`2ddddd5`, `c479a5b`, `ce1f873`, `f5ca8bd`
+
+______________________________________________________________________
+
+## **v1.5.0** - *30-11-2025*
 
 ### ✨ **Brief Description (v1.5.0)**
 
