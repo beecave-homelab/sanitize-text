@@ -3,6 +3,7 @@
 from .base import DutchEntityDetector, EnglishEntityDetector
 from .custom_word import CustomWordDetector
 from .dutch_detectors import (
+    DutchApplicationDetector,
     DutchLocationDetector,
     DutchNameDetector,
     DutchOrganizationDetector,
@@ -26,6 +27,7 @@ __all__ = [
     "BareDomainDetector",
     "SharePointUrlDetector",
     "MarkdownUrlDetector",
+    "DutchApplicationDetector",
     "DutchLocationDetector",
     "DutchOrganizationDetector",
     "DutchNameDetector",
