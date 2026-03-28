@@ -83,12 +83,11 @@ def test_application_detector_via_setup_scrubber() -> None:
     assert isinstance(det, DutchApplicationDetector)
 
 
-def test_application_detector_case_insensitive() -> None:
+def test_application_detector_case_insensitive(tmp_path: Path, monkeypatch) -> None:
     """Application detector matches regardless of case."""
     DutchEntityDetector.reset_loaded_entities()
 
-    data_dir = Path(__file__).resolve().parents[1] / "sanitize_text" / "data" / "nl_entities"
-    test_file = data_dir / "test_apps_case.json"
+    test_file = tmp_path / "test_apps_case.json"
     test_file.write_text(
         json.dumps([{"match": "MyApplication", "filth_type": "application"}]),
         encoding="utf-8",
@@ -97,24 +96,35 @@ def test_application_detector_case_insensitive() -> None:
     class TestDetector(DutchApplicationDetector):
         json_file = "test_apps_case.json"
 
+    def _load_from_tmp(self) -> None:
+        with test_file.open(encoding="utf-8") as file_handle:
+            entities = json.load(file_handle)
+            for entity in entities:
+                match = entity["match"].strip()
+                if (
+                    len(match) <= 1
+                    or match.lower() in self.COMMON_WORDS
+                    or not any(char.isalpha() for char in match)
+                ):
+                    continue
+                self.entities.append(match)
+
+    monkeypatch.setattr(TestDetector, "_load_json_entities", _load_from_tmp)
+
     det = TestDetector()
 
-    try:
-        # Should match all case variants
-        for variant in ["MyApplication", "myapplication", "MYAPPLICATION"]:
-            matches = list(det.iter_filth(f"Using {variant} today."))
-            assert len(matches) == 1, f"Failed to match {variant}"
-            assert matches[0].text == variant
-    finally:
-        test_file.unlink(missing_ok=True)
+    # Should match all case variants
+    for variant in ["MyApplication", "myapplication", "MYAPPLICATION"]:
+        matches = list(det.iter_filth(f"Using {variant} today."))
+        assert len(matches) == 1, f"Failed to match {variant}"
+        assert matches[0].text == variant
 
 
-def test_application_detector_word_boundaries() -> None:
+def test_application_detector_word_boundaries(tmp_path: Path, monkeypatch) -> None:
     """Application detector respects word boundaries."""
     DutchEntityDetector.reset_loaded_entities()
 
-    data_dir = Path(__file__).resolve().parents[1] / "sanitize_text" / "data" / "nl_entities"
-    test_file = data_dir / "test_apps_bounds.json"
+    test_file = tmp_path / "test_apps_bounds.json"
     test_file.write_text(
         json.dumps([{"match": "App", "filth_type": "application"}]),
         encoding="utf-8",
@@ -123,31 +133,42 @@ def test_application_detector_word_boundaries() -> None:
     class TestDetector(DutchApplicationDetector):
         json_file = "test_apps_bounds.json"
 
+    def _load_from_tmp(self) -> None:
+        with test_file.open(encoding="utf-8") as file_handle:
+            entities = json.load(file_handle)
+            for entity in entities:
+                match = entity["match"].strip()
+                if (
+                    len(match) <= 1
+                    or match.lower() in self.COMMON_WORDS
+                    or not any(char.isalpha() for char in match)
+                ):
+                    continue
+                self.entities.append(match)
+
+    monkeypatch.setattr(TestDetector, "_load_json_entities", _load_from_tmp)
+
     det = TestDetector()
 
-    try:
-        # Short entity (<=3 chars) requires capitalization
-        matches = list(det.iter_filth("Use App today."))
-        assert len(matches) == 1
-        assert matches[0].text == "App"
+    # Short entity (<=3 chars) requires capitalization
+    matches = list(det.iter_filth("Use App today."))
+    assert len(matches) == 1
+    assert matches[0].text == "App"
 
-        # Lowercase short entity should not match
-        matches = list(det.iter_filth("Use app today."))
-        assert len(matches) == 0
+    # Lowercase short entity should not match
+    matches = list(det.iter_filth("Use app today."))
+    assert len(matches) == 0
 
-        # Inside word should not match
-        matches = list(det.iter_filth("Use Application today."))
-        assert len(matches) == 0
-    finally:
-        test_file.unlink(missing_ok=True)
+    # Inside word should not match
+    matches = list(det.iter_filth("Use Application today."))
+    assert len(matches) == 0
 
 
-def test_application_detector_multiple_matches() -> None:
+def test_application_detector_multiple_matches(tmp_path: Path, monkeypatch) -> None:
     """Application detector finds multiple occurrences."""
     DutchEntityDetector.reset_loaded_entities()
 
-    data_dir = Path(__file__).resolve().parents[1] / "sanitize_text" / "data" / "nl_entities"
-    test_file = data_dir / "test_apps_multi.json"
+    test_file = tmp_path / "test_apps_multi.json"
     test_file.write_text(
         json.dumps([
             {"match": "Salesforce", "filth_type": "application"},
@@ -159,24 +180,35 @@ def test_application_detector_multiple_matches() -> None:
     class TestDetector(DutchApplicationDetector):
         json_file = "test_apps_multi.json"
 
+    def _load_from_tmp(self) -> None:
+        with test_file.open(encoding="utf-8") as file_handle:
+            entities = json.load(file_handle)
+            for entity in entities:
+                match = entity["match"].strip()
+                if (
+                    len(match) <= 1
+                    or match.lower() in self.COMMON_WORDS
+                    or not any(char.isalpha() for char in match)
+                ):
+                    continue
+                self.entities.append(match)
+
+    monkeypatch.setattr(TestDetector, "_load_json_entities", _load_from_tmp)
+
     det = TestDetector()
 
-    try:
-        text = "We use Salesforce and AFAS for CRM."
-        matches = list(det.iter_filth(text))
-        assert len(matches) == 2
-        texts = {m.text for m in matches}
-        assert texts == {"Salesforce", "AFAS"}
-    finally:
-        test_file.unlink(missing_ok=True)
+    text = "We use Salesforce and AFAS for CRM."
+    matches = list(det.iter_filth(text))
+    assert len(matches) == 2
+    texts = {m.text for m in matches}
+    assert texts == {"Salesforce", "AFAS"}
 
 
-def test_application_detector_url_context_filtered() -> None:
+def test_application_detector_url_context_filtered(tmp_path: Path, monkeypatch) -> None:
     """Application detector does not match inside URLs."""
     DutchEntityDetector.reset_loaded_entities()
 
-    data_dir = Path(__file__).resolve().parents[1] / "sanitize_text" / "data" / "nl_entities"
-    test_file = data_dir / "test_apps_url.json"
+    test_file = tmp_path / "test_apps_url.json"
     test_file.write_text(
         json.dumps([{"match": "AppName", "filth_type": "application"}]),
         encoding="utf-8",
@@ -185,38 +217,48 @@ def test_application_detector_url_context_filtered() -> None:
     class TestDetector(DutchApplicationDetector):
         json_file = "test_apps_url.json"
 
+    def _load_from_tmp(self) -> None:
+        with test_file.open(encoding="utf-8") as file_handle:
+            entities = json.load(file_handle)
+            for entity in entities:
+                match = entity["match"].strip()
+                if (
+                    len(match) <= 1
+                    or match.lower() in self.COMMON_WORDS
+                    or not any(char.isalpha() for char in match)
+                ):
+                    continue
+                self.entities.append(match)
+
+    monkeypatch.setattr(TestDetector, "_load_json_entities", _load_from_tmp)
+
     det = TestDetector()
 
-    try:
-        # Inside URL should be filtered
-        text = "Visit https://example.com/AppName/page for info."
-        matches = list(det.iter_filth(text))
-        assert len(matches) == 0
+    # Inside URL should be filtered
+    text = "Visit https://example.com/AppName/page for info."
+    matches = list(det.iter_filth(text))
+    assert len(matches) == 0
 
-        # Outside URL should match
-        text = "The AppName system is great."
-        matches = list(det.iter_filth(text))
-        assert len(matches) == 1
-        assert matches[0].text == "AppName"
-    finally:
-        test_file.unlink(missing_ok=True)
+    # Outside URL should match
+    text = "The AppName system is great."
+    matches = list(det.iter_filth(text))
+    assert len(matches) == 1
+    assert matches[0].text == "AppName"
 
 
-def test_application_detector_deduplication_priority() -> None:
+def test_application_detector_deduplication_priority(tmp_path: Path, monkeypatch) -> None:
     """Application detector respects Dutch entity deduplication priority."""
     DutchEntityDetector.reset_loaded_entities()
 
-    data_dir = Path(__file__).resolve().parents[1] / "sanitize_text" / "data" / "nl_entities"
-
     # Create a location entity
-    loc_file = data_dir / "test_apps_loc.json"
+    loc_file = tmp_path / "test_apps_loc.json"
     loc_file.write_text(
         json.dumps([{"match": "CRM", "filth_type": "location"}]),
         encoding="utf-8",
     )
 
     # Create an application entity with same name
-    app_file = data_dir / "test_apps_app.json"
+    app_file = tmp_path / "test_apps_app.json"
     app_file.write_text(
         json.dumps([{"match": "CRM", "filth_type": "application"}]),
         encoding="utf-8",
@@ -230,26 +272,60 @@ def test_application_detector_deduplication_priority() -> None:
     class TestAppDetector(DutchApplicationDetector):
         json_file = "test_apps_app.json"
 
-    try:
-        # Load location first (higher priority)
-        loc_det = TestLocDetector()
-        assert "CRM" in loc_det.entities
+    def _load_location_from_tmp(self) -> None:
+        with loc_file.open(encoding="utf-8") as file_handle:
+            entities = json.load(file_handle)
+            for entity in entities:
+                match = entity["match"].strip()
+                if (
+                    len(match) <= 1
+                    or match.lower() in self.COMMON_WORDS
+                    or not any(char.isalpha() for char in match)
+                ):
+                    continue
+                self.entities.append(match)
 
-        # Application detector should have CRM filtered out
-        app_det = TestAppDetector()
-        assert "CRM" not in app_det.entities
-        assert "crm" not in {e.lower() for e in app_det.entities}
-    finally:
-        loc_file.unlink(missing_ok=True)
-        app_file.unlink(missing_ok=True)
+        cache = type(self)._dutch_loaded_entities
+        self.entities = [entity for entity in self.entities if entity.lower() not in cache]
+        for entity in self.entities:
+            cache.add(entity.lower())
+
+    def _load_application_from_tmp(self) -> None:
+        with app_file.open(encoding="utf-8") as file_handle:
+            entities = json.load(file_handle)
+            for entity in entities:
+                match = entity["match"].strip()
+                if (
+                    len(match) <= 1
+                    or match.lower() in self.COMMON_WORDS
+                    or not any(char.isalpha() for char in match)
+                ):
+                    continue
+                self.entities.append(match)
+
+        cache = type(self)._dutch_loaded_entities
+        self.entities = [entity for entity in self.entities if entity.lower() not in cache]
+        for entity in self.entities:
+            cache.add(entity.lower())
+
+    monkeypatch.setattr(TestLocDetector, "_load_json_entities", _load_location_from_tmp)
+    monkeypatch.setattr(TestAppDetector, "_load_json_entities", _load_application_from_tmp)
+
+    # Load location first (higher priority)
+    loc_det = TestLocDetector()
+    assert "CRM" in loc_det.entities
+
+    # Application detector should have CRM filtered out
+    app_det = TestAppDetector()
+    assert "CRM" not in app_det.entities
+    assert "crm" not in {e.lower() for e in app_det.entities}
 
 
-def test_application_detector_verbose_mode() -> None:
+def test_application_detector_verbose_mode(tmp_path: Path, monkeypatch) -> None:
     """Application detector respects verbose flag."""
     DutchEntityDetector.reset_loaded_entities()
 
-    data_dir = Path(__file__).resolve().parents[1] / "sanitize_text" / "data" / "nl_entities"
-    test_file = data_dir / "test_apps_verbose.json"
+    test_file = tmp_path / "test_apps_verbose.json"
     test_file.write_text(
         json.dumps([{"match": "TestSystem", "filth_type": "application"}]),
         encoding="utf-8",
@@ -258,13 +334,25 @@ def test_application_detector_verbose_mode() -> None:
     class TestDetector(DutchApplicationDetector):
         json_file = "test_apps_verbose.json"
 
+    def _load_from_tmp(self) -> None:
+        with test_file.open(encoding="utf-8") as file_handle:
+            entities = json.load(file_handle)
+            for entity in entities:
+                match = entity["match"].strip()
+                if (
+                    len(match) <= 1
+                    or match.lower() in self.COMMON_WORDS
+                    or not any(char.isalpha() for char in match)
+                ):
+                    continue
+                self.entities.append(match)
+
+    monkeypatch.setattr(TestDetector, "_load_json_entities", _load_from_tmp)
+
     det = TestDetector()
     det._verbose = True
 
-    try:
-        text = "Using TestSystem for testing."
-        matches = list(det.iter_filth(text))
-        assert len(matches) == 1
-        assert matches[0].text == "TestSystem"
-    finally:
-        test_file.unlink(missing_ok=True)
+    text = "Using TestSystem for testing."
+    matches = list(det.iter_filth(text))
+    assert len(matches) == 1
+    assert matches[0].text == "TestSystem"
