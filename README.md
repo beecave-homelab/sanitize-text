@@ -5,7 +5,7 @@ sanitize-text detects and removes personally identifiable information (PII) from
 ## Badges
 
 ![Python](https://img.shields.io/badge/Python-3.10--3.12-blue)
-![Version](https://img.shields.io/badge/version-1.5.0-brightgreen)
+![Version](https://img.shields.io/badge/version-1.6.0-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-yellow)
 
 ## Table of Contents
@@ -32,10 +32,10 @@ Handling real-world documents often means handling PII. sanitize-text provides a
 ## Features
 
 - **Multi-locale PII scrubbing** for Dutch (`nl_NL`) and English (`en_US`).
-- **Configurable detector catalogue** including email, phone, URLs, IP addresses, names, organizations, locations, `date_of_birth`, and optional spaCy-based entities.
+- **Configurable detector catalogue** including email, phone, URLs, IP addresses, names, organizations, locations, applications, `date_of_birth`, and optional spaCy-based entities.
 - **CLI pipeline** for scrubbing inline text, files, or stdin with append mode and rich output formats (TXT, Markdown, DOCX, PDF).
 - **Web UI** for interactive scrubbing, detector selection, locale toggles, verbose inspection, and file upload/download.
-- **Entity management tool** for extending Dutch city, name, and organization lists.
+- **Entity management tool** for extending Dutch city, name, organization, and application lists.
 - **Binary/rich document support** with pre-conversion for PDF, DOC/DOCX, RTF, and images.
 - **Layout-aware PDF export** and cleanup helpers to reduce placeholders and gibberish.
 
@@ -239,8 +239,11 @@ pdm run sanitize_text.add_entity -n "John Smith"
 # Add a new organization
 pdm run sanitize_text.add_entity -o "Example B.V."
 
+# Add a new application
+pdm run sanitize_text.add_entity -a "MyApp"
+
 # Add multiple entities at once
-pdm run sanitize_text.add_entity -c "Amsterdam" -n "John Smith" -o "Example B.V."
+pdm run sanitize_text.add_entity -c "Amsterdam" -n "John Smith" -o "Example B.V." -a "MyApp"
 ```
 
 Options:
@@ -248,6 +251,7 @@ Options:
 - `-c, --city`: Add a new city.
 - `-n, --name`: Add a new person name.
 - `-o, --organization`: Add a new organization.
+- `-a, --application`: Add a new application name.
 
 ### Binary and rich document input
 

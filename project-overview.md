@@ -3,6 +3,7 @@ repo: https://github.com/beecave-homelab/sanitize-text
 commit: c30ca71ce7ebad61e178de8f7b2c020b83b9bf21
 generated: 2025-11-21T12:43:00+01:00
 ---
+
 <!-- SECTIONS:API,CLI,WEBUI,CI,DOCKER,TESTS -->
 
 # Project Overview | sanitize-text
@@ -10,7 +11,7 @@ generated: 2025-11-21T12:43:00+01:00
 sanitize-text detects and removes personally identifiable information (PII) from text and common document formats for Dutch (`nl_NL`) and English (`en_US`), via a shared scrubbing core, a Click-based CLI, and a Flask web UI.
 
 [![Language](https://img.shields.io/badge/Python-3.10--3.12-blue)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/Version-1.5.0-brightgreen)](#version-summary)
+[![Version](https://img.shields.io/badge/Version-1.6.0-brightgreen)](#version-summary)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ## Table of Contents
@@ -51,7 +52,7 @@ pdm export --pyproject --no-hashes -G :all -o requirements.all.txt
 ## Version Summary
 
 | Version | Date | Type | Key Changes |
-|---------|------|------|-------------|
+| -- | -- | -- | -- |
 | 1.5.0 | 30-11-2025 | ✨ | WebUI favicon and branding tweaks, plus new PDM start scripts for Gunicorn/Flask dev server. |
 | 1.4.2 | 30-11-2025 | 🐛 | Docker image fixes (ffmpeg), corrected OCI labels, and PR CI for the dev branch. |
 | 1.4.1 | 24-11-2025 | 🐛 | Docker build workflow for main/PRs, updated Dockerfile and dev environment, improved .gitignore hygiene. |
@@ -166,13 +167,19 @@ flowchart LR
 ## Tests
 
 - **Test runner**: pytest is configured in [`pyproject.toml`](pyproject.toml) with `--maxfail=1 -q --import-mode=append`.
+
 - **Core**: tests cover scrubber orchestration, detector catalogues, NLP resources, normalization, and PDF utilities.
+
 - **CLI**: tests exercise CLI options, IO helpers, verbose mode, and end-to-end scrubbing flows.
+
 - **WebUI**: tests validate app factory, route registration, JSON responses, and export/download endpoints.
+
 - **Output & cleanup**: tests cover writers, cleanup utilities, and edge cases for placeholders and gibberish runs.
+
 - `pdm run pytest -q` for unit tests; `pdm run pytest --cov=. --cov-report=term-missing:skip-covered --cov-report=xml` for coverage.
-  
+
 - **Latest run (22-11-2025)**:
+
   - Commands: `pdm run pytest -q` and `pdm run test-cov`.
   - Result: 154 tests passed with approximately 95% total coverage (`coverage.xml` generated).
   - Warning: one `RuntimeWarning` from `tests/test_webui_run.py::test_run_module_download_flag_triggers_download` emitted by `runpy` about `sanitize_text.webui.run` already being present in `sys.modules` when executed as `__main__`. The test fully controls the injected modules via monkeypatching, so behaviour is deterministic despite this warning.

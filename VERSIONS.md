@@ -2,7 +2,8 @@
 
 ## ToC
 
-- [v1.5.0 (Current)](#v150-current---30-11-2025)
+- [v1.6.0 (Current)](#v160-current---25-03-2026)
+- [v1.5.0](#v150---30-11-2025)
 - [v1.4.2](#v142---30-11-2025)
 - [v1.4.1](#v141---24-11-2025)
 - [v1.4.0](#v140---23-11-2025)
@@ -11,7 +12,31 @@
 - [v1.1.0](#v110---22-11-2025)
 - [v1.0.0](#v100---21-11-2025)
 
-## **v1.5.0** (Current) - *30-11-2025*
+## **v1.6.0** (Current) - *25-03-2026*
+
+### ✨ **Brief Description (v1.6.0)**
+
+Minor release introducing enhanced application detection capabilities, Dutch application entity data, and comprehensive test coverage for the new detector.
+
+### ✨ **New Features in v1.6.0**
+
+- **Added**: Application name detection via `ApplicationDetector` in Dutch text, identifying software applications, systems, and tools.
+- **Added**: JSON-backed entity storage for Dutch applications at `sanitize_text/data/nl_entities/applications.json` (initialized empty; entries can be added via the add-entity workflow).
+- **Added**: Dedicated test suite `tests/test_application_detector.py` with full coverage for application detection edge cases.
+
+### 🔧 **Improvements in v1.6.0**
+
+- **Improved**: Core scrubber enhanced to support the new application detector alongside existing entity types.
+- **Updated**: AGENTS.md documentation with detailed architecture contracts and agent task playbooks.
+- **Updated**: Project documentation aligned with current codebase structure and detector patterns.
+
+### 📝 **Key Commits in v1.6.0**
+
+`2ddddd5`, `c479a5b`, `ce1f873`, `f5ca8bd`
+
+______________________________________________________________________
+
+## **v1.5.0** - *30-11-2025*
 
 ### ✨ **Brief Description (v1.5.0)**
 
@@ -30,7 +55,7 @@ Minor release adding a dedicated WebUI favicon and branding tweaks, plus new PDM
 
 `92f86de`, `73d898d`, `b26989a`
 
----
+______________________________________________________________________
 
 ## **v1.4.2** - *30-11-2025*
 
@@ -41,11 +66,13 @@ Patch release focused on Docker image internals and PR CI: adds ffmpeg to images
 ### 🐛 **Bug Fixes in v1.4.2**
 
 - **Fixed**: Missing `ffmpeg` dependency in Docker images for media-related workloads.
+
   - **Issue**: Some document conversion and multimedia pipelines required `ffmpeg`, but the base images did not include it, leading to runtime errors inside containers.
   - **Root Cause**: Both `Dockerfile` and `Dockerfile.dev` omitted installation of the `ffmpeg` package.
   - **Solution**: Added explicit `ffmpeg` installation to the production and development Dockerfiles.
 
 - **Fixed**: Incorrect OCI `org.opencontainers.image.source` label syntax in Docker images.
+
   - **Issue**: Image metadata for the source repository did not fully comply with OCI labelling recommendations.
   - **Root Cause**: The label key/value pair was mis-specified in the Dockerfile.
   - **Solution**: Corrected the label syntax to match the expected OCI format.
@@ -58,7 +85,7 @@ Patch release focused on Docker image internals and PR CI: adds ffmpeg to images
 
 `b1bd44d`, `e084959`, `d8dca11`, `fc6e424`, `79cb486`
 
----
+______________________________________________________________________
 
 ## **v1.4.1** - *24-11-2025*
 
@@ -79,7 +106,7 @@ Patch release focusing on Docker and CI infrastructure: adds a Docker build work
 
 `b2ded6f`, `6f4f538`, `bbf0901`, `870bc2c`
 
----
+______________________________________________________________________
 
 ## **v1.4.0** - *23-11-2025*
 
@@ -107,7 +134,7 @@ Feature release improving output formatting by removing locale headers from CLI/
 
 `da6f413`, `e62db35`, `3fdfb9d`, `174b500`, `3233bb2`
 
----
+______________________________________________________________________
 
 ## **v1.3.0** - *23-11-2025*
 
@@ -136,7 +163,7 @@ Minor release adding richer verbose logging for CLI/WebUI scrubbing flows, plus 
 
 `bc74868`, `6677897`, `39cdf4d`, `87c6685`, `be3289b`
 
----
+______________________________________________________________________
 
 ## **v1.2.0** - *22-11-2025*
 
@@ -164,7 +191,7 @@ Patch release delivering configurable WebUI CLI options, matching tests, updated
 
 `fd4a83b`, `5ce358e`, `ff48ffb`
 
----
+______________________________________________________________________
 
 ## **v1.1.0** - *22-11-2025*
 
@@ -187,7 +214,7 @@ Minor release focusing on SOLID-aligned refactors, a shared multi-locale scrubbi
 
 `8c8a185`, `189152d`, `cb291d7`, `556119c`, `9586710`
 
----
+______________________________________________________________________
 
 ## **v1.0.0** - *21-11-2025*
 
@@ -223,4 +250,4 @@ Representative commits from `5fcad855264b02ff237bbf00378c502681751e5f` .. `c30ca
 
 `c30ca71`, `80d7436`, `68e7fe3`, `f2ede7d`, `fc70e65`
 
----
+______________________________________________________________________

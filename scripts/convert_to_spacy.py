@@ -53,11 +53,11 @@ def convert_to_spacy_dataset(input_path: str) -> Path:
     Args:
         input_path (str): Path to the input JSON file.
 
-    Raises:
-        FileNotFoundError: If the input file does not exist.
-
     Returns:
         Path: Path to the output spaCy training data file.
+
+    Raises:
+        FileNotFoundError: If the input file does not exist.
     """
     in_path = Path(input_path)
 
