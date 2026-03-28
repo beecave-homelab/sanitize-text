@@ -21,7 +21,7 @@ Minor release introducing enhanced application detection capabilities, Dutch app
 ### ✨ **New Features in v1.6.0**
 
 - **Added**: Application name detection via `ApplicationDetector` in Dutch text, identifying software applications, systems, and tools.
-- **Added**: JSON-backed entity storage for Dutch applications at `sanitize_text/data/nl_entities/applications.json` with curated mappings (e.g., "AFAS" → `application`).
+- **Added**: JSON-backed entity storage for Dutch applications at `sanitize_text/data/nl_entities/applications.json` (initialized empty; entries can be added via the add-entity workflow).
 - **Added**: Dedicated test suite `tests/test_application_detector.py` with full coverage for application detection edge cases.
 
 ### 🔧 **Improvements in v1.6.0**

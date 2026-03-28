@@ -26,13 +26,12 @@ def test_application_filth_type() -> None:
     assert ApplicationFilth.type == "application"
 
 
-def test_dutch_application_detector_matches(tmp_path: Path) -> None:
+def test_dutch_application_detector_matches(tmp_path: Path, monkeypatch) -> None:
     """DutchApplicationDetector matches application names from JSON file."""
     DutchEntityDetector.reset_loaded_entities()
 
     # Create a temporary test JSON file
-    data_dir = Path(__file__).resolve().parents[1] / "sanitize_text" / "data" / "nl_entities"
-    test_file = data_dir / "test_applications.json"
+    test_file = tmp_path / "test_applications.json"
     test_file.write_text(
         json.dumps([{"match": "TestApp", "filth_type": "application"}]),
         encoding="utf-8",
@@ -42,16 +41,28 @@ def test_dutch_application_detector_matches(tmp_path: Path) -> None:
     class TestAppDetector(DutchApplicationDetector):
         json_file = "test_applications.json"
 
+    def _load_from_tmp(self) -> None:
+        with test_file.open(encoding="utf-8") as file_handle:
+            entities = json.load(file_handle)
+            for entity in entities:
+                match = entity["match"].strip()
+                if (
+                    len(match) <= 1
+                    or match.lower() in self.COMMON_WORDS
+                    or not any(char.isalpha() for char in match)
+                ):
+                    continue
+                self.entities.append(match)
+
+    monkeypatch.setattr(TestAppDetector, "_load_json_entities", _load_from_tmp)
+
     det = TestAppDetector()
     text = "I used TestApp yesterday."
     matches = list(det.iter_filth(text))
 
-    try:
-        assert len(matches) == 1
-        assert matches[0].text == "TestApp"
-        assert isinstance(matches[0], ApplicationFilth)
-    finally:
-        test_file.unlink(missing_ok=True)
+    assert len(matches) == 1
+    assert matches[0].text == "TestApp"
+    assert isinstance(matches[0], ApplicationFilth)
 
 
 def test_application_detector_registered_with_scrubadub() -> None:
