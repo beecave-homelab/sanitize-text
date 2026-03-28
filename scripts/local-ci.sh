@@ -31,7 +31,7 @@ Options:
   -h, --help                 Show help
 
 This script performs:
-  • pdm run fix
+  • pdm run lint --fix
   • pdm run format
   • pdm run test
   • pdm run test-cov
@@ -47,7 +47,7 @@ error_exit() {
 # Main logic
 main_logic() {
   echo "[+] The following tasks will be executed:"
-  echo "    • pdm run fix"
+  echo "    • pdm run lint --fix"
   echo "    • pdm run format"
   echo "    • pdm run test"
   echo "    • pdm run test-cov"
@@ -57,7 +57,7 @@ main_logic() {
 
   {
     echo "[+] Running fix..."
-    pdm run fix || exit 1
+    pdm run lint --fix || exit 1
     echo ""
     echo "[+] Running format..."
     pdm run format || exit 1
@@ -96,6 +96,14 @@ main() {
         ;;
     esac
   done
+
+  if ! command -v pdm >/dev/null 2>&1; then
+    error_exit "'pdm' is not available in PATH. Install PDM before running this script."
+  fi
+
+  if [[ ! -f "pyproject.toml" ]]; then
+    error_exit "'pyproject.toml' not found in current directory (${PWD}). Run this script from the project root."
+  fi
 
   main_logic "$output_file"
 }
