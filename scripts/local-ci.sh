@@ -31,7 +31,7 @@ Options:
   -h, --help                 Show help
 
 This script performs:
-  • pdm run lint --fix
+  • pdm run fix
   • pdm run format
   • pdm run test
   • pdm run test-cov
@@ -47,7 +47,7 @@ error_exit() {
 # Main logic
 main_logic() {
   echo "[+] The following tasks will be executed:"
-  echo "    • pdm run lint --fix"
+  echo "    • pdm run fix"
   echo "    • pdm run format"
   echo "    • pdm run test"
   echo "    • pdm run test-cov"
@@ -57,7 +57,7 @@ main_logic() {
 
   {
     echo "[+] Running fix..."
-    pdm run lint --fix || exit 1
+    pdm run fix || exit 1
     echo ""
     echo "[+] Running format..."
     pdm run format || exit 1
